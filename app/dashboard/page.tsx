@@ -1332,278 +1332,152 @@ export default function Dashboard() {
                               </div>
                             )}
 
-                            {/* Modulaire Preview - Componenten worden dynamisch gerenderd */}
-                            {componentOrder.map((componentId, index) => {
-                              const component = allComponents[componentId as keyof typeof allComponents];
-                              if (!enabledComponents[componentId as keyof typeof enabledComponents]) return null;
+                            {/* Exact copy of published page layout */}
+                            <div 
+                              className="min-h-screen"
+                              style={{ 
+                                backgroundColor: '#ffffff',
+                                color: '#000000'
+                              }}
+                            >
+                              {/* Header */}
+                              <div className="bg-white shadow-sm border-b">
+                                <div className="max-w-6xl mx-auto px-4 py-6">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                      <div 
+                                        className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+                                        style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                      >
+                                        {tournamentConfig.name.charAt(0).toUpperCase() || 'T'}
+                                      </div>
+                                      <div>
+                                        <h1 className="text-3xl font-bold text-gray-900">{tournamentConfig.name || 'Toernooi Naam'}</h1>
+                                        <p className="text-gray-600">{tournamentConfig.location || 'Locatie'}</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <div className="text-sm text-gray-500">
+                                        {tournamentConfig.startDate && new Date(tournamentConfig.startDate).toLocaleDateString('nl-NL')}
+                                        {tournamentConfig.endDate && tournamentConfig.startDate !== tournamentConfig.endDate && 
+                                          ` - ${new Date(tournamentConfig.endDate).toLocaleDateString('nl-NL')}`
+                                        }
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
 
-                              // Drop indicator voor nieuwe componenten
-                              const showDropIndicator = isDraggingFromLibrary && dragOverIndex === index;
+                              {/* Main Content */}
+                              <div className="max-w-6xl mx-auto px-4 py-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                  {/* Left Column - Tournament Info */}
+                                  <div className="lg:col-span-2 space-y-8">
+                                    {/* Description */}
+                                    {enabledComponents.description && (
+                                      <div>
+                                        <h2 
+                                          className="text-2xl font-bold mb-4"
+                                          style={{ color: tournamentConfig.primaryColor }}
+                                        >
+                                          Over dit toernooi
+                                        </h2>
+                                        <p className="text-lg leading-relaxed text-gray-700">
+                                          {tournamentConfig.description || 'Beschrijving van het toernooi...'}
+                                        </p>
+                                      </div>
+                                    )}
 
-                    return (
-                      <div key={`${componentId}-${index}`} data-component-index={index}>
-                        {/* Drop indicator */}
-                        {showDropIndicator && (
-                          <div className="h-2 bg-blue-500 rounded-full mx-4 mb-2 shadow-lg animate-pulse">
-                            <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
-                          </div>
-                        )}
-                        
-                        <SortableItem key={componentId} id={componentId} isPreview={true}>
-                          {(() => {
-                            switch (componentId) {
-                              case 'header':
-                                return (
-                                  <div className="bg-white shadow-sm border-b">
-                            <div className="px-4 py-6">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div 
-                                    className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-                                    style={{ backgroundColor: tournamentConfig.primaryColor }}
-                                  >
-                                    {(tournamentConfig.name || 'T').charAt(0).toUpperCase()}
+                                    {/* Tournament Details */}
+                                    {enabledComponents.tournamentDetails && (
+                                      <div>
+                                        <h2 
+                                          className="text-2xl font-bold mb-4"
+                                          style={{ color: tournamentConfig.primaryColor }}
+                                        >
+                                          Toernooi Details
+                                        </h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="font-semibold text-gray-900 mb-2">Locatie</h3>
+                                            <p className="text-gray-600">{tournamentConfig.location || 'Niet opgegeven'}</p>
+                                          </div>
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="font-semibold text-gray-900 mb-2">Max. Deelnemers</h3>
+                                            <p className="text-gray-600">{tournamentConfig.maxParticipants || 'Onbeperkt'}</p>
+                                          </div>
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="font-semibold text-gray-900 mb-2">Inschrijfgeld</h3>
+                                            <p className="text-gray-600">€{tournamentConfig.entryFee || '0'}</p>
+                                          </div>
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="font-semibold text-gray-900 mb-2">Prijzenpot</h3>
+                                            <p className="text-gray-600">€{tournamentConfig.prizePool || '0'}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                  <div>
-                                    <h1 className="text-3xl font-bold text-gray-900">
-                                      {tournamentConfig.name || 'Toernooi Naam'}
-                                    </h1>
-                                    <p className="text-gray-600">
-                                      {tournamentConfig.location || 'Locatie'}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm text-gray-500">
-                                    {tournamentConfig.startDate ? new Date(tournamentConfig.startDate).toLocaleDateString('nl-NL') : 'Start datum'}
-                                    {tournamentConfig.endDate && tournamentConfig.startDate !== tournamentConfig.endDate && 
-                                      ` - ${new Date(tournamentConfig.endDate).toLocaleDateString('nl-NL')}`
-                                    }
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'description':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Over dit toernooi
-                              </h2>
-                              <p className="text-lg leading-relaxed text-gray-700">
-                                {tournamentConfig.description || 'Beschrijf hier je toernooi. Deze tekst zal zichtbaar zijn voor deelnemers.'}
-                              </p>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'tournamentDetails':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Toernooi Details
-                              </h2>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                  <h3 className="font-semibold text-gray-900 mb-2">Locatie</h3>
-                                  <p className="text-gray-600">{tournamentConfig.location || 'Niet opgegeven'}</p>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                  <h3 className="font-semibold text-gray-900 mb-2">Max. Deelnemers</h3>
-                                  <p className="text-gray-600">{tournamentConfig.maxParticipants || 'Onbeperkt'}</p>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                  <h3 className="font-semibold text-gray-900 mb-2">Inschrijfgeld</h3>
-                                  <p className="text-gray-600">€{tournamentConfig.entryFee || '0'}</p>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-lg">
-                                  <h3 className="font-semibold text-gray-900 mb-2">Prijzenpot</h3>
-                                  <p className="text-gray-600">€{tournamentConfig.prizePool || '0'}</p>
-                                </div>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'registration':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div className="max-w-md mx-auto">
-                              <div 
-                                className="p-6 rounded-lg text-white"
-                                style={{ backgroundColor: tournamentConfig.primaryColor }}
-                              >
-                                <h3 className="text-xl font-bold mb-4">Inschrijven</h3>
-                                <p className="mb-4">Schrijf je nu in voor dit toernooi!</p>
-                                
-                                <div className="space-y-3 mb-6">
-                                  <div className="flex justify-between">
-                                    <span>Inschrijfgeld:</span>
-                                    <span className="font-semibold">€{tournamentConfig.entryFee || '0'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Max. deelnemers:</span>
-                                    <span className="font-semibold">{tournamentConfig.maxParticipants || 'Onbeperkt'}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Prijzenpot:</span>
-                                    <span className="font-semibold">€{tournamentConfig.prizePool || '0'}</span>
-                                  </div>
-                                </div>
 
-                                <button 
-                                  className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                                  style={{ color: tournamentConfig.primaryColor }}
-                                >
-                                  Inschrijven voor Toernooi
-                                </button>
+                                  {/* Right Column - Registration */}
+                                  <div className="lg:col-span-1">
+                                    <div className="sticky top-8">
+                                      {enabledComponents.registration && (
+                                        <div 
+                                          className="p-6 rounded-lg text-white"
+                                          style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                        >
+                                          <h3 className="text-xl font-bold mb-4">Inschrijven</h3>
+                                          <p className="mb-4">Schrijf je nu in voor dit toernooi!</p>
+                                          
+                                          <div className="space-y-3 mb-6">
+                                            <div className="flex justify-between">
+                                              <span>Inschrijfgeld:</span>
+                                              <span className="font-semibold">€{tournamentConfig.entryFee || '0'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span>Max. deelnemers:</span>
+                                              <span className="font-semibold">{tournamentConfig.maxParticipants || 'Onbeperkt'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                              <span>Prijzenpot:</span>
+                                              <span className="font-semibold">€{tournamentConfig.prizePool || '0'}</span>
+                                            </div>
+                                          </div>
+
+                                          <button 
+                                            className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                                            style={{ color: tournamentConfig.primaryColor }}
+                                          >
+                                            Inschrijven voor Toernooi
+                                          </button>
+                                        </div>
+                                      )}
+
+                                      {/* Tournament Stats */}
+                                      {enabledComponents.stats && (
+                                        <div className="mt-6 grid grid-cols-2 gap-4">
+                                          <div 
+                                            className="p-4 rounded-lg text-center text-white"
+                                            style={{ backgroundColor: tournamentConfig.secondaryColor }}
+                                          >
+                                            <div className="text-2xl font-bold">{tournamentConfig.maxParticipants || '∞'}</div>
+                                            <div className="text-sm opacity-90">Max. Deelnemers</div>
+                                          </div>
+                                          <div 
+                                            className="p-4 rounded-lg text-center text-white"
+                                            style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                          >
+                                            <div className="text-2xl font-bold">€{tournamentConfig.prizePool || '0'}</div>
+                                            <div className="text-sm opacity-90">Prijzenpot</div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                                  </div>
-                                );
-                              
-                              case 'stats':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div className="max-w-md mx-auto grid grid-cols-2 gap-4">
-                              <div 
-                                className="p-4 rounded-lg text-center text-white"
-                                style={{ backgroundColor: tournamentConfig.secondaryColor }}
-                              >
-                                <div className="text-2xl font-bold">{tournamentConfig.maxParticipants || '∞'}</div>
-                                <div className="text-sm opacity-90">Max. Deelnemers</div>
-                              </div>
-                              <div 
-                                className="p-4 rounded-lg text-center text-white"
-                                style={{ backgroundColor: tournamentConfig.primaryColor }}
-                              >
-                                <div className="text-2xl font-bold">€{tournamentConfig.prizePool || '0'}</div>
-                                <div className="text-sm opacity-90">Prijzenpot</div>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'schedule':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Programma
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Programma details worden hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'rules':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Reglement
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Spelregels en voorwaarden worden hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'prizes':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Prijzenoverzicht
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Gedetailleerde prijzenverdeling wordt hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'sponsors':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Sponsors
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Sponsor logos en informatie worden hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'social':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Social Media
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Social media links en sharing opties worden hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              case 'contact':
-                                return (
-                                  <div className="px-4 py-8">
-                            <div>
-                              <h2 
-                                className="text-2xl font-bold mb-4"
-                                style={{ color: tournamentConfig.primaryColor }}
-                              >
-                                Contact
-                              </h2>
-                              <div className="bg-gray-50 p-4 rounded-lg">
-                                <p className="text-gray-600">Contact informatie en vragen worden hier getoond</p>
-                              </div>
-                            </div>
-                                  </div>
-                                );
-                              
-                              default:
-                                return null;
-                            }
-                          })()}
-                        </SortableItem>
-                      </div>
-                    );
-                  })}
 
                               {/* Drop indicator aan het einde */}
                               {isDraggingFromLibrary && dragOverIndex !== null && dragOverIndex >= componentOrder.length && componentOrder.length > 0 && (
