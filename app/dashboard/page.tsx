@@ -9,12 +9,16 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   useSortable,
@@ -22,7 +26,17 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable Item Component
-function SortableItem({ id, children, isPreview = false }: { id: string; children: React.ReactNode; isPreview?: boolean }) {
+function SortableItem({ 
+  id, 
+  children, 
+  isPreview = false, 
+  isLibrary = false 
+}: { 
+  id: string; 
+  children: React.ReactNode; 
+  isPreview?: boolean;
+  isLibrary?: boolean;
+}) {
   const {
     attributes,
     listeners,
@@ -30,7 +44,10 @@ function SortableItem({ id, children, isPreview = false }: { id: string; childre
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ 
+    id,
+    disabled: isLibrary // Library items zijn niet sortable, alleen draggable
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,11 +60,11 @@ function SortableItem({ id, children, isPreview = false }: { id: string; childre
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...(isPreview ? {} : listeners)}
-      className={`${isPreview ? '' : 'cursor-grab active:cursor-grabbing'} ${isDragging ? 'z-50' : ''} relative group`}
+      {...(isLibrary ? {} : listeners)}
+      className={`${isLibrary ? 'cursor-grab active:cursor-grabbing' : (isPreview ? 'cursor-grab active:cursor-grabbing' : '')} ${isDragging ? 'z-50' : ''} relative group`}
     >
-      {/* Drag Handle */}
-      {!isPreview && (
+      {/* Drag Handle voor Preview */}
+      {isPreview && !isDragging && (
         <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing">
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -94,7 +111,13 @@ export default function Dashboard() {
     description: true,
     tournamentDetails: true,
     registration: true,
-    stats: true
+    stats: true,
+    schedule: false,
+    rules: false,
+    prizes: false,
+    sponsors: false,
+    social: false,
+    contact: false
   });
 
   const [componentOrder, setComponentOrder] = useState([
@@ -107,10 +130,73 @@ export default function Dashboard() {
 
   // Tab state voor linker paneel
   const [leftPanelTab, setLeftPanelTab] = useState<'edit' | 'add'>('edit');
+  
+  // Viewport state voor live preview
+  const [previewViewport, setPreviewViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [animationDuration, setAnimationDuration] = useState(300);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState<'scale' | 'width' | 'complete'>('complete');
+  
+  // State voor component dropdowns
+  const [expandedComponents, setExpandedComponents] = useState<{[key: string]: boolean}>({});
+  
+  // Functie om animatie duur te berekenen op basis van viewport verandering
+  const getAnimationDuration = (from: string, to: string) => {
+    const viewportSizes = {
+      'desktop': 1920,
+      'tablet': 768,
+      'mobile': 375
+    };
+    
+    const sizeDiff = Math.abs(viewportSizes[from as keyof typeof viewportSizes] - viewportSizes[to as keyof typeof viewportSizes]);
+    
+    // Base duration van 500ms + 0.03ms per pixel verschil
+    const baseDuration = 500;
+    const pixelMultiplier = 0.03;
+    
+    return Math.min(baseDuration + (sizeDiff * pixelMultiplier), 1000); // Max 1 seconde
+  };
+
+  // Handler voor viewport verandering
+  const handleViewportChange = (newViewport: 'desktop' | 'tablet' | 'mobile') => {
+    if (isAnimating) return; // Voorkom dubbele animaties
+    
+    const duration = getAnimationDuration(previewViewport, newViewport);
+    setAnimationDuration(duration);
+    setIsAnimating(true);
+    setAnimationPhase('scale');
+    
+    // Eerst de scale animeren (60% van de tijd)
+    const scaleDuration = duration * 0.6;
+    
+    // Start met scale animatie
+    setPreviewViewport(newViewport);
+    
+    // Na scale animatie, start width animatie
+    setTimeout(() => {
+      setAnimationPhase('width');
+    }, scaleDuration);
+    
+    // Reset animatie state na de volledige animatie
+    setTimeout(() => {
+      setIsAnimating(false);
+      setAnimationPhase('complete');
+    }, duration);
+  };
+
+  // Drag & Drop state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedComponent, setDraggedComponent] = useState<any>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isDraggingFromLibrary, setIsDraggingFromLibrary] = useState(false);
 
   // Drag & Drop sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -336,6 +422,15 @@ export default function Dashboard() {
     }));
   };
 
+  // Toggle component dropdown
+  const toggleComponentDropdown = (componentId: string) => {
+    setExpandedComponents(prev => ({
+      ...prev,
+      [componentId]: !prev[componentId]
+    }));
+  };
+
+
   const moveComponent = (fromIndex: number, toIndex: number) => {
     const newOrder = [...componentOrder];
     const [movedComponent] = newOrder.splice(fromIndex, 1);
@@ -343,17 +438,60 @@ export default function Dashboard() {
     setComponentOrder(newOrder);
   };
 
-  // Drag & Drop handler
+  // Drag & Drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    
+    // Sla de component data op
+    const component = allComponents[active.id as keyof typeof allComponents];
+    if (component) {
+      setDraggedComponent(component);
+      // Check of het van de library komt (niet in componentOrder)
+      setIsDraggingFromLibrary(!componentOrder.includes(active.id as string));
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) {
+      setDragOverIndex(null);
+      return;
+    }
+    
+    // Als we over een bestaand component slepen
+    if (over.id !== 'preview-area' && componentOrder.includes(over.id as string)) {
+      const newIndex = componentOrder.indexOf(over.id as string);
+      setDragOverIndex(newIndex);
+    } else if (over.id === 'preview-area') {
+      // Als we over de preview area slepen, zet aan het einde
+      setDragOverIndex(componentOrder.length);
+    } else {
+      setDragOverIndex(null);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
-    if (over && active.id !== over.id) {
+    
+    setActiveId(null);
+    setDraggedComponent(null);
+    setDragOverIndex(null);
+    setIsDraggingFromLibrary(false);
+    
+    if (!over) return;
+    
+    // Herordenen binnen preview
+    if (over.id !== 'preview-area' && active.id !== over.id) {
       const oldIndex = componentOrder.indexOf(active.id as string);
       const newIndex = componentOrder.indexOf(over.id as string);
       
-      setComponentOrder((items) => {
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      if (oldIndex !== -1 && newIndex !== -1) {
+        setComponentOrder((items) => {
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
     }
   };
 
@@ -514,7 +652,7 @@ export default function Dashboard() {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-600"
                   placeholder="Voer gebruikersnaam in"
                   required
                 />
@@ -529,7 +667,7 @@ export default function Dashboard() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-600"
                   placeholder="Voer wachtwoord in"
                   required
                 />
@@ -644,12 +782,12 @@ export default function Dashboard() {
                                 onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
                                 className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                               />
-                              <input
-                                type="text"
-                                value={tournamentConfig.primaryColor}
-                                onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
+                                <input
+                                  type="text"
+                                  value={tournamentConfig.primaryColor}
+                                  onChange={(e) => handleConfigChange('primaryColor', e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                />
                             </div>
                           </div>
 
@@ -664,12 +802,12 @@ export default function Dashboard() {
                                 onChange={(e) => handleConfigChange('secondaryColor', e.target.value)}
                                 className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                               />
-                              <input
-                                type="text"
-                                value={tournamentConfig.secondaryColor}
-                                onChange={(e) => handleConfigChange('secondaryColor', e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              />
+                                <input
+                                  type="text"
+                                  value={tournamentConfig.secondaryColor}
+                                  onChange={(e) => handleConfigChange('secondaryColor', e.target.value)}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                />
                             </div>
                           </div>
                         </div>
@@ -681,63 +819,81 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-600 mb-4">Configureer je huidige componenten</p>
                         
                         <div className="space-y-4">
-                          {enabledComponentsList.map((component) => (
-                            <div key={component.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                              {/* Component Header */}
-                              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-lg">{component.icon}</span>
-                                    <div>
-                                      <div className="font-medium text-gray-900">{component.name}</div>
-                                      <div className="text-sm text-gray-500">{component.description}</div>
+                          {enabledComponentsList.map((component) => {
+                            const isExpanded = expandedComponents[component.id];
+                            return (
+                              <div key={component.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                {/* Component Header */}
+                                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                  <div className="flex items-center justify-between">
+                                    <button
+                                      onClick={() => toggleComponentDropdown(component.id)}
+                                      className="flex items-center gap-3 flex-1 text-left hover:bg-gray-100 rounded-md p-2 -m-2 transition-colors"
+                                    >
+                                      <span className="text-lg">{component.icon}</span>
+                                      <div>
+                                        <div className="font-medium text-gray-900">{component.name}</div>
+                                        <div className="text-sm text-gray-500">{component.description}</div>
+                                      </div>
+                                      <div className="ml-auto">
+                                        <svg 
+                                          className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+                                          fill="none" 
+                                          stroke="currentColor" 
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
+                                    </button>
+                                    <div className="flex items-center gap-2 ml-2">
+                                      <button
+                                        onClick={() => toggleComponent(component.id)}
+                                        className={`w-12 h-6 rounded-full transition-colors ${
+                                          enabledComponents[component.id as keyof typeof enabledComponents]
+                                            ? 'bg-green-500'
+                                            : 'bg-gray-300'
+                                        }`}
+                                      >
+                                        <div
+                                          className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                                            enabledComponents[component.id as keyof typeof enabledComponents]
+                                              ? 'translate-x-6'
+                                              : 'translate-x-0.5'
+                                          }`}
+                                        />
+                                      </button>
+                                      <button
+                                        onClick={() => toggleComponent(component.id)}
+                                        className="text-gray-400 hover:text-red-500 transition-colors"
+                                        title="Component verwijderen"
+                                      >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                      </button>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => toggleComponent(component.id)}
-                                      className={`w-12 h-6 rounded-full transition-colors ${
-                                        enabledComponents[component.id as keyof typeof enabledComponents]
-                                          ? 'bg-green-500'
-                                          : 'bg-gray-300'
-                                      }`}
-                                    >
-                                      <div
-                                        className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
-                                          enabledComponents[component.id as keyof typeof enabledComponents]
-                                            ? 'translate-x-6'
-                                            : 'translate-x-0.5'
-                                        }`}
-                                      />
-                                    </button>
-                                    <button
-                                      onClick={() => toggleComponent(component.id)}
-                                      className="text-gray-400 hover:text-red-500 transition-colors"
-                                      title="Component verwijderen"
-                                    >
-                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
-                                    </button>
-                                  </div>
                                 </div>
-                              </div>
 
-                              {/* Component Content */}
-                              <div className="p-4">
+                              {/* Component Content - Collapsible */}
+                              <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                                isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                              }`}>
+                                <div className="p-4">
                                 {component.id === 'header' && (
                                   <div className="space-y-4">
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Toernooi Naam
                                       </label>
-                                      <input
-                                        type="text"
-                                        value={tournamentConfig.name}
-                                        onChange={(e) => handleConfigChange('name', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Voer toernooi naam in"
-                                      />
+                                        <input
+                                          type="text"
+                                          value={tournamentConfig.name}
+                                          onChange={(e) => handleConfigChange('name', e.target.value)}
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                          placeholder="Voer toernooi naam in"
+                                        />
                                     </div>
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -747,7 +903,7 @@ export default function Dashboard() {
                                         type="text"
                                         value={tournamentConfig.location}
                                         onChange={(e) => handleConfigChange('location', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                         placeholder="Waar wordt het toernooi gehouden?"
                                       />
                                     </div>
@@ -760,7 +916,7 @@ export default function Dashboard() {
                                           type="date"
                                           value={tournamentConfig.startDate}
                                           onChange={(e) => handleConfigChange('startDate', e.target.value)}
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                         />
                                       </div>
                                       <div>
@@ -771,7 +927,7 @@ export default function Dashboard() {
                                           type="date"
                                           value={tournamentConfig.endDate}
                                           onChange={(e) => handleConfigChange('endDate', e.target.value)}
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                         />
                                       </div>
                                     </div>
@@ -786,7 +942,7 @@ export default function Dashboard() {
                                     <textarea
                                       value={tournamentConfig.description}
                                       onChange={(e) => handleConfigChange('description', e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                       rows={4}
                                       placeholder="Beschrijf het toernooi"
                                     />
@@ -804,7 +960,7 @@ export default function Dashboard() {
                                           type="number"
                                           value={tournamentConfig.maxParticipants}
                                           onChange={(e) => handleConfigChange('maxParticipants', e.target.value)}
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                           placeholder="Aantal deelnemers"
                                         />
                                       </div>
@@ -816,7 +972,7 @@ export default function Dashboard() {
                                           type="number"
                                           value={tournamentConfig.entryFee}
                                           onChange={(e) => handleConfigChange('entryFee', e.target.value)}
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                           placeholder="0"
                                         />
                                       </div>
@@ -829,7 +985,7 @@ export default function Dashboard() {
                                         type="number"
                                         value={tournamentConfig.prizePool}
                                         onChange={(e) => handleConfigChange('prizePool', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
                                         placeholder="0"
                                       />
                                     </div>
@@ -846,58 +1002,109 @@ export default function Dashboard() {
                                     </p>
                                   </div>
                                 )}
+                                </div>
                               </div>
                             </div>
-                          ))}
+                          );
+                        })}
                         </div>
                       </div>
                     </>
                   ) : (
-                    /* Toevoeg Tab - Alle beschikbare componenten */
+                    /* Toevoeg Tab - Alle beschikbare componenten met Drag & Drop */
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Alle Componenten</h3>
-                      <p className="text-sm text-gray-600 mb-6">Voeg nieuwe componenten toe aan je toernooi pagina</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Component Bibliotheek</h3>
+                      <p className="text-sm text-gray-600 mb-6">Sleep componenten naar de preview om ze toe te voegen of beheer ze hier</p>
                       
-                      {/* Categorieën */}
-                      {['Basis', 'Informatie', 'Interactie', 'Marketing'].map(category => (
-                        <div key={category} className="mb-6">
-                          <h4 className="text-md font-semibold text-gray-700 mb-3">{category}</h4>
-                          <div className="space-y-2">
-                            {Object.values(allComponents)
-                              .filter(comp => comp.category === category)
-                              .map((component) => (
-                                <div key={component.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-lg">{component.icon}</span>
-                                    <div>
-                                      <div className="font-medium text-gray-900">{component.name}</div>
-                                      <div className="text-sm text-gray-500">{component.description}</div>
+                      <div className="grid grid-cols-1 gap-3">
+                        {['Basis', 'Informatie', 'Interactie', 'Marketing'].map(category => (
+                          <div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-gray-700 mb-3">{category}</h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {Object.values(allComponents)
+                                .filter(comp => comp.category === category)
+                                .map((component) => {
+                                  const isEnabled = enabledComponents[component.id as keyof typeof enabledComponents];
+                                  return (
+                                    <div
+                                      key={component.id}
+                                      draggable={!isEnabled} // Alleen draggable als niet toegevoegd
+                                      onDragStart={(e) => {
+                                        if (!isEnabled) {
+                                          e.dataTransfer.setData('text/plain', component.id);
+                                          setActiveId(component.id);
+                                          setDraggedComponent(component);
+                                          setIsDraggingFromLibrary(true);
+                                        }
+                                      }}
+                                      className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
+                                        isEnabled
+                                          ? 'border-green-300 bg-green-50 cursor-default'
+                                          : 'border-gray-200 hover:bg-gray-50 cursor-grab active:cursor-grabbing'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <span className="text-lg">{component.icon}</span>
+                                        <div>
+                                          <div className="font-medium text-gray-900">{component.name}</div>
+                                          <div className="text-sm text-gray-500">{component.description}</div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {/* Toggle Switch */}
+                                        <button
+                                          onClick={() => toggleComponent(component.id)}
+                                          className={`w-12 h-6 rounded-full transition-colors ${
+                                            isEnabled
+                                              ? 'bg-green-500'
+                                              : 'bg-gray-300'
+                                          }`}
+                                        >
+                                          <div
+                                            className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                                              isEnabled
+                                                ? 'translate-x-6'
+                                                : 'translate-x-0.5'
+                                            }`}
+                                          />
+                                        </button>
+                                        
+                                        {/* Status Badge */}
+                                        {isEnabled ? (
+                                          <span className="px-3 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                                            Toegevoegd
+                                          </span>
+                                        ) : (
+                                          <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                                            <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                              <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                                            </svg>
+                                          </div>
+                                        )}
+                                        
+                                        {/* Remove Button (alleen zichtbaar als toegevoegd) */}
+                                        {isEnabled && (
+                                          <button
+                                            onClick={() => {
+                                              toggleComponent(component.id);
+                                              // Verwijder ook uit componentOrder
+                                              setComponentOrder(prev => prev.filter(id => id !== component.id));
+                                            }}
+                                            className="text-gray-400 hover:text-red-500 transition-colors ml-1"
+                                            title="Component verwijderen"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                  <button
-                                    onClick={() => toggleComponent(component.id)}
-                                    disabled={enabledComponents[component.id as keyof typeof enabledComponents]}
-                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                      enabledComponents[component.id as keyof typeof enabledComponents]
-                                        ? 'bg-green-100 text-green-700 cursor-not-allowed'
-                                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                                    }`}
-                                  >
-                                    {enabledComponents[component.id as keyof typeof enabledComponents] ? 'Toegevoegd' : 'Toevoegen'}
-                                  </button>
-                                </div>
-                              ))}
+                                  );
+                                })}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                      
-                      {/* Drag & Drop Instructies */}
-                      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="text-sm font-semibold text-blue-800 mb-2">💡 Tip</h4>
-                        <p className="text-sm text-blue-700">
-                          Je kunt componenten in de live preview slepen om de volgorde te wijzigen. 
-                          Houd de muis ingedrukt op een component en sleep deze naar de gewenste positie.
-                        </p>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -950,35 +1157,204 @@ export default function Dashboard() {
                   {/* Rechter paneel - Live Preview */}
                   <div className="lg:col-span-2">
                     <div className="bg-white rounded-lg shadow-lg p-6 h-[80vh] flex flex-col">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-6">Live Preview</h2>
-                      
-                      <div 
-                        className="border rounded-lg overflow-hidden flex-1 overflow-y-auto"
-                        style={{ 
-                          backgroundColor: '#ffffff',
-                          color: '#000000'
-                        }}
-                      >
-                        {/* Drag & Drop Context voor Live Preview */}
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={handleDragEnd}
-                        >
-                          <SortableContext
-                            items={componentOrder}
-                            strategy={verticalListSortingStrategy}
+                      {/* Preview Header met Viewport Controls */}
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">Live Preview</h2>
+                        
+                        {/* Viewport Controls */}
+                        <div className="flex items-center gap-3">
+                          {/* Viewport Indicator */}
+                          <div className="text-sm text-gray-500 font-medium">
+                            {previewViewport === 'desktop' && 'Desktop (1920px)'}
+                            {previewViewport === 'tablet' && 'Tablet (768px)'}
+                            {previewViewport === 'mobile' && 'Mobile (375px)'}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                          <button
+                            onClick={() => handleViewportChange('desktop')}
+                            className={`p-2 rounded-md transition-colors ${
+                              previewViewport === 'desktop'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Desktop View"
                           >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                          
+                          <button
+                            onClick={() => handleViewportChange('tablet')}
+                            className={`p-2 rounded-md transition-colors ${
+                              previewViewport === 'tablet'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Tablet View"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                          
+                          <button
+                            onClick={() => handleViewportChange('mobile')}
+                            className={`p-2 rounded-md transition-colors ${
+                              previewViewport === 'mobile'
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Mobile View"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={componentOrder}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div 
+                            id="preview-area"
+                            className="border rounded-lg overflow-hidden flex-1 overflow-y-auto min-h-[400px] mx-auto transition-all ease-in-out"
+                            style={{ 
+                              backgroundColor: '#ffffff',
+                              color: '#000000',
+                              transitionDuration: animationPhase === 'scale' 
+                                ? `${animationDuration * 0.6}ms`
+                                : animationPhase === 'width'
+                                ? `${animationDuration * 0.4}ms`
+                                : '0ms',
+                              width: previewViewport === 'desktop' 
+                                ? '100%' 
+                                : previewViewport === 'tablet'
+                                ? '768px'
+                                : '375px',
+                              maxWidth: previewViewport === 'desktop' 
+                                ? 'none' 
+                                : previewViewport === 'tablet'
+                                ? '768px'
+                                : '375px',
+                              transform: previewViewport === 'desktop' 
+                                ? 'scale(1)' 
+                                : previewViewport === 'tablet'
+                                ? 'scale(0.95)'
+                                : 'scale(0.9)',
+                              transformOrigin: 'center top'
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'copy';
+                              
+                              // Eenvoudigere methode: bepaal positie op basis van scroll positie
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const y = e.clientY - rect.top;
+                              const scrollTop = e.currentTarget.scrollTop;
+                              const totalY = y + scrollTop;
+                              
+                              // Bepaal de index op basis van de positie
+                              let targetIndex = componentOrder.length;
+                              
+                              // Als we over bestaande componenten slepen
+                              if (componentOrder.length > 0) {
+                                // Gebruik de werkelijke component elementen om de positie te bepalen
+                                const componentElements = e.currentTarget.querySelectorAll('[data-component-index]');
+                                let foundIndex = componentOrder.length;
+                                
+                                componentElements.forEach((element, index) => {
+                                  const elementRect = element.getBoundingClientRect();
+                                  const elementTop = elementRect.top - rect.top + scrollTop;
+                                  const elementBottom = elementRect.bottom - rect.top + scrollTop;
+                                  
+                                  // Als de muis boven het midden van het element is, plaats ervoor
+                                  if (totalY < elementTop + (elementRect.height / 2)) {
+                                    foundIndex = Math.min(foundIndex, index);
+                                  }
+                                });
+                                
+                                targetIndex = foundIndex;
+                              }
+                              
+                              setDragOverIndex(targetIndex);
+                              
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const componentId = e.dataTransfer.getData('text/plain');
+                              
+                              
+                              if (componentId && !enabledComponents[componentId as keyof typeof enabledComponents]) {
+                                setEnabledComponents(prev => ({
+                                  ...prev,
+                                  [componentId]: true
+                                }));
+                                
+                                // Voeg component toe op de gewenste positie
+                                setComponentOrder(prev => {
+                                  if (!prev.includes(componentId)) {
+                                    const dropIndex = dragOverIndex !== null ? dragOverIndex : prev.length;
+                                    const newOrder = [...prev];
+                                    newOrder.splice(dropIndex, 0, componentId);
+                                    return newOrder;
+                                  }
+                                  return prev;
+                                });
+                              }
+                            }}
+                          >
+                            {/* Drop Zone Indicator */}
+                            {componentOrder.length === 0 && (
+                              <div className="flex items-center justify-center h-full min-h-[400px] border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                <div className="text-center">
+                                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  <p className="mt-2 text-sm text-gray-500">
+                                    Sleep componenten hierheen om je toernooi pagina te bouwen
+                                  </p>
+                                  <p className="mt-1 text-xs text-gray-400">
+                                    Ga naar de "Toevoeg" tab om componenten te selecteren
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Modulaire Preview - Componenten worden dynamisch gerenderd */}
                             {componentOrder.map((componentId, index) => {
                               const component = allComponents[componentId as keyof typeof allComponents];
                               if (!enabledComponents[componentId as keyof typeof enabledComponents]) return null;
 
-                    switch (componentId) {
-                      case 'header':
-                        return (
-                          <SortableItem key="header" id="header">
-                            <div className="bg-white shadow-sm border-b">
+                              // Drop indicator voor nieuwe componenten
+                              const showDropIndicator = isDraggingFromLibrary && dragOverIndex === index;
+
+                    return (
+                      <div key={`${componentId}-${index}`} data-component-index={index}>
+                        {/* Drop indicator */}
+                        {showDropIndicator && (
+                          <div className="h-2 bg-blue-500 rounded-full mx-4 mb-2 shadow-lg animate-pulse">
+                            <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
+                          </div>
+                        )}
+                        
+                        <SortableItem key={componentId} id={componentId} isPreview={true}>
+                          {(() => {
+                            switch (componentId) {
+                              case 'header':
+                                return (
+                                  <div className="bg-white shadow-sm border-b">
                             <div className="px-4 py-6">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -1007,14 +1383,12 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'description':
-                        return (
-                          <SortableItem key="description" id="description">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'description':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1026,14 +1400,12 @@ export default function Dashboard() {
                                 {tournamentConfig.description || 'Beschrijf hier je toernooi. Deze tekst zal zichtbaar zijn voor deelnemers.'}
                               </p>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'tournamentDetails':
-                        return (
-                          <SortableItem key="tournamentDetails" id="tournamentDetails">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'tournamentDetails':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1060,14 +1432,12 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'registration':
-                        return (
-                          <SortableItem key="registration" id="registration">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'registration':
+                                return (
+                                  <div className="px-4 py-8">
                             <div className="max-w-md mx-auto">
                               <div 
                                 className="p-6 rounded-lg text-white"
@@ -1099,14 +1469,12 @@ export default function Dashboard() {
                                 </button>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'stats':
-                        return (
-                          <SortableItem key="stats" id="stats">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'stats':
+                                return (
+                                  <div className="px-4 py-8">
                             <div className="max-w-md mx-auto grid grid-cols-2 gap-4">
                               <div 
                                 className="p-4 rounded-lg text-center text-white"
@@ -1123,14 +1491,12 @@ export default function Dashboard() {
                                 <div className="text-sm opacity-90">Prijzenpot</div>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'schedule':
-                        return (
-                          <SortableItem key="schedule" id="schedule">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'schedule':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1142,14 +1508,12 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Programma details worden hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'rules':
-                        return (
-                          <SortableItem key="rules" id="rules">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'rules':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1161,14 +1525,12 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Spelregels en voorwaarden worden hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'prizes':
-                        return (
-                          <SortableItem key="prizes" id="prizes">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'prizes':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1180,14 +1542,12 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Gedetailleerde prijzenverdeling wordt hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'sponsors':
-                        return (
-                          <SortableItem key="sponsors" id="sponsors">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'sponsors':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1199,14 +1559,12 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Sponsor logos en informatie worden hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'social':
-                        return (
-                          <SortableItem key="social" id="social">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'social':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1218,14 +1576,12 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Social media links en sharing opties worden hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      case 'contact':
-                        return (
-                          <SortableItem key="contact" id="contact">
-                            <div className="px-4 py-8">
+                                  </div>
+                                );
+                              
+                              case 'contact':
+                                return (
+                                  <div className="px-4 py-8">
                             <div>
                               <h2 
                                 className="text-2xl font-bold mb-4"
@@ -1237,19 +1593,188 @@ export default function Dashboard() {
                                 <p className="text-gray-600">Contact informatie en vragen worden hier getoond</p>
                               </div>
                             </div>
-                            </div>
-                          </SortableItem>
-                        );
-
-                      default:
-                        return null;
-                    }
-                  })}
-                          </SortableContext>
-                        </DndContext>
+                                  </div>
+                                );
+                              
+                              default:
+                                return null;
+                            }
+                          })()}
+                        </SortableItem>
                       </div>
-              </div>
-            </div>
+                    );
+                  })}
+
+                            {/* Drop indicator aan het einde */}
+                            {isDraggingFromLibrary && dragOverIndex >= componentOrder.length && componentOrder.length > 0 && (
+                              <div className="h-2 bg-blue-500 rounded-full mx-4 mt-2 shadow-lg animate-pulse">
+                                <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+                        </SortableContext>
+                        
+                        {/* Drag Overlay */}
+                        <DragOverlay>
+                          {activeId && draggedComponent ? (
+                            <div className="bg-white border border-gray-200 rounded-lg shadow-lg opacity-90">
+                              {/* Render het echte component preview */}
+                              {(() => {
+                                // Als het van de library komt, toon het echte component
+                                if (isDraggingFromLibrary) {
+                                  switch (draggedComponent.id) {
+                                  case 'header':
+                                    return (
+                                      <div className="bg-white shadow-sm border-b">
+                                        <div className="px-4 py-6">
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                              <div 
+                                                className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+                                                style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                              >
+                                                {(tournamentConfig.name || 'T').charAt(0).toUpperCase()}
+                                              </div>
+                                              <div>
+                                                <h1 className="text-3xl font-bold text-gray-900">
+                                                  {tournamentConfig.name || 'Toernooi Naam'}
+                                                </h1>
+                                                <p className="text-gray-600">
+                                                  {tournamentConfig.location || 'Locatie'}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  
+                                  case 'description':
+                                    return (
+                                      <div className="px-4 py-8">
+                                        <div>
+                                          <h2 
+                                            className="text-2xl font-bold mb-4"
+                                            style={{ color: tournamentConfig.primaryColor }}
+                                          >
+                                            Over dit toernooi
+                                          </h2>
+                                          <p className="text-lg leading-relaxed text-gray-700">
+                                            {tournamentConfig.description || 'Beschrijf hier je toernooi...'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  
+                                  case 'tournamentDetails':
+                                    return (
+                                      <div className="px-4 py-8">
+                                        <div>
+                                          <h2 
+                                            className="text-2xl font-bold mb-4"
+                                            style={{ color: tournamentConfig.primaryColor }}
+                                          >
+                                            Toernooi Details
+                                          </h2>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                              <h3 className="font-semibold text-gray-900 mb-2">Locatie</h3>
+                                              <p className="text-gray-600">{tournamentConfig.location || 'Niet opgegeven'}</p>
+                                            </div>
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                              <h3 className="font-semibold text-gray-900 mb-2">Max. Deelnemers</h3>
+                                              <p className="text-gray-600">{tournamentConfig.maxParticipants || 'Onbeperkt'}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  
+                                  case 'registration':
+                                    return (
+                                      <div className="px-4 py-8">
+                                        <div className="max-w-md mx-auto">
+                                          <div 
+                                            className="p-6 rounded-lg text-white"
+                                            style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                          >
+                                            <h3 className="text-xl font-bold mb-4">Inschrijven</h3>
+                                            <p className="mb-4">Schrijf je nu in voor dit toernooi!</p>
+                                            <button 
+                                              className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-semibold"
+                                              style={{ color: tournamentConfig.primaryColor }}
+                                            >
+                                              Inschrijven voor Toernooi
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  
+                                  case 'stats':
+                                    return (
+                                      <div className="px-4 py-8">
+                                        <div className="max-w-md mx-auto grid grid-cols-2 gap-4">
+                                          <div 
+                                            className="p-4 rounded-lg text-center text-white"
+                                            style={{ backgroundColor: tournamentConfig.secondaryColor }}
+                                          >
+                                            <div className="text-2xl font-bold">{tournamentConfig.maxParticipants || '∞'}</div>
+                                            <div className="text-sm opacity-90">Max. Deelnemers</div>
+                                          </div>
+                                          <div 
+                                            className="p-4 rounded-lg text-center text-white"
+                                            style={{ backgroundColor: tournamentConfig.primaryColor }}
+                                          >
+                                            <div className="text-2xl font-bold">€{tournamentConfig.prizePool || '0'}</div>
+                                            <div className="text-sm opacity-90">Prijzenpot</div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  
+                                  default:
+                                    return (
+                                      <div className="px-4 py-8">
+                                        <div>
+                                          <h2 
+                                            className="text-2xl font-bold mb-4"
+                                            style={{ color: tournamentConfig.primaryColor }}
+                                          >
+                                            {draggedComponent.name}
+                                          </h2>
+                                          <div className="bg-gray-50 p-4 rounded-lg">
+                                            <p className="text-gray-600">{draggedComponent.description}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                } else {
+                                  // Als het van de preview komt, toon een eenvoudige preview
+                                  return (
+                                    <div className="px-4 py-8">
+                                      <div>
+                                        <h2 
+                                          className="text-2xl font-bold mb-4"
+                                          style={{ color: tournamentConfig.primaryColor }}
+                                        >
+                                          {draggedComponent.name}
+                                        </h2>
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                          <p className="text-gray-600">{draggedComponent.description}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                              })()}
+                            </div>
+                          ) : null}
+                        </DragOverlay>
+                      </DndContext>
+                    </div>
+                  </div>
           </div>
         </div>
       </div>
