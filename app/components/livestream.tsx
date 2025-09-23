@@ -13,7 +13,7 @@ type LivestreamProps = {
     chatEnabledOverride?: boolean;
 };
 
-export default function Livestream({ enabledOverride, urlOverride, layoutOverride, chatEnabledOverride }: LivestreamProps) {
+export function LivestreamEmbed({ enabledOverride, urlOverride, layoutOverride, chatEnabledOverride }: LivestreamProps) {
 
     const [channel, setChannel] = useState<string>("");
     const [parentHost, setParentHost] = useState<string>("localhost");
@@ -115,6 +115,170 @@ export default function Livestream({ enabledOverride, urlOverride, layoutOverrid
             {/* No overlay when channel is empty since we return null above */}
         </div>
     );
+}
+
+// Admin controls embedded as a component for reuse
+function LivestreamAdminControls() {
+    const STORAGE_KEY_URL = "twitchUrl";
+    const STORAGE_KEY_ENABLED = "twitchEnabled";
+    const STORAGE_KEY_CHAT_ENABLED = "twitchChatEnabled";
+    const LEGACY_KEY_CHANNEL = "twitchChannel";
+
+    const [twitchUrl, setTwitchUrl] = useState<string>("");
+    const [enabled, setEnabled] = useState<boolean>(true);
+    const [chatEnabled, setChatEnabled] = useState<boolean>(true);
+    const [expanded, setExpanded] = useState<boolean>(false);
+    const [saved, setSaved] = useState<boolean>(false);
+
+    useEffect(() => {
+        try {
+            const storedUrl = window.localStorage.getItem(STORAGE_KEY_URL);
+            if (storedUrl) setTwitchUrl(storedUrl);
+            const storedEnabled = window.localStorage.getItem(STORAGE_KEY_ENABLED);
+            if (storedEnabled !== null) setEnabled(storedEnabled === "true");
+            const storedChatEnabled = window.localStorage.getItem(STORAGE_KEY_CHAT_ENABLED);
+            if (storedChatEnabled !== null) setChatEnabled(storedChatEnabled === "true");
+        } catch { }
+    }, []);
+
+    function handleSave(e?: React.FormEvent) {
+        if (e) e.preventDefault();
+        try {
+            const value = twitchUrl.trim();
+            if (value === "") {
+                window.localStorage.removeItem(STORAGE_KEY_URL);
+                window.localStorage.removeItem(LEGACY_KEY_CHANNEL);
+            } else {
+                window.localStorage.setItem(STORAGE_KEY_URL, value);
+            }
+            window.localStorage.setItem(STORAGE_KEY_ENABLED, String(enabled));
+            window.localStorage.setItem(STORAGE_KEY_CHAT_ENABLED, String(chatEnabled));
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1200);
+        } catch { }
+    }
+
+    return (
+        <div style={{ maxWidth: 720, margin: "24px auto", padding: 16 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Livestream instellingen</h1>
+            <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: 12, gap: 12, background: "#fafafa" }}>
+                    <div style={{ fontWeight: 600 }}>Twitch stream</div>
+                    <button
+                        onClick={() => setEnabled((v) => !v)}
+                        aria-label="toggle"
+                        style={{
+                            width: 52,
+                            height: 30,
+                            borderRadius: 9999,
+                            border: 0,
+                            background: enabled ? "#34C759" : "#E5E7EB",
+                            position: "relative",
+                            transition: "background 150ms ease",
+                            cursor: "pointer",
+                            boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.05)"
+                        }}
+                    >
+                        <span
+                            style={{
+                                position: "absolute",
+                                top: 3,
+                                left: enabled ? 26 : 3,
+                                width: 24,
+                                height: 24,
+                                borderRadius: "50%",
+                                background: "#fff",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                                transition: "left 150ms ease"
+                            }}
+                        />
+                    </button>
+                    <button
+                        onClick={() => setExpanded((v) => !v)}
+                        aria-label="toggle details"
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 32,
+                            height: 32,
+                            border: 0,
+                            background: "transparent",
+                            cursor: "pointer"
+                        }}
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 160ms ease", color: "#6b7280" }}
+                        >
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+                {expanded && (
+                    <div style={{ padding: 12, display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center" }}>
+                        <input
+                            type="url"
+                            value={twitchUrl}
+                            onChange={(e) => setTwitchUrl(e.target.value)}
+                            placeholder="https://www.twitch.tv/jouwkanaal"
+                            style={{ flex: 1, padding: "10px 12px", border: "1px solid #ccc", borderRadius: 6 }}
+                        />
+                        <label style={{ display: "inline-flex", alignItems: "center", gap: 8, justifySelf: "end" }}>
+                            <span style={{ color: "#374151", fontSize: 14 }}>Chat</span>
+                            <button
+                                onClick={() => setChatEnabled((v) => !v)}
+                                aria-label="toggle chat"
+                                type="button"
+                                style={{
+                                    width: 48,
+                                    height: 28,
+                                    borderRadius: 9999,
+                                    border: 0,
+                                    background: chatEnabled ? "#34C759" : "#E5E7EB",
+                                    position: "relative",
+                                    transition: "background 150ms ease",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        position: "absolute",
+                                        top: 3,
+                                        left: chatEnabled ? 24 : 3,
+                                        width: 22,
+                                        height: 22,
+                                        borderRadius: "50%",
+                                        background: "#fff",
+                                        boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                                        transition: "left 150ms ease"
+                                    }}
+                                />
+                            </button>
+                        </label>
+                        <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end" }}>
+                            <button onClick={() => handleSave()} style={{ padding: "10px 14px", borderRadius: 6, border: 0, background: "#7c3aed", color: "white", fontWeight: 600 }}>
+                                Opslaan
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+            {saved && <div style={{ marginTop: 8, color: "#065f46" }}>Opgeslagen.</div>}
+        </div>
+    );
+}
+
+type LivestreamWidgetProps = { mode?: "viewer" | "admin" };
+export default function Livestream({ mode = "viewer" }: LivestreamWidgetProps) {
+    if (mode === "admin") {
+        return <LivestreamAdminControls />;
+    }
+    return <LivestreamEmbed />;
 }
 
 function parseChannelFromUrl(input: string): string | null {
