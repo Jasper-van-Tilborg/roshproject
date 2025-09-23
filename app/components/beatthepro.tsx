@@ -116,14 +116,23 @@ export default function BeatThePro() {
 
   // Handle symbol click/key press
   const handleSymbolAction = useCallback((symbol: GameSymbol) => {
-    if (gameState.phase !== 'playing' || !gameState.currentSymbol) return;
+    console.log('handleSymbolAction called with:', symbol);
+    console.log('Game state:', gameState.phase, 'Current symbol:', gameState.currentSymbol);
+    
+    if (gameState.phase !== 'playing' || !gameState.currentSymbol) {
+      console.log('Early return: game not playing or no current symbol');
+      return;
+    }
 
     const reactionTime = Date.now() - symbolStartTime;
     const timeLimit = getReactionTimeLimit(gameState.level);
+    
+    console.log('Reaction time:', reactionTime, 'Time limit:', timeLimit);
 
     if (reactionTime <= timeLimit) {
       // Success!
       const points = calculateScore(reactionTime, gameState.level, gameState.combo);
+      console.log('Success! Points:', points);
       
       setGameState(prev => ({
         ...prev,
@@ -143,6 +152,7 @@ export default function BeatThePro() {
       }
     } else {
       // Too slow or wrong key
+      console.log('Too slow! Reaction time:', reactionTime, 'Limit:', timeLimit);
       setGameState(prev => ({
         ...prev,
         lives: prev.lives - 1,
@@ -190,21 +200,25 @@ export default function BeatThePro() {
       }
     };
 
-    const handleClick = () => {
-      if (gameState.phase !== 'playing' || !gameState.currentSymbol) return;
-
-      if (gameState.currentSymbol.type === 'mouse') {
-        handleSymbolAction(gameState.currentSymbol);
-      }
-    };
-
     document.addEventListener('keydown', handleKeyPress);
-    document.addEventListener('click', handleClick);
 
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
-      document.removeEventListener('click', handleClick);
     };
+  }, [gameState, handleSymbolAction]);
+
+  // Handle click on symbol
+  const handleSymbolClick = useCallback((symbol: GameSymbol) => {
+    console.log('Symbol clicked:', symbol, 'Game phase:', gameState.phase, 'Current symbol:', gameState.currentSymbol);
+    
+    if (gameState.phase !== 'playing' || !gameState.currentSymbol) {
+      console.log('Game not in playing state or no current symbol');
+      return;
+    }
+    
+    // Allow clicking on all symbols for testing
+    console.log('Processing click for symbol:', symbol.type);
+    handleSymbolAction(symbol);
   }, [gameState, handleSymbolAction]);
 
   // Game loop
@@ -395,14 +409,17 @@ export default function BeatThePro() {
               {/* Current Symbol */}
               {gameState.currentSymbol && (
                 <div className="mb-8">
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-12 mx-auto max-w-md">
+                  <div 
+                    className={`bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-12 mx-auto max-w-md cursor-pointer hover:from-yellow-300 hover:to-orange-400 transform hover:scale-105 transition-all duration-200`}
+                    onClick={() => handleSymbolClick(gameState.currentSymbol!)}
+                  >
                     <div className="text-8xl mb-4">{gameState.currentSymbol.icon}</div>
                     <div className="text-4xl font-bold text-white mb-2">
                       {gameState.currentSymbol.display}
                     </div>
                     <div className="text-lg text-white/80">
-                      {gameState.currentSymbol.type === 'key' && 'Druk op de toets'}
-                      {gameState.currentSymbol.type === 'mouse' && 'Klik met de muis'}
+                      {gameState.currentSymbol.type === 'key' && 'Druk op de toets of klik hier!'}
+                      {gameState.currentSymbol.type === 'mouse' && 'Klik hier!'}
                       {gameState.currentSymbol.type === 'esports' && 'Klik hier!'}
                     </div>
                   </div>
@@ -426,7 +443,8 @@ export default function BeatThePro() {
 
               {/* Instructions */}
               <div className="text-center text-white/60">
-                <p>Druk op de juiste toets of klik wanneer gevraagd!</p>
+                <p>Druk op de juiste toets of klik op het symbool!</p>
+                <p className="text-sm mt-2">💡 Tip: Je kunt op alle symbolen klikken voor snellere reactie!</p>
               </div>
             </div>
           )}
