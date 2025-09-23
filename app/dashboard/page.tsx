@@ -626,12 +626,20 @@ export default function Dashboard() {
         secondaryColor: tournament.secondaryColor,
         backgroundColor: '#ffffff',
         textColor: '#000000',
+        backgroundType: 'solid',
+        gradientStart: '#3b82f6',
+        gradientEnd: '#8b5cf6',
+        gradientDirection: 'to-r',
+        gradientType: 'linear',
+        gradientStops: '',
         startDate: tournament.startDate,
         endDate: tournament.endDate,
         location: tournament.location,
         maxParticipants: tournament.maxParticipants,
         entryFee: tournament.entryFee,
-        prizePool: tournament.prizePool
+        prizePool: tournament.prizePool,
+        twitchUrl: '',
+        chatEnabled: 'false'
       });
       setEditingTournament(tournamentId);
       setEditingTournamentStatus(tournament.status);
