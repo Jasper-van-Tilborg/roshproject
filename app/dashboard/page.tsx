@@ -1605,8 +1605,8 @@ export default function Dashboard() {
                     );
                   })}
 
-                            {/* Drop indicator aan het einde */}
-                            {isDraggingFromLibrary && dragOverIndex >= componentOrder.length && componentOrder.length > 0 && (
+                              {/* Drop indicator aan het einde */}
+                              {isDraggingFromLibrary && dragOverIndex !== null && dragOverIndex >= componentOrder.length && componentOrder.length > 0 && (
                               <div className="h-2 bg-blue-500 rounded-full mx-4 mt-2 shadow-lg animate-pulse">
                                 <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
                               </div>
