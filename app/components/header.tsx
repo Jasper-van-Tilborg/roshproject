@@ -11,11 +11,18 @@ interface NavItem {
 }
 
 interface HeaderConfig {
+  id?: string;
+  name?: string;
+  savedAt?: string;
   logo?: {
-    src: string;
+    src?: string;
     alt: string;
     width?: number;
     height?: number;
+    file?: File; // Voor geüploade bestanden
+  };
+  favicon?: {
+    src: string;
     file?: File; // Voor geüploade bestanden
   };
   navItems: NavItem[];
@@ -51,6 +58,7 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
   const [configName, setConfigName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
 
   // Laad opgeslagen configuraties uit localStorage
   useEffect(() => {
@@ -132,6 +140,25 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
             ...config.logo,
             src: result,
             alt: config.logo?.alt || file.name,
+            file: file
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Favicon upload handler
+  const handleFaviconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setFaviconPreview(result);
+        updateConfig({
+          favicon: {
+            src: result,
             file: file
           }
         });
@@ -226,13 +253,13 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
                   <h4 className="font-medium text-gray-900">{savedConfig.name}</h4>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => loadConfig(savedConfig.id)}
+                      onClick={() => savedConfig.id && loadConfig(savedConfig.id)}
                       className="text-blue-600 hover:text-blue-800 text-sm"
                     >
                       📂
                     </button>
                     <button
-                      onClick={() => deleteConfig(savedConfig.id)}
+                      onClick={() => savedConfig.id && deleteConfig(savedConfig.id)}
                       className="text-red-600 hover:text-red-800 text-sm"
                     >
                       🗑️
@@ -240,7 +267,7 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {new Date(savedConfig.savedAt).toLocaleDateString()}
+                  {savedConfig.savedAt && new Date(savedConfig.savedAt).toLocaleDateString()}
                 </p>
               </div>
             ))}
@@ -511,13 +538,13 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
                         <h4 className="font-medium text-gray-900 text-sm">{savedConfig.name}</h4>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => loadConfig(savedConfig.id)}
+                            onClick={() => savedConfig.id && loadConfig(savedConfig.id)}
                             className="text-blue-600 hover:text-blue-800 text-xs"
                           >
                             📂
                           </button>
                           <button
-                            onClick={() => deleteConfig(savedConfig.id)}
+                            onClick={() => savedConfig.id && deleteConfig(savedConfig.id)}
                             className="text-red-600 hover:text-red-800 text-xs"
                           >
                             🗑️
@@ -525,7 +552,7 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
                         </div>
                       </div>
                       <p className="text-xs text-gray-500">
-                        {new Date(savedConfig.savedAt).toLocaleDateString()}
+                        {savedConfig.savedAt && new Date(savedConfig.savedAt).toLocaleDateString()}
                       </p>
                     </div>
                   ))}
@@ -594,22 +621,91 @@ export function HeaderBuilder({ onConfigChange, initialConfig = defaultConfig }:
                 />
               </div>
 
-              {/* Logo beschrijving */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Logo beschrijving
-                </label>
-                <input
-                  type="text"
-                  value={config.logo?.alt || ''}
-                  onChange={(e) => updateConfig({
-                    logo: { ...config.logo, alt: e.target.value }
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  placeholder="Mijn Toernooi Logo"
-                />
-              </div>
+          {/* Logo beschrijving */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Logo beschrijving
+            </label>
+            <input
+              type="text"
+              value={config.logo?.alt || ''}
+              onChange={(e) => updateConfig({
+                logo: { ...config.logo, alt: e.target.value }
+              })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="Mijn Toernooi Logo"
+            />
+          </div>
+        </div>
+
+        {/* Favicon sectie */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-3">🌐 Favicon Instellingen</h3>
+          
+          {/* Favicon upload */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Favicon Upload (ICO, PNG)
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+              <input
+                type="file"
+                accept="image/x-icon,image/png,image/jpeg,image/jpg"
+                onChange={handleFaviconUpload}
+                className="hidden"
+                id="favicon-upload"
+              />
+              <label
+                htmlFor="favicon-upload"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span className="text-sm text-gray-600">Klik om favicon te uploaden</span>
+                <span className="text-xs text-gray-500">ICO, PNG, JPG (max 2MB)</span>
+              </label>
             </div>
+            
+            {/* Favicon preview */}
+            {faviconPreview && (
+              <div className="mt-3">
+                <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={faviconPreview}
+                    alt="Favicon preview"
+                    className="w-8 h-8 object-contain border rounded"
+                  />
+                  <span className="text-sm text-gray-500">16x16px (browser tab)</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Favicon URL (alternatief) */}
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Of favicon URL
+            </label>
+            <input
+              type="url"
+              value={config.favicon?.src || ''}
+              onChange={(e) => {
+                updateConfig({
+                  favicon: { ...config.favicon, src: e.target.value }
+                });
+                setFaviconPreview(e.target.value);
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="https://example.com/favicon.ico"
+            />
+          </div>
+
+          <div className="text-xs text-gray-500">
+            💡 Tip: Een favicon wordt getoond in de browser tab. Gebruik een vierkant bestand (16x16px of 32x32px) voor het beste resultaat.
+          </div>
+        </div>
 
             {/* Pagina's sectie */}
             <div className="bg-gray-50 rounded-lg p-4">
@@ -905,6 +1001,9 @@ const defaultConfig: HeaderConfig = {
     width: 150,
     height: 50
   },
+  favicon: {
+    src: '/favicon.ico'
+  },
   navItems: [
     { name: 'Home', href: '/', isActive: true },
     { name: 'Over Ons', href: '/about' },
@@ -921,6 +1020,22 @@ const defaultConfig: HeaderConfig = {
 export default function Header({ config = defaultConfig, onNavClick }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeItem, setActiveItem] = useState(config.navItems.find(item => item.isActive)?.name || config.navItems[0]?.name);
+
+  // Update favicon wanneer configuratie verandert
+  useEffect(() => {
+    if (config.favicon?.src) {
+      // Verwijder bestaande favicon links
+      const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
+      existingFavicons.forEach(link => link.remove());
+
+      // Voeg nieuwe favicon toe
+      const faviconLink = document.createElement('link');
+      faviconLink.rel = 'icon';
+      faviconLink.href = config.favicon.src;
+      faviconLink.type = config.favicon.src.includes('.ico') ? 'image/x-icon' : 'image/png';
+      document.head.appendChild(faviconLink);
+    }
+  }, [config.favicon]);
 
   const handleNavClick = (item: NavItem) => {
     setActiveItem(item.name);
@@ -979,7 +1094,7 @@ export default function Header({ config = defaultConfig, onNavClick }: HeaderPro
       <div className="container mx-auto px-4 py-4">
         <div className={`flex ${getNavigationLayoutClasses()}`}>
           {/* Logo sectie */}
-          {config.logo && (
+          {config.logo && config.logo.src && (
             <div className="flex-shrink-0">
               <Image
                 src={config.logo.src}
