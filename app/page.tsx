@@ -56,7 +56,7 @@ export default function Home() {
                 boxShadow: '0 0 50px rgba(255, 255, 255, 0.5)',
                 borderRadius: '20px'
               }}>
-                <img src="/heroimg.png" alt="Hero Image" />
+                <Image src="/heroimg.png" alt="Hero Image" width={400} height={300} />
               </div>
             </div>
           </div>

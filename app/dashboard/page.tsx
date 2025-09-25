@@ -1,6 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+// Type definities
+interface GradientStop {
+  position: number;
+  color: string;
+  id: number;
+}
 import {
   DndContext,
   closestCenter,
@@ -18,7 +25,6 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   useSortable,
@@ -189,7 +195,7 @@ export default function Dashboard() {
 
   // Drag & Drop state
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [draggedComponent, setDraggedComponent] = useState<any>(null);
+  const [draggedComponent, setDraggedComponent] = useState<{id: string, name: string, description: string, icon: string} | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingFromLibrary, setIsDraggingFromLibrary] = useState(false);
 
@@ -418,27 +424,27 @@ export default function Dashboard() {
   };
 
   // Component beheer functies
-  const toggleComponent = (componentId: string) => {
-    setEnabledComponents(prev => ({
-      ...prev,
-      [componentId]: !prev[componentId as keyof typeof prev]
-    }));
-    
-    // Update componentOrder - voeg toe als ingeschakeld, verwijder als uitgeschakeld
-    setComponentOrder(prev => {
-      const isEnabled = !enabledComponents[componentId as keyof typeof enabledComponents];
-      if (isEnabled) {
-        // Component wordt ingeschakeld - voeg toe aan het einde als het er nog niet in zit
-        if (!prev.includes(componentId)) {
-          return [...prev, componentId];
-        }
-        return prev;
-      } else {
-        // Component wordt uitgeschakeld - verwijder uit de lijst
-        return prev.filter(id => id !== componentId);
-      }
-    });
-  };
+  // const toggleComponent = (componentId: string) => {
+  //   setEnabledComponents(prev => ({
+  //     ...prev,
+  //     [componentId]: !prev[componentId as keyof typeof prev]
+  //   }));
+  //   
+  //   // Update componentOrder - voeg toe als ingeschakeld, verwijder als uitgeschakeld
+  //   setComponentOrder(prev => {
+  //     const isEnabled = !enabledComponents[componentId as keyof typeof enabledComponents];
+  //     if (isEnabled) {
+  //       // Component wordt ingeschakeld - voeg toe aan het einde als het er nog niet in zit
+  //       if (!prev.includes(componentId)) {
+  //         return [...prev, componentId];
+  //       }
+  //       return prev;
+  //     } else {
+  //       // Component wordt uitgeschakeld - verwijder uit de lijst
+  //       return prev.filter(id => id !== componentId);
+  //     }
+  //   });
+  // };
 
   // Toggle component zonder uit componentOrder te verwijderen (voor bewerk pagina)
   const toggleComponentVisibility = (componentId: string) => {
@@ -457,14 +463,14 @@ export default function Dashboard() {
   };
 
   // Voeg component toe aan componentOrder als het er nog niet in zit
-  const ensureComponentInOrder = (componentId: string) => {
-    setComponentOrder(prev => {
-      if (!prev.includes(componentId)) {
-        return [...prev, componentId];
-      }
-      return prev;
-    });
-  };
+  // const ensureComponentInOrder = (componentId: string) => {
+  //   setComponentOrder(prev => {
+  //     if (!prev.includes(componentId)) {
+  //       return [...prev, componentId];
+  //     }
+  //     return prev;
+  //   });
+  // };
 
   // Component verwijder functie (alleen voor de verwijder knop)
   const removeComponent = (componentId: string) => {
@@ -485,12 +491,12 @@ export default function Dashboard() {
   };
 
 
-  const moveComponent = (fromIndex: number, toIndex: number) => {
-    const newOrder = [...componentOrder];
-    const [movedComponent] = newOrder.splice(fromIndex, 1);
-    newOrder.splice(toIndex, 0, movedComponent);
-    setComponentOrder(newOrder);
-  };
+  // const moveComponent = (fromIndex: number, toIndex: number) => {
+  //   const newOrder = [...componentOrder];
+  //   const [movedComponent] = newOrder.splice(fromIndex, 1);
+  //   newOrder.splice(toIndex, 0, movedComponent);
+  //   setComponentOrder(newOrder);
+  // };
 
   // Drag & Drop handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -550,7 +556,7 @@ export default function Dashboard() {
   };
 
    // Componenten worden straks uit de components map geladen
-   const allComponents: Record<string, any> = {
+   const allComponents: Record<string, {id: string, name: string, description: string, icon: string, category?: string}> = {
      livestream: {
        id: 'livestream',
        name: 'Livestream',
@@ -561,9 +567,9 @@ export default function Dashboard() {
    };
 
   // Alleen de momenteel ingeschakelde componenten (wordt straks uit components map geladen)
-  const enabledComponentsList = Object.values(allComponents).filter(comp => 
-    enabledComponents[comp.id as keyof typeof enabledComponents]
-  );
+  // const enabledComponentsList = Object.values(allComponents).filter(comp => 
+  //   enabledComponents[comp.id as keyof typeof enabledComponents]
+  // );
 
   const handleReset = () => {
     setTournamentConfig({
@@ -626,12 +632,20 @@ export default function Dashboard() {
         secondaryColor: tournament.secondaryColor,
         backgroundColor: '#ffffff',
         textColor: '#000000',
+        backgroundType: 'solid',
+        gradientStart: '#3b82f6',
+        gradientEnd: '#8b5cf6',
+        gradientDirection: 'to-r',
+        gradientType: 'linear',
+        gradientStops: '',
         startDate: tournament.startDate,
         endDate: tournament.endDate,
         location: tournament.location,
         maxParticipants: tournament.maxParticipants,
         entryFee: tournament.entryFee,
-        prizePool: tournament.prizePool
+        prizePool: tournament.prizePool,
+        twitchUrl: '',
+        chatEnabled: 'false'
       });
       setEditingTournament(tournamentId);
       setEditingTournamentStatus(tournament.status);
@@ -895,9 +909,9 @@ export default function Dashboard() {
                                       : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${tournamentConfig.gradientStart || '#3b82f6'}, ${tournamentConfig.gradientEnd || '#8b5cf6'})`
                                   }}
                                   onClick={(e) => {
-                                    const rect = e.currentTarget.getBoundingClientRect();
-                                    const x = e.clientX - rect.left;
-                                    const percentage = Math.round((x / rect.width) * 100);
+                                    // const rect = e.currentTarget.getBoundingClientRect();
+                                    // const x = e.clientX - rect.left;
+                                    // const percentage = Math.round((x / rect.width) * 100);
                                     // Hier zou je een nieuwe color stop kunnen toevoegen
                                   }}
                                 />
@@ -915,11 +929,11 @@ export default function Dashboard() {
                                         color: '#ffffff',
                                         id: Date.now()
                                       };
-                                      const currentStops = tournamentConfig.gradientStops || [
+                                      const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
                                         { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                         { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
                                       ];
-                                      const updatedStops = [...currentStops, newStop].sort((a, b) => a.position - b.position);
+                                      const updatedStops = [...currentStops, newStop].sort((a: GradientStop, b: GradientStop) => a.position - b.position);
                                       handleConfigChange('gradientStops', JSON.stringify(updatedStops));
                                     }}
                                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -929,10 +943,10 @@ export default function Dashboard() {
                                 </div>
 
                                 <div className="space-y-2">
-                                  {(tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
+                                  {(tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) as GradientStop[] : [
                                     { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                     { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                  ]).map((stop, index) => (
+                                  ]).map((stop: GradientStop, index: number) => (
                                     <div key={stop.id || index} className="flex items-center gap-2">
                                       <div className="w-6 h-6 rounded border border-gray-300" style={{ backgroundColor: stop.color }} />
                                       <input
@@ -940,13 +954,13 @@ export default function Dashboard() {
                                         value={stop.position}
                                         onChange={(e) => {
                                           const newPosition = parseInt(e.target.value) || 0;
-                                          const currentStops = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
+                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
                                             { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                             { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
                                           ];
-                                          const updatedStops = currentStops.map(s => 
+                                          const updatedStops = currentStops.map((s: GradientStop) => 
                                             s.id === stop.id ? { ...s, position: newPosition } : s
-                                          ).sort((a, b) => a.position - b.position);
+                                          ).sort((a: GradientStop, b: GradientStop) => a.position - b.position);
                                           handleConfigChange('gradientStops', JSON.stringify(updatedStops));
                                         }}
                                         className="w-12 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
@@ -956,11 +970,11 @@ export default function Dashboard() {
                                         type="color"
                                         value={stop.color}
                                         onChange={(e) => {
-                                          const currentStops = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
+                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
                                             { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                             { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
                                           ];
-                                          const updatedStops = currentStops.map(s => 
+                                          const updatedStops = currentStops.map((s: GradientStop) => 
                                             s.id === stop.id ? { ...s, color: e.target.value } : s
                                           );
                                           handleConfigChange('gradientStops', JSON.stringify(updatedStops));
@@ -971,11 +985,11 @@ export default function Dashboard() {
                                         type="text"
                                         value={stop.color}
                                         onChange={(e) => {
-                                          const currentStops = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
+                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
                                             { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                             { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
                                           ];
-                                          const updatedStops = currentStops.map(s => 
+                                          const updatedStops = currentStops.map((s: GradientStop) => 
                                             s.id === stop.id ? { ...s, color: e.target.value } : s
                                           );
                                           handleConfigChange('gradientStops', JSON.stringify(updatedStops));
@@ -985,12 +999,12 @@ export default function Dashboard() {
                                       <span className="text-xs text-gray-500">100%</span>
                                       <button
                                         onClick={() => {
-                                          const currentStops = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
+                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
                                             { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
                                             { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
                                           ];
                                           if (currentStops.length > 2) {
-                                            const updatedStops = currentStops.filter(s => s.id !== stop.id);
+                                            const updatedStops = currentStops.filter((s: GradientStop) => s.id !== stop.id);
                                             handleConfigChange('gradientStops', JSON.stringify(updatedStops));
                                           }
                                         }}
@@ -1411,7 +1425,7 @@ export default function Dashboard() {
                                 componentElements.forEach((element, index) => {
                                   const elementRect = element.getBoundingClientRect();
                                   const elementTop = elementRect.top - rect.top + scrollTop;
-                                  const elementBottom = elementRect.bottom - rect.top + scrollTop;
+                                  // const elementBottom = elementRect.bottom - rect.top + scrollTop;
                                   
                                   // Als de muis boven het midden van het element is, plaats ervoor
                                   if (totalY < elementTop + (elementRect.height / 2)) {
@@ -1820,12 +1834,20 @@ export default function Dashboard() {
                          secondaryColor: '#ff6600',
                          backgroundColor: '#ffffff',
                          textColor: '#000000',
+                         backgroundType: 'solid',
+                         gradientStart: '#3b82f6',
+                         gradientEnd: '#8b5cf6',
+                         gradientDirection: 'to-r',
+                         gradientType: 'linear',
+                         gradientStops: '',
                          startDate: '',
                          endDate: '',
                          location: '',
                          maxParticipants: '',
                          entryFee: '',
-                         prizePool: ''
+                         prizePool: '',
+                         twitchUrl: '',
+                         chatEnabled: 'false'
                        });
                        
                        // Reset enabled components - alle componenten uitgeschakeld
@@ -2066,12 +2088,20 @@ export default function Dashboard() {
                      secondaryColor: '#ff6600',
                      backgroundColor: '#ffffff',
                      textColor: '#000000',
+                     backgroundType: 'solid',
+                     gradientStart: '#3b82f6',
+                     gradientEnd: '#8b5cf6',
+                     gradientDirection: 'to-r',
+                     gradientType: 'linear',
+                     gradientStops: '',
                      startDate: '',
                      endDate: '',
                      location: '',
                      maxParticipants: '',
                      entryFee: '',
-                     prizePool: ''
+                     prizePool: '',
+                     twitchUrl: '',
+                     chatEnabled: 'false'
                    });
                    
                    // Reset enabled components - alle componenten uitgeschakeld

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 interface Tournament {
   id: string;
@@ -84,12 +85,12 @@ export default function TournamentPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Toernooi niet gevonden</h1>
           <p className="text-gray-600 mb-4">Het toernooi dat je zoekt bestaat niet of is niet gepubliceerd.</p>
-          <a
+          <Link
             href="/"
             className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Terug naar Home
-          </a>
+          </Link>
         </div>
       </div>
     );
