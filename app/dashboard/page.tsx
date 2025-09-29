@@ -24,6 +24,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Header from '../components/header';
 
 // Sortable Item Component
 function SortableItem({ 
@@ -110,7 +111,16 @@ export default function Dashboard() {
     entryFee: '',
     prizePool: '',
     twitchUrl: '',
-    chatEnabled: 'false'
+    chatEnabled: 'false',
+    // Header configuratie
+    headerLogo: '/logoheader.png',
+    headerLogoAlt: 'Toernooi Logo',
+    headerNavItems: [],
+    headerTheme: 'light',
+    headerLayout: 'horizontal',
+    headerNavigationLayout: 'logo-center',
+    headerSticky: true,
+    headerShowMobileMenu: true
   });
 
   // Componenten configuratie - livestream standaard ingeschakeld
@@ -550,15 +560,22 @@ export default function Dashboard() {
   };
 
    // Componenten worden straks uit de components map geladen
-   const allComponents: Record<string, any> = {
-     livestream: {
-       id: 'livestream',
-       name: 'Livestream',
-       description: 'Twitch livestream embed met chat',
-       icon: '📺',
-       category: 'Interactie'
-     }
-   };
+  const allComponents: Record<string, any> = {
+    livestream: {
+      id: 'livestream',
+      name: 'Livestream',
+      description: 'Twitch livestream embed met chat',
+      icon: '📺',
+      category: 'Interactie'
+    },
+    header: {
+      id: 'header',
+      name: 'Header',
+      description: 'Navigatie header met logo en menu',
+      icon: '🎨',
+      category: 'Basis'
+    }
+  };
 
   // Alleen de momenteel ingeschakelde componenten (wordt straks uit components map geladen)
   const enabledComponentsList = Object.values(allComponents).filter(comp => 
@@ -588,7 +605,16 @@ export default function Dashboard() {
       entryFee: '',
       prizePool: '',
       twitchUrl: '',
-      chatEnabled: 'false'
+      chatEnabled: 'false',
+      // Header configuratie reset
+      headerLogo: '/logoheader.png',
+      headerLogoAlt: 'Toernooi Logo',
+      headerNavItems: [],
+      headerTheme: 'light',
+      headerLayout: 'horizontal',
+      headerNavigationLayout: 'logo-center',
+      headerSticky: true,
+      headerShowMobileMenu: true
     });
     
     // Reset enabled components - alle componenten uitgeschakeld
@@ -1104,49 +1130,196 @@ export default function Dashboard() {
                                    </div>
                                  </div>
 
-                                 {/* Component Content - Collapsible */}
-                                 <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                                   isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                                 }`}>
-                                   <div className="p-4">
-                                     {component.id === 'livestream' && (
-                                       <div className="space-y-4">
-                                         <div>
-                                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                                             Twitch URL
-                                           </label>
-                                           <input
-                                             type="url"
-                                             value={tournamentConfig.twitchUrl || ''}
-                                             onChange={(e) => handleConfigChange('twitchUrl', e.target.value)}
-                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
-                                             placeholder="https://www.twitch.tv/jouwkanaal"
-                                           />
-                                         </div>
-                                         <div className="flex items-center justify-between">
-                                           <span className="text-sm font-medium text-gray-700">Chat inschakelen</span>
-                                           <button
-                                             onClick={() => handleConfigChange('chatEnabled', tournamentConfig.chatEnabled === 'true' ? 'false' : 'true')}
-                                             className={`w-12 h-6 rounded-full transition-colors ${
-                                               tournamentConfig.chatEnabled === 'true'
-                                                 ? 'bg-green-500'
-                                                 : 'bg-gray-300'
-                                             }`}
-                                           >
-                                             <div
-                                               className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
-                                                 tournamentConfig.chatEnabled === 'true'
-                                                   ? 'translate-x-6'
-                                                   : 'translate-x-0.5'
-                                               }`}
-                                             />
-                                           </button>
-                                         </div>
-                                         <div className="text-xs text-gray-500">
-                                           Voer een Twitch URL in om de livestream te tonen
-                                         </div>
-                                       </div>
-                                     )}
+                                  {/* Component Content - Collapsible */}
+                                  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                                    isExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                                  }`}>
+                                   <div className="p-4 overflow-y-auto max-h-[580px]">
+                                      {component.id === 'livestream' && (
+                                        <div className="space-y-4">
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                              Twitch URL
+                                            </label>
+                                            <input
+                                              type="url"
+                                              value={tournamentConfig.twitchUrl || ''}
+                                              onChange={(e) => handleConfigChange('twitchUrl', e.target.value)}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                              placeholder="https://www.twitch.tv/jouwkanaal"
+                                            />
+                                          </div>
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-gray-700">Chat inschakelen</span>
+                                            <button
+                                              onClick={() => handleConfigChange('chatEnabled', tournamentConfig.chatEnabled === 'true' ? 'false' : 'true')}
+                                              className={`w-12 h-6 rounded-full transition-colors ${
+                                                tournamentConfig.chatEnabled === 'true'
+                                                  ? 'bg-green-500'
+                                                  : 'bg-gray-300'
+                                              }`}
+                                            >
+                                              <div
+                                                className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                                                  tournamentConfig.chatEnabled === 'true'
+                                                    ? 'translate-x-6'
+                                                    : 'translate-x-0.5'
+                                                }`}
+                                              />
+                                            </button>
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            Voer een Twitch URL in om de livestream te tonen
+                                          </div>
+                                        </div>
+                                      )}
+                                      
+                                      {component.id === 'header' && (
+                                        <div className="space-y-4">
+                                          {/* Logo upload */}
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                              Logo Upload
+                                            </label>
+                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                              <input
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                                onChange={(e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file && file.type.startsWith('image/')) {
+                                                    const reader = new FileReader();
+                                                    reader.onload = (e) => {
+                                                      const result = e.target?.result as string;
+                                                      handleConfigChange('headerLogo', result);
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                  }
+                                                }}
+                                                className="hidden"
+                                                id="header-logo-upload"
+                                              />
+                                              <label
+                                                htmlFor="header-logo-upload"
+                                                className="cursor-pointer flex flex-col items-center"
+                                              >
+                                                <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                                </svg>
+                                                <span className="text-sm text-gray-600">Klik om logo te uploaden</span>
+                                                <span className="text-xs text-gray-500">PNG, JPG, SVG (max 5MB)</span>
+                                              </label>
+                                            </div>
+                                            
+                                            {/* Logo preview */}
+                                            {tournamentConfig.headerLogo && (
+                                              <div className="mt-3">
+                                                <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                                                <img
+                                                  src={tournamentConfig.headerLogo}
+                                                  alt="Logo preview"
+                                                  className="max-h-20 max-w-32 object-contain border rounded"
+                                                />
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Logo URL (alternatief) */}
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                              Of logo URL
+                                            </label>
+                                            <input
+                                              type="url"
+                                              value={tournamentConfig.headerLogo || ''}
+                                              onChange={(e) => handleConfigChange('headerLogo', e.target.value)}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                              placeholder="https://example.com/logo.png"
+                                            />
+                                          </div>
+                                          
+                                          <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                              Logo beschrijving
+                                            </label>
+                                            <input
+                                              type="text"
+                                              value={tournamentConfig.headerLogoAlt || ''}
+                                              onChange={(e) => handleConfigChange('headerLogoAlt', e.target.value)}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                              placeholder="Mijn Toernooi Logo"
+                                            />
+                                          </div>
+
+                                          {/* Stijl opties */}
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Thema
+                                              </label>
+                                              <select
+                                                value={tournamentConfig.headerTheme || 'light'}
+                                                onChange={(e) => handleConfigChange('headerTheme', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                              >
+                                                <option value="light">☀️ Licht</option>
+                                                <option value="dark">🌙 Donker</option>
+                                                <option value="transparent">✨ Transparant</option>
+                                              </select>
+                                            </div>
+                                            
+                                            <div>
+                                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Layout
+                                              </label>
+                                              <select
+                                                value={tournamentConfig.headerLayout || 'horizontal'}
+                                                onChange={(e) => handleConfigChange('headerLayout', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                              >
+                                                <option value="horizontal">↔️ Horizontaal</option>
+                                                <option value="vertical">↕️ Verticaal</option>
+                                                <option value="centered">🎯 Gecentreerd</option>
+                                              </select>
+                                            </div>
+                                          </div>
+
+                                          {/* Extra opties */}
+                                          <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-sm font-medium text-gray-700">Sticky header</span>
+                                              <button
+                                                onClick={() => handleConfigChange('headerSticky', !tournamentConfig.headerSticky)}
+                                                className={`w-12 h-6 rounded-full transition-colors ${
+                                                  tournamentConfig.headerSticky ? 'bg-green-500' : 'bg-gray-300'
+                                                }`}
+                                              >
+                                                <div
+                                                  className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                                                    tournamentConfig.headerSticky ? 'translate-x-6' : 'translate-x-0.5'
+                                                  }`}
+                                                />
+                                              </button>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-sm font-medium text-gray-700">Mobiel menu</span>
+                                              <button
+                                                onClick={() => handleConfigChange('headerShowMobileMenu', !tournamentConfig.headerShowMobileMenu)}
+                                                className={`w-12 h-6 rounded-full transition-colors ${
+                                                  tournamentConfig.headerShowMobileMenu ? 'bg-green-500' : 'bg-gray-300'
+                                                }`}
+                                              >
+                                                <div
+                                                  className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${
+                                                    tournamentConfig.headerShowMobileMenu ? 'translate-x-6' : 'translate-x-0.5'
+                                                  }`}
+                                                />
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
                                    </div>
                                  </div>
                                </div>
@@ -1507,6 +1680,28 @@ export default function Dashboard() {
                                    <SortableItem key={componentId} id={componentId} isPreview={true}>
                                         {(() => {
                                           switch (componentId) {
+                                            case 'header':
+                                              return (
+                                                <div className="w-full">
+                                                  <Header config={{
+                                                     logo: {
+                                                       src: tournamentConfig.headerLogo || '/logoheader.png',
+                                                       alt: tournamentConfig.headerLogoAlt || 'Toernooi Logo',
+                                                       width: 150,
+                                                       height: 50
+                                                     },
+                                                     favicon: {
+                                                       src: '/favicon.ico'
+                                                     },
+                                                     navItems: tournamentConfig.headerNavItems || [],
+                                                     layout: tournamentConfig.headerLayout || 'horizontal',
+                                                     theme: tournamentConfig.headerTheme || 'light',
+                                                     showMobileMenu: tournamentConfig.headerShowMobileMenu !== false,
+                                                     sticky: tournamentConfig.headerSticky !== false,
+                                                     navigationLayout: tournamentConfig.headerNavigationLayout || 'logo-center'
+                                                  }} />
+                                                </div>
+                                              );
                                             case 'livestream':
                                               return (
                                                 <div 
@@ -1690,6 +1885,28 @@ export default function Dashboard() {
                                        </div>
                                      );
                                    
+                                   case 'header':
+                                     return (
+                                       <div className="w-full">
+                                         <Header config={{
+                                                     logo: {
+                                                       src: tournamentConfig.headerLogo || '/logoheader.png',
+                                                       alt: tournamentConfig.headerLogoAlt || 'Toernooi Logo',
+                                                       width: 150,
+                                                       height: 50
+                                                     },
+                                                     favicon: {
+                                                       src: '/favicon.ico'
+                                                     },
+                                                     navItems: tournamentConfig.headerNavItems || [],
+                                                     layout: tournamentConfig.headerLayout || 'horizontal',
+                                                     theme: tournamentConfig.headerTheme || 'light',
+                                                     showMobileMenu: tournamentConfig.headerShowMobileMenu !== false,
+                                                     sticky: tournamentConfig.headerSticky !== false,
+                                                     navigationLayout: tournamentConfig.headerNavigationLayout || 'logo-center'
+                                         }} />
+                                       </div>
+                                     );
                                    case 'livestream':
                                      return (
                                        <div className="px-4 py-8">

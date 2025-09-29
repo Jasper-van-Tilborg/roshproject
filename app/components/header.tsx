@@ -1004,17 +1004,12 @@ const defaultConfig: HeaderConfig = {
   favicon: {
     src: '/favicon.ico'
   },
-  navItems: [
-    { name: 'Home', href: '/', isActive: true },
-    { name: 'Over Ons', href: '/about' },
-    { name: 'Services', href: '/services' },
-    { name: 'Contact', href: '/contact' }
-  ],
+  navItems: [],
   layout: 'horizontal',
   theme: 'light',
   showMobileMenu: true,
   sticky: true,
-  navigationLayout: 'logo-left'
+  navigationLayout: 'logo-center'
 };
 
 export default function Header({ config = defaultConfig, onNavClick }: HeaderProps) {
@@ -1093,50 +1088,55 @@ export default function Header({ config = defaultConfig, onNavClick }: HeaderPro
     >
       <div className="container mx-auto px-4 py-4">
         <div className={`flex ${getNavigationLayoutClasses()}`}>
-          {/* Logo sectie */}
-          {config.logo && config.logo.src && (
-            <div className="flex-shrink-0">
-              <Image
-                src={config.logo.src}
-                alt={config.logo.alt}
-                width={config.logo.width || 150}
-                height={config.logo.height || 50}
-                className="object-contain"
-                priority
-              />
-            </div>
-          )}
+          {/* Logo en navigatie items samen gecentreerd */}
+          <div className="flex items-center space-x-8">
+            {/* Logo sectie */}
+            {config.logo && config.logo.src && (
+              <div className="flex-shrink-0">
+                <Image
+                  src={config.logo.src}
+                  alt={config.logo.alt}
+                  width={config.logo.width || 150}
+                  height={config.logo.height || 50}
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            )}
 
-          {/* Desktop navigatie */}
-          <nav className="hidden md:flex space-x-8">
-            {config.navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(item);
-                }}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  activeItem === item.name
-                    ? config.theme === 'dark' 
-                      ? 'bg-gray-700 text-white' 
-                      : 'bg-blue-100 text-blue-700'
-                    : config.theme === 'dark'
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                {item.name}
-              </a>
-            ))}
-          </nav>
+            {/* Desktop navigatie */}
+            {config.navItems.length > 0 && (
+              <nav className="hidden md:flex space-x-8">
+                {config.navItems.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(item);
+                    }}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                      activeItem === item.name
+                        ? config.theme === 'dark' 
+                          ? 'bg-gray-700 text-white' 
+                          : 'bg-blue-100 text-blue-700'
+                        : config.theme === 'dark'
+                        ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    {item.name}
+                  </a>
+                ))}
+              </nav>
+            )}
+          </div>
 
-          {/* Mobile menu button */}
-          {config.showMobileMenu && (
+          {/* Mobile menu button - rechts uitgelijnd */}
+          {config.showMobileMenu && config.navItems.length > 0 && (
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ml-auto"
               aria-label="Toggle mobile menu"
             >
               <svg

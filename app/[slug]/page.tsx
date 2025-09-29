@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Header from '../components/header';
 
 interface Tournament {
   id: string;
@@ -95,6 +96,30 @@ export default function TournamentPage() {
     );
   }
 
+  // Header configuratie voor dit toernooi
+  const headerConfig = {
+    logo: {
+      src: '/logoheader.png',
+      alt: tournament.name,
+      width: 150,
+      height: 50
+    },
+    favicon: {
+      src: '/favicon.ico'
+    },
+    navItems: [
+      { name: 'Home', href: '/', isActive: false },
+      { name: 'Toernooien', href: '/dashboard', isActive: false },
+      { name: 'Over Ons', href: '/about', isActive: false },
+      { name: 'Contact', href: '/contact', isActive: false }
+    ],
+    layout: 'horizontal' as const,
+    theme: 'light' as const,
+    showMobileMenu: true,
+    sticky: true,
+    navigationLayout: 'logo-left' as const
+  };
+
   return (
     <div 
       className="min-h-screen"
@@ -103,7 +128,10 @@ export default function TournamentPage() {
         color: '#000000'
       }}
     >
-      {/* Header */}
+      {/* Header Component */}
+      <Header config={headerConfig} />
+
+      {/* Tournament Header Info */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
