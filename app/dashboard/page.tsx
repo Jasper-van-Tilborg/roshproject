@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import TemplateSelection from './template-selection';
+import { getTemplateById, getEnabledComponentsFromTemplate } from './templates';
 
 // Type definities
 interface GradientStop {
@@ -89,9 +91,10 @@ export default function Dashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'create-tournament', 'manage-tournament'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'create-tournament', 'manage-tournament', 'template-selection'
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   
   // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
@@ -259,6 +262,50 @@ export default function Dashboard() {
     setPassword('');
     setLoginError('');
     setCurrentView('dashboard');
+  };
+
+  const handleTemplateSelection = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    
+    // Haal template configuratie op
+    const template = getTemplateById(templateId);
+    if (!template) return;
+    
+    // Reset tournament config met template defaults
+    setTournamentConfig({
+      name: '',
+      description: '',
+      logo: '',
+      image: '',
+      primaryColor: template.defaultConfig?.primaryColor || '#0044cc',
+      secondaryColor: template.defaultConfig?.secondaryColor || '#ff6600',
+      backgroundColor: template.defaultConfig?.backgroundColor || '#ffffff',
+      textColor: '#000000',
+      backgroundType: 'solid',
+      gradientStart: '#3b82f6',
+      gradientEnd: '#8b5cf6',
+      gradientDirection: 'to-r',
+      gradientType: 'linear',
+      gradientStops: '',
+      startDate: '',
+      endDate: '',
+      location: '',
+      maxParticipants: '',
+      entryFee: '',
+      prizePool: '',
+      twitchUrl: '',
+      chatEnabled: 'false'
+    });
+    
+    // Zet enabled components op basis van template
+    const templateComponents = getEnabledComponentsFromTemplate(templateId);
+    setEnabledComponents(templateComponents);
+    
+    // Zet component order
+    setComponentOrder(template.components);
+    
+    // Ga naar editor
+    setCurrentView('create-tournament');
   };
 
   const handleConfigChange = (field: string, value: string) => {
@@ -1767,6 +1814,11 @@ export default function Dashboard() {
     );
   }
 
+  // Template selectie view
+  if (currentView === 'template-selection') {
+    return <TemplateSelection onSelectTemplate={handleTemplateSelection} />;
+  }
+
   // Toernooi beheren view
   if (currentView === 'manage-tournament') {
     const draftTournaments = tournaments.filter(t => t.status === 'draft');
@@ -1824,55 +1876,10 @@ export default function Dashboard() {
                   <p className="text-gray-600 mb-4">Je hebt nog geen toernooi drafts opgeslagen.</p>
                    <button
                      onClick={() => {
-                       // Reset tournament config voor nieuwe toernooi
-                       setTournamentConfig({
-                         name: '',
-                         description: '',
-                         logo: '',
-                         image: '',
-                         primaryColor: '#0044cc',
-                         secondaryColor: '#ff6600',
-                         backgroundColor: '#ffffff',
-                         textColor: '#000000',
-                         backgroundType: 'solid',
-                         gradientStart: '#3b82f6',
-                         gradientEnd: '#8b5cf6',
-                         gradientDirection: 'to-r',
-                         gradientType: 'linear',
-                         gradientStops: '',
-                         startDate: '',
-                         endDate: '',
-                         location: '',
-                         maxParticipants: '',
-                         entryFee: '',
-                         prizePool: '',
-                         twitchUrl: '',
-                         chatEnabled: 'false'
-                       });
-                       
-                       // Reset enabled components - alle componenten uitgeschakeld
-                       setEnabledComponents({
-                         header: false,
-                         description: false,
-                         tournamentDetails: false,
-                         registration: false,
-                         stats: false,
-                         schedule: false,
-                         rules: false,
-                         prizes: false,
-                         sponsors: false,
-                         social: false,
-                         contact: false,
-                         livestream: false
-                       });
-                       
-                       // Reset component order - lege lijst
-                       setComponentOrder([]);
-                       
-                       // Reset editing state
                        setEditingTournament(null);
                        setEditingTournamentStatus(null);
-                       setCurrentView('create-tournament');
+                       setSelectedTemplateId(null);
+                       setCurrentView('template-selection');
                      }}
                      className="bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
                    >
@@ -2078,55 +2085,11 @@ export default function Dashboard() {
               </p>
                <button 
                  onClick={() => {
-                   // Reset tournament config voor nieuwe toernooi
-                   setTournamentConfig({
-                     name: '',
-                     description: '',
-                     logo: '',
-                     image: '',
-                     primaryColor: '#0044cc',
-                     secondaryColor: '#ff6600',
-                     backgroundColor: '#ffffff',
-                     textColor: '#000000',
-                     backgroundType: 'solid',
-                     gradientStart: '#3b82f6',
-                     gradientEnd: '#8b5cf6',
-                     gradientDirection: 'to-r',
-                     gradientType: 'linear',
-                     gradientStops: '',
-                     startDate: '',
-                     endDate: '',
-                     location: '',
-                     maxParticipants: '',
-                     entryFee: '',
-                     prizePool: '',
-                     twitchUrl: '',
-                     chatEnabled: 'false'
-                   });
-                   
-                   // Reset enabled components - alle componenten uitgeschakeld
-                   setEnabledComponents({
-                     header: false,
-                     description: false,
-                     tournamentDetails: false,
-                     registration: false,
-                     stats: false,
-                     schedule: false,
-                     rules: false,
-                     prizes: false,
-                     sponsors: false,
-                     social: false,
-                     contact: false,
-                     livestream: false
-                   });
-                   
-                   // Reset component order - lege lijst
-                   setComponentOrder([]);
-                   
                    // Reset editing state
                    setEditingTournament(null);
                    setEditingTournamentStatus(null);
-                   setCurrentView('create-tournament');
+                   setSelectedTemplateId(null);
+                   setCurrentView('template-selection');
                  }}
                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
                >
