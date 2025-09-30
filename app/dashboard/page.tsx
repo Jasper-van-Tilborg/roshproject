@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import Header from '../components/header';
 
 // Type definities
-interface GradientStop {
-  position: number;
-  color: string;
-  id: number;
-}
 import {
   DndContext,
   closestCenter,
@@ -104,12 +99,6 @@ export default function Dashboard() {
     secondaryColor: '#ff6600',
     backgroundColor: '#ffffff',
     textColor: '#000000',
-    backgroundType: 'solid',
-    gradientStart: '#3b82f6',
-    gradientEnd: '#8b5cf6',
-    gradientDirection: 'to-r',
-    gradientType: 'linear',
-    gradientStops: '',
     startDate: '',
     endDate: '',
     location: '',
@@ -117,7 +106,9 @@ export default function Dashboard() {
     entryFee: '',
     prizePool: '',
     twitchUrl: '',
-    chatEnabled: 'false'
+    chatEnabled: 'false',
+    headerBackgroundColor: '#ffffff',
+    headerTextColor: '#000000'
   });
 
   // Componenten configuratie - livestream standaard ingeschakeld
@@ -149,6 +140,13 @@ export default function Dashboard() {
   
   // State voor component dropdowns
   const [expandedComponents, setExpandedComponents] = useState<{[key: string]: boolean}>({});
+  
+  // State voor hoofdsectie dropdowns
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
+    colors: true,
+    components: true,
+    library: true
+  });
   
   // Functie om animatie duur te berekenen op basis van viewport verandering
   const getAnimationDuration = (from: string, to: string) => {
@@ -491,6 +489,13 @@ export default function Dashboard() {
     }));
   };
 
+  const toggleSectionDropdown = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
 
   // const moveComponent = (fromIndex: number, toIndex: number) => {
   //   const newOrder = [...componentOrder];
@@ -589,12 +594,6 @@ export default function Dashboard() {
       secondaryColor: '#ff6600',
       backgroundColor: '#ffffff',
       textColor: '#000000',
-      backgroundType: 'solid',
-      gradientStart: '#3b82f6',
-      gradientEnd: '#8b5cf6',
-      gradientDirection: 'to-r',
-      gradientType: 'linear',
-      gradientStops: '',
       startDate: '',
       endDate: '',
       location: '',
@@ -602,7 +601,9 @@ export default function Dashboard() {
       entryFee: '',
       prizePool: '',
       twitchUrl: '',
-      chatEnabled: 'false'
+      chatEnabled: 'false',
+      headerBackgroundColor: '#ffffff',
+      headerTextColor: '#000000'
     });
     
     // Reset enabled components - alle componenten uitgeschakeld
@@ -640,12 +641,6 @@ export default function Dashboard() {
         secondaryColor: tournament.secondaryColor,
         backgroundColor: '#ffffff',
         textColor: '#000000',
-        backgroundType: 'solid',
-        gradientStart: '#3b82f6',
-        gradientEnd: '#8b5cf6',
-        gradientDirection: 'to-r',
-        gradientType: 'linear',
-        gradientStops: '',
         startDate: tournament.startDate,
         endDate: tournament.endDate,
         location: tournament.location,
@@ -653,7 +648,9 @@ export default function Dashboard() {
         entryFee: tournament.entryFee,
         prizePool: tournament.prizePool,
         twitchUrl: '',
-        chatEnabled: 'false'
+        chatEnabled: 'false',
+        headerBackgroundColor: '#ffffff',
+        headerTextColor: '#000000'
       });
       setEditingTournament(tournamentId);
       setEditingTournamentStatus(tournament.status);
@@ -735,18 +732,10 @@ export default function Dashboard() {
   // Toernooi aanmaken view
   if (currentView === 'create-tournament') {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                {editingTournament ? 'Toernooi Bewerken' : 'Toernooi Aanmaken'}
-              </h1>
-              <p className="text-lg text-gray-600">
-                {editingTournament ? 'Bewerk je toernooi en bekijk een live preview' : 'Configureer je toernooi en bekijk een live preview'}
-              </p>
-            </div>
+      <div className="h-screen bg-gray-50 overflow-hidden">
+        {/* Top Navigation */}
+        <div className="bg-white shadow-sm border-b px-6 py-4">
+          <div className="max-w-7xl mx-auto flex justify-end">
             <div className="flex gap-4">
               <button
                 onClick={() => setCurrentView('manage-tournament')}
@@ -762,299 +751,124 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Linker paneel - Configuratie */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-lg h-[80vh] flex flex-col">
-                {/* Header */}
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Toernooi Manager</h2>
-                  
-                  {/* Tab Navigation */}
-                  <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                    <button
-                      onClick={() => setLeftPanelTab('edit')}
-                      className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
-                        leftPanelTab === 'edit'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      Bewerk
-                    </button>
-                    <button
-                      onClick={() => setLeftPanelTab('add')}
-                      className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
-                        leftPanelTab === 'add'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                    >
-                      Toevoeg
-                    </button>
-                  </div>
+        <div className="h-[calc(100vh-80px)] grid grid-cols-1 lg:grid-cols-3 p-6 gap-6 overflow-hidden">
+          {/* Linker paneel - Configuratie */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-lg h-[calc(100vh-80px-48px)] flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Toernooi Manager</h2>
+                
+                {/* Tab Navigation */}
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setLeftPanelTab('edit')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                      leftPanelTab === 'edit'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Bewerk
+                  </button>
+                  <button
+                    onClick={() => setLeftPanelTab('add')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+                      leftPanelTab === 'add'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Toevoeg
+                  </button>
                 </div>
+              </div>
 
-                {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto p-6">
-                  {leftPanelTab === 'edit' ? (
-                    <>
-                      {/* Kleuren */}
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Kleuren</h3>
-                        
+              {/* Tab Content */}
+              <div className="flex-1 overflow-y-auto p-6 pb-0">
+                {leftPanelTab === 'edit' ? (
+                  <>
+                    {/* Kleuren */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">Kleuren</h3>
+                        <button
+                          onClick={() => toggleSectionDropdown('colors')}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <svg 
+                            className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections.colors ? 'rotate-180' : ''}`} 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                        expandedSections.colors ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                      }`}>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Achtergrond Type
+                              Achtergrond Kleur
                             </label>
-                            <div className="flex space-x-2 mb-3">
-                              <button
-                                onClick={() => handleConfigChange('backgroundType', 'solid')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                  tournamentConfig.backgroundType === 'solid' || !tournamentConfig.backgroundType
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                              >
-                                Effen Kleur
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleConfigChange('backgroundType', 'gradient');
-                                  if (!tournamentConfig.gradientDirection) {
-                                    handleConfigChange('gradientDirection', 'to right');
-                                  }
-                                  if (!tournamentConfig.gradientType) {
-                                    handleConfigChange('gradientType', 'linear');
-                                  }
-                                }}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                  tournamentConfig.backgroundType === 'gradient'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                              >
-                                Gradient
-                              </button>
-                            </div>
-                          </div>
-
-                          {(tournamentConfig.backgroundType === 'solid' || !tournamentConfig.backgroundType) && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Achtergrond Kleur
-                              </label>
-                              <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
                                 <input
                                   type="color"
                                   value={tournamentConfig.backgroundColor}
                                   onChange={(e) => handleConfigChange('backgroundColor', e.target.value)}
-                                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                                  className="w-12 h-10 opacity-0 absolute cursor-pointer"
                                 />
-                                <input
-                                  type="text"
-                                  value={tournamentConfig.backgroundColor}
-                                  onChange={(e) => handleConfigChange('backgroundColor', e.target.value)}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {tournamentConfig.backgroundType === 'gradient' && (
-                            <div className="space-y-4">
-                              {/* Gradient Type & Controls */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <select
-                                    value={tournamentConfig.gradientType || 'linear'}
-                                    onChange={(e) => handleConfigChange('gradientType', e.target.value)}
-                                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                                  >
-                                    <option value="linear">Linear</option>
-                                    <option value="radial">Radial</option>
-                                  </select>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => {
-                                      const current = tournamentConfig.gradientDirection || 'to-r';
-                                      const reversed = current.replace('to-', 'to-').replace('r', 'l').replace('l', 'r').replace('b', 't').replace('t', 'b');
-                                      handleConfigChange('gradientDirection', reversed);
-                                    }}
-                                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
-                                    title="Omkeren"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      const current = tournamentConfig.gradientDirection || 'to-r';
-                                      const angle = current === 'to-r' ? '45deg' : current === 'to-b' ? '135deg' : current === 'to-l' ? '225deg' : '315deg';
-                                      handleConfigChange('gradientDirection', angle);
-                                    }}
-                                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
-                                    title="Roteren"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Gradient Preview Bar */}
-                              <div className="relative">
                                 <div 
-                                  className="w-full h-8 rounded-lg border border-gray-300 cursor-pointer"
-                                  style={{
-                                    background: tournamentConfig.gradientType === 'radial'
-                                      ? `radial-gradient(circle, ${tournamentConfig.gradientStart || '#3b82f6'}, ${tournamentConfig.gradientEnd || '#8b5cf6'})`
-                                      : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${tournamentConfig.gradientStart || '#3b82f6'}, ${tournamentConfig.gradientEnd || '#8b5cf6'})`
-                                  }}
-                                  onClick={(e) => {
-                                    // const rect = e.currentTarget.getBoundingClientRect();
-                                    // const x = e.clientX - rect.left;
-                                    // const percentage = Math.round((x / rect.width) * 100);
-                                    // Hier zou je een nieuwe color stop kunnen toevoegen
-                                  }}
+                                  className="w-12 h-10 border-2 border-gray-300 rounded cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                  style={{ backgroundColor: tournamentConfig.backgroundColor }}
                                 />
                               </div>
-
-                              {/* Color Stops */}
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <label className="text-sm font-medium text-gray-700">Stops</label>
-                                  <button
-                                    onClick={() => {
-                                      // Voeg nieuwe color stop toe
-                                      const newStop = {
-                                        position: 50,
-                                        color: '#ffffff',
-                                        id: Date.now()
-                                      };
-                                      const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
-                                        { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                        { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                      ];
-                                      const updatedStops = [...currentStops, newStop].sort((a: GradientStop, b: GradientStop) => a.position - b.position);
-                                      handleConfigChange('gradientStops', JSON.stringify(updatedStops));
-                                    }}
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-
-                                <div className="space-y-2">
-                                  {(tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) as GradientStop[] : [
-                                    { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                    { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                  ]).map((stop: GradientStop, index: number) => (
-                                    <div key={stop.id || index} className="flex items-center gap-2">
-                                      <div className="w-6 h-6 rounded border border-gray-300" style={{ backgroundColor: stop.color }} />
-                                      <input
-                                        type="text"
-                                        value={stop.position}
-                                        onChange={(e) => {
-                                          const newPosition = parseInt(e.target.value) || 0;
-                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
-                                            { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                            { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                          ];
-                                          const updatedStops = currentStops.map((s: GradientStop) => 
-                                            s.id === stop.id ? { ...s, position: newPosition } : s
-                                          ).sort((a: GradientStop, b: GradientStop) => a.position - b.position);
-                                          handleConfigChange('gradientStops', JSON.stringify(updatedStops));
-                                        }}
-                                        className="w-12 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
-                                      />
-                                      <span className="text-xs text-gray-500">%</span>
-                                      <input
-                                        type="color"
-                                        value={stop.color}
-                                        onChange={(e) => {
-                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
-                                            { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                            { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                          ];
-                                          const updatedStops = currentStops.map((s: GradientStop) => 
-                                            s.id === stop.id ? { ...s, color: e.target.value } : s
-                                          );
-                                          handleConfigChange('gradientStops', JSON.stringify(updatedStops));
-                                        }}
-                                        className="w-8 h-6 border border-gray-300 rounded cursor-pointer"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={stop.color}
-                                        onChange={(e) => {
-                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
-                                            { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                            { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                          ];
-                                          const updatedStops = currentStops.map((s: GradientStop) => 
-                                            s.id === stop.id ? { ...s, color: e.target.value } : s
-                                          );
-                                          handleConfigChange('gradientStops', JSON.stringify(updatedStops));
-                                        }}
-                                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
-                                      />
-                                      <span className="text-xs text-gray-500">100%</span>
-                                      <button
-                                        onClick={() => {
-                                          const currentStops: GradientStop[] = tournamentConfig.gradientStops ? JSON.parse(tournamentConfig.gradientStops) : [
-                                            { position: 0, color: tournamentConfig.gradientStart || '#3b82f6', id: 1 },
-                                            { position: 100, color: tournamentConfig.gradientEnd || '#8b5cf6', id: 2 }
-                                          ];
-                                          if (currentStops.length > 2) {
-                                            const updatedStops = currentStops.filter((s: GradientStop) => s.id !== stop.id);
-                                            handleConfigChange('gradientStops', JSON.stringify(updatedStops));
-                                          }
-                                        }}
-                                        className="text-red-500 hover:text-red-700 text-sm"
-                                        disabled={!tournamentConfig.gradientStops || JSON.parse(tournamentConfig.gradientStops).length <= 2}
-                                      >
-                                        −
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Gradient Direction */}
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Richting
-                                </label>
-                                <select
-                                  value={tournamentConfig.gradientDirection || 'to-r'}
-                                  onChange={(e) => handleConfigChange('gradientDirection', e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                                >
-                                  <option value="to-r">Links naar Rechts</option>
-                                  <option value="to-l">Rechts naar Links</option>
-                                  <option value="to-b">Boven naar Beneden</option>
-                                  <option value="to-t">Beneden naar Boven</option>
-                                  <option value="to-br">Linksboven naar Rechtsbeneden</option>
-                                  <option value="to-tl">Rechtsbeneden naar Linksboven</option>
-                                </select>
-                              </div>
+                              <input
+                                type="text"
+                                value={tournamentConfig.backgroundColor}
+                                onChange={(e) => handleConfigChange('backgroundColor', e.target.value)}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                              />
                             </div>
-                          )}
+                          </div>
+
+                          </div>
                         </div>
                       </div>
 
                        {/* Ingeschakelde Componenten */}
                        <div className="mb-6">
-                         <h3 className="text-lg font-semibold text-gray-800 mb-4">Bewerk Componenten</h3>
-                         <p className="text-sm text-gray-600 mb-4">Configureer je huidige componenten</p>
+                         <div className="flex items-center justify-between mb-4">
+                           <div>
+                             <h3 className="text-lg font-semibold text-gray-800">Bewerk Componenten</h3>
+                             <p className="text-sm text-gray-600">Configureer je huidige componenten</p>
+                           </div>
+                           <button
+                             onClick={() => toggleSectionDropdown('components')}
+                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                           >
+                             <svg 
+                               className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections.components ? 'rotate-180' : ''}`} 
+                               fill="none" 
+                               stroke="currentColor" 
+                               viewBox="0 0 24 24"
+                             >
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                             </svg>
+                           </button>
+                         </div>
                          
-                         <div className="space-y-4">
+                         <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                           expandedSections.components ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                         }`}>
+                           <div className="space-y-4">
                            {componentOrder.map((componentId) => {
                              const component = allComponents[componentId as keyof typeof allComponents];
                              if (!component) return null;
@@ -1181,6 +995,60 @@ export default function Dashboard() {
                                              />
                                            </div>
                                          )}
+                                         <div className="grid grid-cols-2 gap-4">
+                                           <div>
+                                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                                               Achtergrond Kleur
+                                             </label>
+                                             <div className="flex items-center gap-3">
+                                               <div className="relative">
+                                                 <input
+                                                   type="color"
+                                                   value={tournamentConfig.headerBackgroundColor || '#ffffff'}
+                                                   onChange={(e) => handleConfigChange('headerBackgroundColor', e.target.value)}
+                                                   className="w-12 h-10 opacity-0 absolute cursor-pointer"
+                                                 />
+                                                 <div 
+                                                   className="w-12 h-10 border-2 border-gray-300 rounded cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                                   style={{ backgroundColor: tournamentConfig.headerBackgroundColor || '#ffffff' }}
+                                                 />
+                                               </div>
+                                               <input
+                                                 type="text"
+                                                 value={tournamentConfig.headerBackgroundColor || '#ffffff'}
+                                                 onChange={(e) => handleConfigChange('headerBackgroundColor', e.target.value)}
+                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                                 placeholder="#ffffff"
+                                               />
+                                             </div>
+                                           </div>
+                                           <div>
+                                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                                               Tekst Kleur
+                                             </label>
+                                             <div className="flex items-center gap-3">
+                                               <div className="relative">
+                                                 <input
+                                                   type="color"
+                                                   value={tournamentConfig.headerTextColor || '#000000'}
+                                                   onChange={(e) => handleConfigChange('headerTextColor', e.target.value)}
+                                                   className="w-12 h-10 opacity-0 absolute cursor-pointer"
+                                                 />
+                                                 <div 
+                                                   className="w-12 h-10 border-2 border-gray-300 rounded cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                                   style={{ backgroundColor: tournamentConfig.headerTextColor || '#000000' }}
+                                                 />
+                                               </div>
+                                               <input
+                                                 type="text"
+                                                 value={tournamentConfig.headerTextColor || '#000000'}
+                                                 onChange={(e) => handleConfigChange('headerTextColor', e.target.value)}
+                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                                 placeholder="#000000"
+                                               />
+                                             </div>
+                                           </div>
+                                         </div>
                                        </div>
                                      )}
                                      {component.id === 'livestream' && (
@@ -1226,16 +1094,37 @@ export default function Dashboard() {
                                </div>
                              );
                            })}
+                           </div>
                          </div>
                        </div>
                     </>
                   ) : (
                      /* Toevoeg Tab - Alle beschikbare componenten met Drag & Drop */
                      <div>
-                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Component Bibliotheek</h3>
-                       <p className="text-sm text-gray-600 mb-6">Sleep componenten naar de preview om ze toe te voegen of beheer ze hier</p>
+                       <div className="flex items-center justify-between mb-4">
+                         <div>
+                           <h3 className="text-lg font-semibold text-gray-800">Component Bibliotheek</h3>
+                           <p className="text-sm text-gray-600">Sleep componenten naar de preview om ze toe te voegen of beheer ze hier</p>
+                         </div>
+                         <button
+                           onClick={() => toggleSectionDropdown('library')}
+                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                         >
+                           <svg 
+                             className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections.library ? 'rotate-180' : ''}`} 
+                             fill="none" 
+                             stroke="currentColor" 
+                             viewBox="0 0 24 24"
+                           >
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                           </svg>
+                         </button>
+                       </div>
                        
-                       <div className="grid grid-cols-1 gap-3">
+                       <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+                         expandedSections.library ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+                       }`}>
+                         <div className="grid grid-cols-1 gap-3">
                          {['Basis', 'Informatie', 'Interactie', 'Marketing'].map(category => (
                            <div key={category} className="mb-6">
                              <h4 className="text-md font-semibold text-gray-700 mb-3">{category}</h4>
@@ -1308,6 +1197,7 @@ export default function Dashboard() {
                              </div>
                            </div>
                          ))}
+                         </div>
                        </div>
                      </div>
                   )}
@@ -1315,11 +1205,11 @@ export default function Dashboard() {
 
                 {/* Actie knoppen */}
                 <div className="p-6 border-t border-gray-200">
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
                     {(!editingTournament || editingTournamentStatus === 'draft') && (
                       <button
                         onClick={handleSaveDraft}
-                        className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                        className="bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
                       >
                         Save Draft
                       </button>
@@ -1335,20 +1225,20 @@ export default function Dashboard() {
                             setEditingTournamentStatus(null);
                           }
                         }}
-                        className="w-full bg-gray-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                        className="bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
                       >
                         Unpublish
                       </button>
                     )}
                     <button
                       onClick={handlePublish}
-                      className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                      className="bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
                     >
-                      {editingTournament ? (editingTournamentStatus === 'published' ? 'Update & Publish' : 'Publish') : 'Publish'}
+                      {editingTournament ? (editingTournamentStatus === 'published' ? 'Update' : 'Publish') : 'Publish'}
                     </button>
                     <button
                       onClick={handleReset}
-                      className="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                      className="bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors text-sm"
                     >
                       Reset
                     </button>
@@ -1357,231 +1247,204 @@ export default function Dashboard() {
               </div>
             </div>
 
-                  {/* Rechter paneel - Live Preview */}
-                  <div className="lg:col-span-2">
-                    <div className="bg-white rounded-lg shadow-lg p-6 h-[80vh] flex flex-col">
-                      {/* Preview Header met Viewport Controls */}
-                      <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">Live Preview</h2>
-                        
-                        {/* Viewport Controls */}
-                        <div className="flex items-center gap-3">
-                          {/* Viewport Indicator */}
-                          <div className="text-sm text-gray-500 font-medium">
-                            {previewViewport === 'desktop' && 'Desktop (1920px)'}
-                            {previewViewport === 'tablet' && 'Tablet (768px)'}
-                            {previewViewport === 'mobile' && 'Mobile (375px)'}
-                          </div>
-                          
-                          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                          <button
-                            onClick={() => handleViewportChange('desktop')}
-                            className={`p-2 rounded-md transition-colors ${
-                              previewViewport === 'desktop'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                            title="Desktop View"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          
-                          <button
-                            onClick={() => handleViewportChange('tablet')}
-                            className={`p-2 rounded-md transition-colors ${
-                              previewViewport === 'tablet'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                            title="Tablet View"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          
-                          <button
-                            onClick={() => handleViewportChange('mobile')}
-                            className={`p-2 rounded-md transition-colors ${
-                              previewViewport === 'mobile'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                            title="Mobile View"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragStart={handleDragStart}
-                        onDragOver={handleDragOver}
-                        onDragEnd={handleDragEnd}
+            {/* Rechter paneel - Live Preview */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-[calc(100vh-80px-48px)] flex flex-col">
+                {/* Preview Header met Viewport Controls */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Live Preview</h2>
+                  
+                  {/* Viewport Controls */}
+                  <div className="flex items-center gap-3">
+                    {/* Viewport Indicator */}
+                    <div className="text-sm text-gray-500 font-medium">
+                      {previewViewport === 'desktop' && 'Desktop (1920px)'}
+                      {previewViewport === 'tablet' && 'Tablet (768px)'}
+                      {previewViewport === 'mobile' && 'Mobile (375px)'}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                      <button
+                        onClick={() => handleViewportChange('desktop')}
+                        className={`p-2 rounded-md transition-colors ${
+                          previewViewport === 'desktop'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="Desktop View"
                       >
-                        <SortableContext
-                          items={componentOrder}
-                          strategy={verticalListSortingStrategy}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleViewportChange('tablet')}
+                        className={`p-2 rounded-md transition-colors ${
+                          previewViewport === 'tablet'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="Tablet View"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleViewportChange('mobile')}
+                        className={`p-2 rounded-md transition-colors ${
+                          previewViewport === 'mobile'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="Mobile View"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={componentOrder}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div 
+                      id="preview-area"
+                      className="border rounded-lg overflow-hidden flex-1 overflow-y-auto min-h-[400px] mx-auto transition-all ease-in-out"
+                      style={{ 
+                        background: tournamentConfig.backgroundColor,
+                        color: tournamentConfig.textColor,
+                        transitionDuration: animationPhase === 'scale' 
+                          ? `${animationDuration * 0.6}ms`
+                          : animationPhase === 'width'
+                          ? `${animationDuration * 0.4}ms`
+                          : '0ms',
+                        width: previewViewport === 'desktop' 
+                          ? '100%' 
+                          : previewViewport === 'tablet'
+                          ? '768px'
+                          : '375px',
+                        maxWidth: previewViewport === 'desktop' 
+                          ? 'none' 
+                          : previewViewport === 'tablet'
+                          ? '768px'
+                          : '375px',
+                        transform: previewViewport === 'desktop' 
+                          ? 'scale(1)' 
+                          : previewViewport === 'tablet'
+                          ? 'scale(0.95)'
+                          : 'scale(0.9)',
+                        transformOrigin: 'center top'
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                        
+                        // Eenvoudigere methode: bepaal positie op basis van scroll positie
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const y = e.clientY - rect.top;
+                        const scrollTop = e.currentTarget.scrollTop;
+                        const totalY = y + scrollTop;
+                        
+                        // Bepaal de index op basis van de positie
+                        let targetIndex = componentOrder.length;
+                        
+                        // Als we over bestaande componenten slepen
+                        if (componentOrder.length > 0) {
+                          // Gebruik de werkelijke component elementen om de positie te bepalen
+                          const componentElements = e.currentTarget.querySelectorAll('[data-component-index]');
+                          let foundIndex = componentOrder.length;
+                          
+                          componentElements.forEach((element, index) => {
+                            const elementRect = element.getBoundingClientRect();
+                            const elementTop = elementRect.top - rect.top + scrollTop;
+                            // const elementBottom = elementRect.bottom - rect.top + scrollTop;
+                            
+                            // Als de muis boven het midden van het element is, plaats ervoor
+                            if (totalY < elementTop + (elementRect.height / 2)) {
+                              foundIndex = Math.min(foundIndex, index);
+                            }
+                          });
+                          
+                          targetIndex = foundIndex;
+                        }
+                        
+                        setDragOverIndex(targetIndex);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const componentId = e.dataTransfer.getData('text/plain');
+                        
+                        // Alleen toevoegen als component bestaat in allComponents
+                        if (componentId && allComponents[componentId as keyof typeof allComponents] && !enabledComponents[componentId as keyof typeof enabledComponents]) {
+                          setEnabledComponents(prev => ({
+                            ...prev,
+                            [componentId]: true
+                          }));
+                          
+                          // Voeg component toe op de gewenste positie
+                          setComponentOrder(prev => {
+                            if (!prev.includes(componentId)) {
+                              const dropIndex = dragOverIndex !== null ? dragOverIndex : prev.length;
+                              const newOrder = [...prev];
+                              newOrder.splice(dropIndex, 0, componentId);
+                              return newOrder;
+                            }
+                            return prev;
+                          });
+                        }
+                      }}
+                    >
+                      {/* Drop Zone Indicator */}
+                      {componentOrder.length === 0 && (
+                        <div 
+                          className="h-full min-h-[400px] rounded-lg"
+                          style={{
+                            background: tournamentConfig.backgroundColor,
+                            color: tournamentConfig.textColor
+                          }}
                         >
-                          <div 
-                            id="preview-area"
-                            className="border rounded-lg overflow-hidden flex-1 overflow-y-auto min-h-[400px] mx-auto transition-all ease-in-out"
-                            style={{ 
-                                  background: tournamentConfig.backgroundType === 'gradient'
-                                    ? (() => {
-                                      if (tournamentConfig.gradientStops) {
-                                      const stops = JSON.parse(tournamentConfig.gradientStops) as Array<{position: number, color: string, id: number}>;
-                                      const colorStops = stops.map((stop: {position: number, color: string, id: number}) => `${stop.color} ${stop.position}%`).join(', ');
-                                        return tournamentConfig.gradientType === 'radial'
-                                          ? `radial-gradient(circle, ${colorStops})`
-                                          : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${colorStops})`;
-                                      }
-                                      return tournamentConfig.gradientType === 'radial'
-                                        ? `radial-gradient(circle, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`
-                                        : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`;
-                                    })()
-                                    : tournamentConfig.backgroundColor,
-                              color: tournamentConfig.textColor,
-                              transitionDuration: animationPhase === 'scale' 
-                                ? `${animationDuration * 0.6}ms`
-                                : animationPhase === 'width'
-                                ? `${animationDuration * 0.4}ms`
-                                : '0ms',
-                              width: previewViewport === 'desktop' 
-                                ? '100%' 
-                                : previewViewport === 'tablet'
-                                ? '768px'
-                                : '375px',
-                              maxWidth: previewViewport === 'desktop' 
-                                ? 'none' 
-                                : previewViewport === 'tablet'
-                                ? '768px'
-                                : '375px',
-                              transform: previewViewport === 'desktop' 
-                                ? 'scale(1)' 
-                                : previewViewport === 'tablet'
-                                ? 'scale(0.95)'
-                                : 'scale(0.9)',
-                              transformOrigin: 'center top'
-                            }}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              e.dataTransfer.dropEffect = 'copy';
-                              
-                              // Eenvoudigere methode: bepaal positie op basis van scroll positie
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const y = e.clientY - rect.top;
-                              const scrollTop = e.currentTarget.scrollTop;
-                              const totalY = y + scrollTop;
-                              
-                              // Bepaal de index op basis van de positie
-                              let targetIndex = componentOrder.length;
-                              
-                              // Als we over bestaande componenten slepen
-                              if (componentOrder.length > 0) {
-                                // Gebruik de werkelijke component elementen om de positie te bepalen
-                                const componentElements = e.currentTarget.querySelectorAll('[data-component-index]');
-                                let foundIndex = componentOrder.length;
-                                
-                                componentElements.forEach((element, index) => {
-                                  const elementRect = element.getBoundingClientRect();
-                                  const elementTop = elementRect.top - rect.top + scrollTop;
-                                  // const elementBottom = elementRect.bottom - rect.top + scrollTop;
-                                  
-                                  // Als de muis boven het midden van het element is, plaats ervoor
-                                  if (totalY < elementTop + (elementRect.height / 2)) {
-                                    foundIndex = Math.min(foundIndex, index);
-                                  }
-                                });
-                                
-                                targetIndex = foundIndex;
-                              }
-                              
-                              setDragOverIndex(targetIndex);
-                              
-                            }}
-                             onDrop={(e) => {
-                               e.preventDefault();
-                               const componentId = e.dataTransfer.getData('text/plain');
-                               
-                               // Alleen toevoegen als component bestaat in allComponents
-                               if (componentId && allComponents[componentId as keyof typeof allComponents] && !enabledComponents[componentId as keyof typeof enabledComponents]) {
-                                 setEnabledComponents(prev => ({
-                                   ...prev,
-                                   [componentId]: true
-                                 }));
-                                 
-                                 // Voeg component toe op de gewenste positie
-                                 setComponentOrder(prev => {
-                                   if (!prev.includes(componentId)) {
-                                     const dropIndex = dragOverIndex !== null ? dragOverIndex : prev.length;
-                                     const newOrder = [...prev];
-                                     newOrder.splice(dropIndex, 0, componentId);
-                                     return newOrder;
-                                   }
-                                   return prev;
-                                 });
-                               }
-                             }}
-                          >
-                            {/* Drop Zone Indicator */}
-                            {componentOrder.length === 0 && (
-                              <div 
-                                className="h-full min-h-[400px] rounded-lg"
-                                style={{
-                                  background: tournamentConfig.backgroundType === 'gradient'
-                                    ? (() => {
-                                        if (tournamentConfig.gradientStops) {
-                                      const stops = JSON.parse(tournamentConfig.gradientStops) as Array<{position: number, color: string, id: number}>;
-                                      const colorStops = stops.map((stop: {position: number, color: string, id: number}) => `${stop.color} ${stop.position}%`).join(', ');
-                                        return tournamentConfig.gradientType === 'radial'
-                                          ? `radial-gradient(circle, ${colorStops})`
-                                          : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${colorStops})`;
-                                        }
-                                        return tournamentConfig.gradientType === 'radial'
-                                          ? `radial-gradient(circle, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`
-                                          : `linear-gradient(${tournamentConfig.gradientDirection}, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`;
-                                      })()
-                                    : tournamentConfig.backgroundColor,
-                                  color: tournamentConfig.textColor
-                                }}
-                              >
+                        </div>
+                      )}
+
+                      {/* Modulaire Preview - Componenten worden dynamisch gerenderd */}
+                      {componentOrder.map((componentId, index) => {
+                        const component = allComponents[componentId as keyof typeof allComponents];
+                        if (!component) return null;
+                        
+                        const isEnabled = enabledComponents[componentId as keyof typeof enabledComponents];
+
+                        // Toon alleen ingeschakelde componenten in live preview
+                        if (!isEnabled) return null;
+
+                        // Drop indicator voor nieuwe componenten
+                        const showDropIndicator = isDraggingFromLibrary && dragOverIndex === index;
+
+                        return (
+                          <div key={`${componentId}-${index}`} data-component-index={index}>
+                            {/* Drop indicator */}
+                            {showDropIndicator && (
+                              <div className="h-2 bg-blue-500 rounded-full mx-4 mb-2 shadow-lg animate-pulse">
+                                <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
                               </div>
                             )}
-
-                             {/* Modulaire Preview - Componenten worden dynamisch gerenderd */}
-                             {componentOrder.map((componentId, index) => {
-                               const component = allComponents[componentId as keyof typeof allComponents];
-                               if (!component) return null;
-                               
-                               const isEnabled = enabledComponents[componentId as keyof typeof enabledComponents];
-
-                               // Toon alleen ingeschakelde componenten in live preview
-                               if (!isEnabled) return null;
-
-                               // Drop indicator voor nieuwe componenten
-                               const showDropIndicator = isDraggingFromLibrary && dragOverIndex === index;
-
-                               return (
-                                 <div key={`${componentId}-${index}`} data-component-index={index}>
-                                   {/* Drop indicator */}
-                                   {showDropIndicator && (
-                                     <div className="h-2 bg-blue-500 rounded-full mx-4 mb-2 shadow-lg animate-pulse">
-                                       <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"></div>
-                                     </div>
-                                   )}
-                                   
-                                   <SortableItem key={componentId} id={componentId} isPreview={true}>
-                                        {(() => {
-                                          switch (componentId) {
-                                            case 'header':
+                            
+                            <SortableItem key={componentId} id={componentId} isPreview={true}>
+                              {(() => {
+                                switch (componentId) {
+                                  case 'header':
                                               return (
                                                 <Header 
                                                   config={{
@@ -1590,7 +1453,9 @@ export default function Dashboard() {
                                                       alt: tournamentConfig.name || 'Logo',
                                                       width: 200,
                                                       height: 80
-                                                    }
+                                                    },
+                                                    backgroundColor: tournamentConfig.headerBackgroundColor || '#ffffff',
+                                                    textColor: tournamentConfig.headerTextColor || '#000000'
                                                   }}
                                                 />
                                               );
@@ -1599,20 +1464,7 @@ export default function Dashboard() {
                                                 <div 
                                                   className="px-4 py-8"
                                                   style={{
-                                                    background: tournamentConfig.backgroundType === 'gradient'
-                                                      ? (() => {
-                                                          if (tournamentConfig.gradientStops) {
-                                      const stops = JSON.parse(tournamentConfig.gradientStops) as Array<{position: number, color: string, id: number}>;
-                                      const colorStops = stops.map((stop: {position: number, color: string, id: number}) => `${stop.color} ${stop.position}%`).join(', ');
-                                        return tournamentConfig.gradientType === 'radial'
-                                          ? `radial-gradient(circle, ${colorStops})`
-                                          : `linear-gradient(${tournamentConfig.gradientDirection || 'to right'}, ${colorStops})`;
-                                                          }
-                                                          return tournamentConfig.gradientType === 'radial'
-                                                            ? `radial-gradient(circle, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`
-                                                            : `linear-gradient(${tournamentConfig.gradientDirection}, ${tournamentConfig.gradientStart}, ${tournamentConfig.gradientEnd})`;
-                                                        })()
-                                                      : tournamentConfig.backgroundColor,
+                                                    background: tournamentConfig.backgroundColor,
                                                     color: tournamentConfig.textColor
                                                   }}
                                                 >
@@ -1681,17 +1533,17 @@ export default function Dashboard() {
                               </div>
                             )}
                           </div>
-                        </SortableContext>
-                        
-                         {/* Drag Overlay */}
-                         <DragOverlay>
-                           {activeId && draggedComponent ? (
-                             <div className="bg-white border border-gray-200 rounded-lg shadow-lg opacity-90">
-                               {/* Render het echte component preview */}
-                               {(() => {
-                                 // Als het van de library komt, toon het echte component
-                                 if (isDraggingFromLibrary && draggedComponent.id) {
-                                   switch (draggedComponent.id) {
+                      </SortableContext>
+                      
+                      {/* Drag Overlay */}
+                      <DragOverlay>
+                        {activeId && draggedComponent ? (
+                          <div className="bg-white rounded-lg shadow-lg opacity-90">
+                            {/* Render het echte component preview */}
+                            {(() => {
+                              // Als het van de library komt, toon het echte component
+                              if (isDraggingFromLibrary && draggedComponent.id) {
+                                switch (draggedComponent.id) {
                                   case 'header':
                                     return (
                                       <Header 
@@ -1701,7 +1553,9 @@ export default function Dashboard() {
                                             alt: tournamentConfig.name || 'Logo',
                                             width: 200,
                                             height: 80
-                                          }
+                                          },
+                                          backgroundColor: tournamentConfig.headerBackgroundColor || '#ffffff',
+                                          textColor: tournamentConfig.headerTextColor || '#000000'
                                         }}
                                       />
                                     );
@@ -1850,13 +1704,12 @@ export default function Dashboard() {
                               })()}
                             </div>
                           ) : null}
-                        </DragOverlay>
-                      </DndContext>
-                    </div>
+                      </DragOverlay>
+                    </DndContext>
                   </div>
-          </div>
-        </div>
-      </div>
+                </div>
+              </div>
+            </div>
     );
   }
 
@@ -1927,12 +1780,6 @@ export default function Dashboard() {
                          secondaryColor: '#ff6600',
                          backgroundColor: '#ffffff',
                          textColor: '#000000',
-                         backgroundType: 'solid',
-                         gradientStart: '#3b82f6',
-                         gradientEnd: '#8b5cf6',
-                         gradientDirection: 'to-r',
-                         gradientType: 'linear',
-                         gradientStops: '',
                          startDate: '',
                          endDate: '',
                          location: '',
@@ -1940,7 +1787,9 @@ export default function Dashboard() {
                          entryFee: '',
                          prizePool: '',
                          twitchUrl: '',
-                         chatEnabled: 'false'
+                         chatEnabled: 'false',
+                         headerBackgroundColor: '#ffffff',
+                         headerTextColor: '#000000'
                        });
                        
                        // Reset enabled components - alle componenten uitgeschakeld
@@ -2181,12 +2030,6 @@ export default function Dashboard() {
                      secondaryColor: '#ff6600',
                      backgroundColor: '#ffffff',
                      textColor: '#000000',
-                     backgroundType: 'solid',
-                     gradientStart: '#3b82f6',
-                     gradientEnd: '#8b5cf6',
-                     gradientDirection: 'to-r',
-                     gradientType: 'linear',
-                     gradientStops: '',
                      startDate: '',
                      endDate: '',
                      location: '',
@@ -2194,7 +2037,9 @@ export default function Dashboard() {
                      entryFee: '',
                      prizePool: '',
                      twitchUrl: '',
-                     chatEnabled: 'false'
+                     chatEnabled: 'false',
+                     headerBackgroundColor: '#ffffff',
+                     headerTextColor: '#000000'
                    });
                    
                    // Reset enabled components - alle componenten uitgeschakeld
