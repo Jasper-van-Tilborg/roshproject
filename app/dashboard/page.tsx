@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Header from '../components/header';
 
 // Type definities
 interface GradientStop {
@@ -557,6 +558,13 @@ export default function Dashboard() {
 
    // Componenten worden straks uit de components map geladen
    const allComponents: Record<string, {id: string, name: string, description: string, icon: string, category?: string}> = {
+     header: {
+       id: 'header',
+       name: 'Header',
+       description: 'Aanpasbare header met logo en navigatie',
+       icon: '🎨',
+       category: 'Basis'
+     },
      livestream: {
        id: 'livestream',
        name: 'Livestream',
@@ -1115,6 +1123,66 @@ export default function Dashboard() {
                                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                                  }`}>
                                    <div className="p-4">
+                                     {component.id === 'header' && (
+                                       <div className="space-y-4">
+                                         <div>
+                                           <label className="block text-sm font-medium text-gray-700 mb-2">
+                                             Logo URL
+                                           </label>
+                                           <input
+                                             type="url"
+                                             value={tournamentConfig.logo || ''}
+                                             onChange={(e) => handleConfigChange('logo', e.target.value)}
+                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                             placeholder="https://example.com/logo.png"
+                                           />
+                                         </div>
+                                         <div>
+                                           <label className="block text-sm font-medium text-gray-700 mb-2">
+                                             Logo Upload
+                                           </label>
+                                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                             <input
+                                               type="file"
+                                               accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                               onChange={(e) => {
+                                                 const file = e.target.files?.[0];
+                                                 if (file && file.type.startsWith('image/')) {
+                                                   const reader = new FileReader();
+                                                   reader.onload = (event) => {
+                                                     const result = event.target?.result as string;
+                                                     handleConfigChange('logo', result);
+                                                   };
+                                                   reader.readAsDataURL(file);
+                                                 }
+                                               }}
+                                               className="hidden"
+                                               id="logo-upload"
+                                             />
+                                             <label
+                                               htmlFor="logo-upload"
+                                               className="cursor-pointer flex flex-col items-center"
+                                             >
+                                               <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                               </svg>
+                                               <span className="text-sm text-gray-600">Klik om logo te uploaden</span>
+                                               <span className="text-xs text-gray-500">PNG, JPG, SVG (max 5MB)</span>
+                                             </label>
+                                           </div>
+                                         </div>
+                                         {tournamentConfig.logo && (
+                                           <div className="mt-3">
+                                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                                             <img
+                                               src={tournamentConfig.logo}
+                                               alt="Logo preview"
+                                               className="max-h-20 max-w-32 object-contain border rounded"
+                                             />
+                                           </div>
+                                         )}
+                                       </div>
+                                     )}
                                      {component.id === 'livestream' && (
                                        <div className="space-y-4">
                                          <div>
@@ -1513,6 +1581,19 @@ export default function Dashboard() {
                                    <SortableItem key={componentId} id={componentId} isPreview={true}>
                                         {(() => {
                                           switch (componentId) {
+                                            case 'header':
+                                              return (
+                                                <Header 
+                                                  config={{
+                                                    logo: {
+                                                      src: tournamentConfig.logo || '/logoheader.png',
+                                                      alt: tournamentConfig.name || 'Logo',
+                                                      width: 200,
+                                                      height: 80
+                                                    }
+                                                  }}
+                                                />
+                                              );
                                             case 'livestream':
                                               return (
                                                 <div 
@@ -1611,7 +1692,19 @@ export default function Dashboard() {
                                  // Als het van de library komt, toon het echte component
                                  if (isDraggingFromLibrary && draggedComponent.id) {
                                    switch (draggedComponent.id) {
-                                  
+                                  case 'header':
+                                    return (
+                                      <Header 
+                                        config={{
+                                          logo: {
+                                            src: tournamentConfig.logo || '/logoheader.png',
+                                            alt: tournamentConfig.name || 'Logo',
+                                            width: 200,
+                                            height: 80
+                                          }
+                                        }}
+                                      />
+                                    );
                                   case 'description':
                                     return (
                                       <div className="px-4 py-8">
