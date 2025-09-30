@@ -85,7 +85,7 @@ export default function Dashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'create-tournament', 'manage-tournament'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'template-selection', 'create-tournament', 'manage-tournament'
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
   
@@ -722,6 +722,472 @@ export default function Dashboard() {
               <p>Demo credentials:</p>
               <p>Gebruikersnaam: admin</p>
               <p>Wachtwoord: admin123</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Template selectie view
+  if (currentView === 'template-selection') {
+    const TOURNAMENT_TEMPLATES = [
+      {
+        id: 'classic-stack',
+        name: 'Classic Stack',
+        description: 'Traditionele verticale layout met full-width secties. Hero bovenaan, gevolgd door overzichtelijke content blokken. Perfect voor standaard toernooien met duidelijke hiërarchie.',
+        category: 'Classic',
+        layoutStyle: 'Verticaal gestapeld, full-width secties',
+        components: ['header', 'livestream', 'description', 'tournamentDetails', 'schedule', 'stats', 'sponsors', 'social', 'contact'],
+        defaultConfig: {
+          primaryColor: '#2563eb',
+          secondaryColor: '#7c3aed',
+          backgroundColor: '#ffffff'
+        }
+      },
+      {
+        id: 'sidebar-pro',
+        name: 'Sidebar Pro',
+        description: 'Moderne sidebar layout met vaste navigatie links en scrollbare content rechts. Ideaal voor data-rijke toernooien met veel informatie die georganiseerd moet worden.',
+        category: 'Professional',
+        layoutStyle: 'Sidebar navigation + main content area',
+        components: ['header', 'tournamentDetails', 'livestream', 'schedule', 'stats', 'description', 'prizes', 'sponsors', 'social'],
+        defaultConfig: {
+          primaryColor: '#0ea5e9',
+          secondaryColor: '#f59e0b',
+          backgroundColor: '#f8fafc'
+        }
+      },
+      {
+        id: 'grid-master',
+        name: 'Grid Master',
+        description: 'Volledig modulaire grid layout waar elke sectie als card wordt weergegeven. Flexibel en visueel aantrekkelijk met veel witruimte. Perfect voor moderne, clean designs.',
+        category: 'Modern',
+        layoutStyle: 'Multi-column grid met cards',
+        components: ['header', 'description', 'livestream', 'stats', 'schedule', 'tournamentDetails', 'prizes', 'registration', 'sponsors'],
+        defaultConfig: {
+          primaryColor: '#10b981',
+          secondaryColor: '#3b82f6',
+          backgroundColor: '#ffffff'
+        }
+      },
+      {
+        id: 'split-screen',
+        name: 'Split Screen',
+        description: 'Dynamische 50/50 split layout met livestream prominent aan één kant en informatie aan de andere kant. Excellent voor live events waar de stream de focus moet hebben.',
+        category: 'Live Events',
+        layoutStyle: '50/50 split sections met focal points',
+        components: ['header', 'livestream', 'schedule', 'description', 'stats', 'tournamentDetails', 'registration', 'social', 'sponsors'],
+        defaultConfig: {
+          primaryColor: '#ef4444',
+          secondaryColor: '#f59e0b',
+          backgroundColor: '#18181b'
+        }
+      },
+      {
+        id: 'asymmetric-flow',
+        name: 'Asymmetric Flow',
+        description: 'Creatieve asymmetrische layout met wisselende content breedtes en staggered secties. Voor toernooien die opvallen met een uniek, artistiek design.',
+        category: 'Creative',
+        layoutStyle: 'Asymmetrisch met wisselende breedtes',
+        components: ['header', 'description', 'livestream', 'stats', 'schedule', 'prizes', 'tournamentDetails', 'sponsors', 'social', 'contact'],
+        defaultConfig: {
+          primaryColor: '#8b5cf6',
+          secondaryColor: '#ec4899',
+          backgroundColor: '#fafafa'
+        }
+      },
+      {
+        id: 'card-cascade',
+        name: 'Card Cascade',
+        description: 'Elegant cascading card design met overlappende secties en depth effecten. Geeft een premium gevoel met layer-on-layer presentatie. Ideaal voor high-end toernooien.',
+        category: 'Premium',
+        layoutStyle: 'Overlappende cards met depth',
+        components: ['header', 'livestream', 'description', 'stats', 'tournamentDetails', 'schedule', 'prizes', 'registration', 'sponsors', 'social'],
+        defaultConfig: {
+          primaryColor: '#6366f1',
+          secondaryColor: '#a855f7',
+          backgroundColor: '#f9fafb'
+        }
+      },
+      {
+        id: 'magazine-style',
+        name: 'Magazine Style',
+        description: 'Editorial magazine layout met multi-column text flows en featured content blocks. Perfect voor storytelling en content-rijke toernooi presentaties.',
+        category: 'Editorial',
+        layoutStyle: 'Multi-column magazine layout',
+        components: ['header', 'description', 'livestream', 'schedule', 'stats', 'tournamentDetails', 'rules', 'prizes', 'sponsors', 'social', 'contact'],
+        defaultConfig: {
+          primaryColor: '#dc2626',
+          secondaryColor: '#ea580c',
+          backgroundColor: '#ffffff'
+        }
+      },
+      {
+        id: 'tabbed-compact',
+        name: 'Tabbed Compact',
+        description: 'Ruimtebesparend tabbed interface design waar content georganiseerd is in tabs. Maximum informatie in minimum ruimte, perfect voor mobile-first toernooien.',
+        category: 'Compact',
+        layoutStyle: 'Tabbed interface met compacte secties',
+        components: ['header', 'livestream', 'schedule', 'stats', 'tournamentDetails', 'description', 'prizes', 'rules', 'registration'],
+        defaultConfig: {
+          primaryColor: '#0891b2',
+          secondaryColor: '#06b6d4',
+          backgroundColor: '#f0fdfa'
+        }
+      },
+      {
+        id: 'dashboard-view',
+        name: 'Dashboard View',
+        description: 'Data-centric dashboard layout met widgets, charts en realtime stats. Voor toernooien waar statistieken en live data centraal staan. Analytics-focused design.',
+        category: 'Analytics',
+        layoutStyle: 'Dashboard met data widgets',
+        components: ['header', 'stats', 'livestream', 'schedule', 'tournamentDetails', 'description', 'prizes', 'sponsors', 'social'],
+        defaultConfig: {
+          primaryColor: '#7c3aed',
+          secondaryColor: '#2563eb',
+          backgroundColor: '#fafaf9'
+        }
+      },
+      {
+        id: 'hero-focused',
+        name: 'Hero Focused',
+        description: 'Imposante fullscreen hero met parallax effect en compacte informatiesecties daaronder. Voor toernooien die een sterke visuele impact willen maken vanaf het eerste moment.',
+        category: 'Impact',
+        layoutStyle: 'Fullscreen hero + compact content',
+        components: ['header', 'description', 'registration', 'livestream', 'stats', 'schedule', 'tournamentDetails', 'prizes', 'sponsors', 'social', 'contact'],
+        defaultConfig: {
+          primaryColor: '#db2777',
+          secondaryColor: '#f59e0b',
+          backgroundColor: '#ffffff'
+        }
+      }
+    ];
+
+    const CUSTOM_TEMPLATE = {
+      id: 'custom',
+      name: 'Custom',
+      description: 'Start met een volledig lege pagina en bouw je eigen unieke layout vanaf nul. Geen vooraf ingestelde secties, volledige creatieve vrijheid.',
+      category: 'Custom',
+      layoutStyle: 'Vrije indeling, start vanaf nul',
+      components: [],
+      defaultConfig: {
+        primaryColor: '#0044cc',
+        secondaryColor: '#ff6600',
+        backgroundColor: '#ffffff'
+      }
+    };
+
+    const handleTemplateSelect = (templateId: string) => {
+      if (templateId === 'custom') {
+        // Custom template - alleen livestream
+        setEnabledComponents({
+          header: false,
+          description: false,
+          tournamentDetails: false,
+          registration: false,
+          stats: false,
+          schedule: false,
+          rules: false,
+          prizes: false,
+          sponsors: false,
+          social: false,
+          contact: false,
+          livestream: true
+        });
+        setComponentOrder(['livestream']);
+      } else {
+        // Vooraf gedefinieerde template
+        const template = TOURNAMENT_TEMPLATES.find(t => t.id === templateId);
+        if (template) {
+          const enabledComponents: Record<string, boolean> = {};
+          const allComponents = ['header', 'description', 'tournamentDetails', 'registration', 'stats', 'schedule', 'rules', 'prizes', 'sponsors', 'social', 'contact', 'livestream'];
+          
+          allComponents.forEach(component => {
+            enabledComponents[component] = template.components.includes(component);
+          });
+          
+          setEnabledComponents(enabledComponents);
+          setComponentOrder(template.components);
+          
+          // Kleuren toepassen
+          setTournamentConfig(prev => ({
+            ...prev,
+            primaryColor: template.defaultConfig.primaryColor,
+            secondaryColor: template.defaultConfig.secondaryColor,
+            backgroundColor: template.defaultConfig.backgroundColor
+          }));
+        }
+      }
+      
+      // Naar create-tournament view
+      setCurrentView('create-tournament');
+    };
+
+    // TemplateCard Component
+    const TemplateCard = ({ template, onSelect }: { template: any; onSelect: () => void }) => {
+      const [isHovered, setIsHovered] = useState(false);
+
+      return (
+        <div
+          className="group relative bg-white rounded-xl border-2 border-gray-200 overflow-hidden transition-all duration-300 hover:border-blue-500 hover:shadow-xl cursor-pointer"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onClick={onSelect}
+        >
+          {/* Category Badge */}
+          <div className="absolute top-4 right-4 z-10">
+            <span className="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+              {template.category}
+            </span>
+          </div>
+
+          {/* Thumbnail Preview */}
+          <div className="relative h-56 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+            {/* Template Preview Placeholder */}
+            <div className="w-full h-full flex items-center justify-center">
+              <svg 
+                className="w-24 h-24 text-gray-300 group-hover:text-blue-400 transition-colors duration-300" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={1.5} 
+                  d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" 
+                />
+              </svg>
+            </div>
+            
+            {/* Hover Overlay */}
+            <div 
+              className={`absolute inset-0 bg-blue-600 bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-center justify-center ${
+                isHovered ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <button className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                Selecteer Template
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+              {template.name}
+            </h3>
+            <p className="text-gray-600 text-sm leading-relaxed mb-3">
+              {template.description}
+            </p>
+            
+            {/* Layout Style Badge */}
+            <div className="mb-3">
+              <div className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+                <span className="font-medium">{template.layoutStyle}</span>
+              </div>
+            </div>
+            
+            {/* Component Count */}
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>{template.components.length} secties</span>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // CustomCard Component
+    const CustomCard = ({ onSelect }: { onSelect: () => void }) => {
+      const [isHovered, setIsHovered] = useState(false);
+
+      return (
+        <div
+          className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden transition-all duration-300 hover:border-blue-500 hover:shadow-xl cursor-pointer"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onClick={onSelect}
+        >
+          {/* Custom Badge */}
+          <div className="absolute top-4 right-4 z-10">
+            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">
+              Custom
+            </span>
+          </div>
+
+          {/* Icon Area */}
+          <div className="relative h-56 flex items-center justify-center">
+            <div className="relative">
+              {/* Animated Background Circles */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-32 h-32 bg-blue-500 bg-opacity-10 rounded-full animate-pulse"></div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 bg-purple-500 bg-opacity-10 rounded-full animate-pulse delay-75"></div>
+              </div>
+              
+              {/* Plus Icon */}
+              <svg 
+                className="relative w-20 h-20 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 4v16m8-8H4" 
+                />
+              </svg>
+            </div>
+            
+            {/* Hover Overlay */}
+            <div 
+              className={`absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center ${
+                isHovered ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                Start met Lege Pagina
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 bg-gray-900 bg-opacity-50">
+            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
+              {CUSTOM_TEMPLATE.name}
+            </h3>
+            <p className="text-gray-300 text-sm leading-relaxed mb-4">
+              {CUSTOM_TEMPLATE.description}
+            </p>
+            
+            {/* Features */}
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
+                🎨 Volledige vrijheid
+              </span>
+              <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
+                🔧 Volledig aanpasbaar
+              </span>
+              <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
+                ⚡ Vanaf nul opbouwen
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                Kies een Template voor je Toernooi Pagina
+              </h1>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Start met een professioneel ontworpen template of bouw je eigen unieke layout vanaf nul. 
+                Alle templates zijn volledig aanpasbaar naar jouw wensen.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Template Grid */}
+        <div className="max-w-[1600px] mx-auto px-6 py-12">
+          {/* Category Filter Info */}
+          <div className="mb-8 text-center">
+            <p className="text-gray-600">
+              <span className="font-semibold text-gray-900">{TOURNAMENT_TEMPLATES.length} Professionele Templates</span> + Custom Optie
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Template Cards */}
+            {TOURNAMENT_TEMPLATES.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onSelect={() => handleTemplateSelect(template.id)}
+              />
+            ))}
+
+            {/* Custom Card */}
+            <CustomCard onSelect={() => handleTemplateSelect('custom')} />
+          </div>
+
+          {/* Info Section */}
+          <div className="mt-16 space-y-8">
+            {/* Features Grid */}
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Waarom Templates Gebruiken?</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                <div>
+                  <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">100% Whitelabel</h3>
+                  <p className="text-gray-600 text-sm">Alle kleuren, fonts, teksten en layouts volledig aanpasbaar.</p>
+                </div>
+                
+                <div>
+                  <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Responsive Design</h3>
+                  <p className="text-gray-600 text-sm">Perfect weergegeven op alle apparaten met live preview.</p>
+                </div>
+                
+                <div>
+                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Snel Starten</h3>
+                  <p className="text-gray-600 text-sm">Professioneel ontwerp direct gebruiken, binnen minuten live.</p>
+                </div>
+
+                <div>
+                  <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Drag & Drop</h3>
+                  <p className="text-gray-600 text-sm">Verplaats en herschik alle secties naar jouw wens.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Template Categories */}
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Template Categorieën</h2>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {Array.from(new Set(TOURNAMENT_TEMPLATES.map(t => t.category))).map((category, index) => (
+                  <div key={index} className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
+                    <span className="text-sm font-semibold text-gray-700">{category}</span>
+                    <span className="block text-xs text-gray-500 mt-1">
+                      {TOURNAMENT_TEMPLATES.filter(t => t.category === category).length} template{TOURNAMENT_TEMPLATES.filter(t => t.category === category).length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1814,7 +2280,7 @@ export default function Dashboard() {
                        // Reset editing state
                        setEditingTournament(null);
                        setEditingTournamentStatus(null);
-                       setCurrentView('create-tournament');
+                       setCurrentView('template-selection');
                      }}
                      className="bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
                    >
@@ -2064,7 +2530,7 @@ export default function Dashboard() {
                    // Reset editing state
                    setEditingTournament(null);
                    setEditingTournamentStatus(null);
-                   setCurrentView('create-tournament');
+                   setCurrentView('template-selection');
                  }}
                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
                >
