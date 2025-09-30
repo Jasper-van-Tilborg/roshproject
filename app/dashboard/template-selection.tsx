@@ -67,25 +67,26 @@ function TemplateCard({
         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
           {template.name}
         </h3>
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">
+        <p className="text-gray-600 text-sm leading-relaxed mb-3">
           {template.description}
         </p>
         
-        {/* Component Tags */}
-        <div className="flex flex-wrap gap-2">
-          {template.components.slice(0, 4).map((component, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md"
-            >
-              {component}
-            </span>
-          ))}
-          {template.components.length > 4 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
-              +{template.components.length - 4} meer
-            </span>
-          )}
+        {/* Layout Style Badge */}
+        <div className="mb-3">
+          <div className="inline-flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+            <span className="font-medium">{template.layoutStyle}</span>
+          </div>
+        </div>
+        
+        {/* Component Count */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <span>{template.components.length} secties</span>
         </div>
       </div>
     </div>
@@ -195,8 +196,15 @@ export default function TemplateSelection({ onSelectTemplate }: TemplateSelectio
       </div>
 
       {/* Template Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1600px] mx-auto px-6 py-12">
+        {/* Category Filter Info */}
+        <div className="mb-8 text-center">
+          <p className="text-gray-600">
+            <span className="font-semibold text-gray-900">{TOURNAMENT_TEMPLATES.length} Professionele Templates</span> + Custom Optie
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {/* Template Cards */}
           {TOURNAMENT_TEMPLATES.map((template) => (
             <TemplateCard
@@ -211,36 +219,65 @@ export default function TemplateSelection({ onSelectTemplate }: TemplateSelectio
         </div>
 
         {/* Info Section */}
-        <div className="mt-16 bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
+        <div className="mt-16 space-y-8">
+          {/* Features Grid */}
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Waarom Templates Gebruiken?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1.5">100% Whitelabel</h3>
+                <p className="text-gray-600 text-sm">Alle kleuren, fonts, teksten en layouts volledig aanpasbaar.</p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">100% Aanpasbaar</h3>
-              <p className="text-gray-600 text-sm">Alle kleuren, fonts, teksten en layouts zijn volledig naar jouw wens aan te passen.</p>
+              
+              <div>
+                <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1.5">Responsive Design</h3>
+                <p className="text-gray-600 text-sm">Perfect weergegeven op alle apparaten met live preview.</p>
+              </div>
+              
+              <div>
+                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1.5">Snel Starten</h3>
+                <p className="text-gray-600 text-sm">Professioneel ontwerp direct gebruiken, binnen minuten live.</p>
+              </div>
+
+              <div>
+                <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1.5">Drag & Drop</h3>
+                <p className="text-gray-600 text-sm">Verplaats en herschik alle secties naar jouw wens.</p>
+              </div>
             </div>
-            
-            <div>
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Responsive Design</h3>
-              <p className="text-gray-600 text-sm">Perfect weergegeven op desktop, tablet en mobiel met live preview.</p>
-            </div>
-            
-            <div>
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Snel & Professioneel</h3>
-              <p className="text-gray-600 text-sm">Direct beginnen met een professioneel ontwerp en binnen minuten live.</p>
+          </div>
+
+          {/* Template Categories */}
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Template Categorieën</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {Array.from(new Set(TOURNAMENT_TEMPLATES.map(t => t.category))).map((category, index) => (
+                <div key={index} className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
+                  <span className="text-sm font-semibold text-gray-700">{category}</span>
+                  <span className="block text-xs text-gray-500 mt-1">
+                    {TOURNAMENT_TEMPLATES.filter(t => t.category === category).length} template{TOURNAMENT_TEMPLATES.filter(t => t.category === category).length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
