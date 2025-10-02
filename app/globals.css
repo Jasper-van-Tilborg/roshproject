@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Legion Event Colors */
+  --legion-primary: #131F5C;
+  --legion-secondary: #8F1E28;
+  --legion-gradient: linear-gradient(135deg, #131F5C 0%, #8F1E28 100%);
+  --legion-text: #ffffff;
+  --legion-box-bg: #131F5C;
+  --legion-box-border: 0 0 20px rgba(255, 255, 255, 0.3);
+  --legion-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+  --legion-header-bg: #10173C;
 }
 
 @theme inline {
