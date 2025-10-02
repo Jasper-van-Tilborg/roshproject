@@ -1,12 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="min-h-screen grid grid-rows-[auto_1fr_auto] max-w-full overflow-hidden" style={{
-      background: 'linear-gradient(135deg, #6F87FF 0%, #131F5C 84%)'
+      background: 'var(--legion-gradient)'
     }}>
       {/* Header */}
-      <header className="bg-blue-900 text-white w-full">
+      <header className="text-white w-full" style={{ backgroundColor: 'var(--legion-header-bg)' }}>
         <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center max-w-7xl mx-auto">
           <div className="col-span-2">
             <Image 
@@ -36,18 +37,20 @@ export default function Home() {
                <p className="text-white text-xl">
                  Voor en door Lenovo Legion Gaming - Het ultieme platform voor CS2 esports competitie
                </p>
-                <div className="flex space-x-10">
-                  <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors" style={{
-                    boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
-                  }}>
-                    Tournaments
-                  </button>
-                  <button className="bg-blue-400 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors" style={{
-                    boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
-                  }}>
-                    Info
-                  </button>
-                </div>
+                 <div className="flex space-x-10">
+                   <button className="bg-orange-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors" style={{
+                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
+                   }}>
+                     Tournaments
+                   </button>
+                   <Link href="/tournament">
+                     <button className="bg-blue-400 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors" style={{
+                       boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
+                     }}>
+                       Info
+                     </button>
+                   </Link>
+                 </div>
             </div>
             <div className="col-span-2"></div>
             <div className="col-span-5 flex justify-end">
@@ -66,6 +69,7 @@ export default function Home() {
         <section className="px-6 pb-16 w-full mt-16">
           <div className="grid grid-cols-12 w-full max-w-7xl mx-auto">
             <div className="col-span-12 rounded-4xl p-8 text-center relative overflow-hidden" style={{
+              backgroundColor: 'var(--legion-header-bg)',
               backgroundImage: 'url(/achtergrond-info-sec.png)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
@@ -87,13 +91,15 @@ export default function Home() {
                 van spannende match-ups en teaminformatie tot live brackets en real-time standen. 
                 Volg jouw favoriete teams, voorspel wie er wint en beleef het toernooi alsof je er zelf bij bent.
               </p>
-              <div className="flex justify-center">
-                <button className="bg-blue-400 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors" style={{
-                  boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
-                }}>
-                  View tournament
-                </button>
-              </div>
+               <div className="flex justify-center">
+                 <Link href="/tournament">
+                   <button className="bg-blue-400 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition-colors" style={{
+                     boxShadow: '0 0 20px rgba(255, 255, 255, 0.3)'
+                   }}>
+                     View tournament
+                   </button>
+                 </Link>
+               </div>
             </div>
           </div>
         </section>
