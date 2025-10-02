@@ -3,16 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  
+
   /* Legion Event Colors */
-  --legion-primary: #131F5C;
-  --legion-secondary: #8F1E28;
-  --legion-gradient: linear-gradient(135deg, #131F5C 0%, #8F1E28 100%);
+  --legion-primary: #131f5c;
+  --legion-secondary: #8f1e28;
+  --legion-gradient: linear-gradient(135deg, #131f5c 0%, #8f1e28 100%);
   --legion-text: #ffffff;
-  --legion-box-bg: #131F5C;
+  --legion-box-bg: #131f5c;
   --legion-box-border: 0 0 20px rgba(255, 255, 255, 0.3);
   --legion-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
-  --legion-header-bg: #10173C;
+  --legion-header-bg: #10173c;
 }
 
 @theme inline {
@@ -33,4 +33,71 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Dark Veil Background Animations */
+@keyframes veil-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes veil-rotate-reverse {
+  from {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+}
+
+@keyframes float-dark {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.1;
+  }
+  25% {
+    transform: translateY(-30px) translateX(15px);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-15px) translateX(-10px);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translateY(-40px) translateX(20px);
+    opacity: 0.25;
+  }
+}
+
+@keyframes pulse-dark {
+  0%,
+  100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.2);
+  }
+}
+
+.animate-veil-rotate {
+  animation: veil-rotate linear infinite;
+}
+
+.animate-veil-rotate-reverse {
+  animation: veil-rotate-reverse linear infinite;
+}
+
+.animate-float-dark {
+  animation: float-dark ease-in-out infinite;
+}
+
+.animate-pulse-dark {
+  animation: pulse-dark ease-in-out infinite;
 }

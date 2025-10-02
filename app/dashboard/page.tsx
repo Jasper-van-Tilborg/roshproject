@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Header from '../components/header';
+import DarkVeil from '../components/DarkVeil';
 
 // Type definities
 import {
@@ -92,6 +93,9 @@ export default function Dashboard() {
   // Template wizard state
   const [wizardStep, setWizardStep] = useState(0);
   const [wizardAnswers, setWizardAnswers] = useState<Record<string, any>>({});
+  const [aiTyping, setAiTyping] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
+  const [showAiResponse, setShowAiResponse] = useState(false);
   
   // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
@@ -759,9 +763,20 @@ export default function Dashboard() {
   // Login form
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900 flex items-center justify-center p-8">
-        <div className="max-w-md w-full">
-          <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700 p-8">
+      <div className="min-h-screen flex items-center justify-center p-8 relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+          <DarkVeil 
+            hueShift={310}
+            noiseIntensity={0.05}
+            scanlineIntensity={0}
+            speed={0.3}
+            scanlineFrequency={0.5}
+            warpAmount={0.1}
+            resolutionScale={1}
+          />
+        </div>
+        <div className="max-w-md w-full relative z-10">
+          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1166,6 +1181,462 @@ export default function Dashboard() {
     );
   }
 
+  // AI Website generatie functie
+  const generateWebsiteFromAnswers = (answers: Record<string, any>) => {
+    const tournamentName = answers.tournament_name || 'Toernooi';
+    const tournamentDate = answers.tournament_date || 'Datum TBD';
+    const bracketType = answers.bracket_type || 'Single Elimination';
+    const participants = answers.participants || '16';
+    const gameType = answers.game_type || 'Counter-Strike';
+    const brandStyle = answers.brand_style || 'Gaming';
+    
+    // Bepaal kleuren op basis van game en stijl
+    let primaryColor = '#2563eb';
+    let secondaryColor = '#7c3aed';
+    let backgroundColor = '#0f172a';
+    
+    if (gameType === 'Counter-Strike') {
+      primaryColor = '#ff6b35';
+      secondaryColor = '#f7931e';
+    } else if (gameType === 'Valorant') {
+      primaryColor = '#ff4655';
+      secondaryColor = '#0f1923';
+    } else if (gameType === 'League of Legends') {
+      primaryColor = '#c89b3c';
+      secondaryColor = '#463714';
+    } else if (gameType === 'Dota 2') {
+      primaryColor = '#d32f2f';
+      secondaryColor = '#1976d2';
+    } else if (gameType === 'Rocket League') {
+      primaryColor = '#ff6b35';
+      secondaryColor = '#4ecdc4';
+    }
+    
+    if (brandStyle === 'Futuristic') {
+      primaryColor = '#00d4ff';
+      secondaryColor = '#0099cc';
+      backgroundColor = '#0a0a0a';
+    } else if (brandStyle === 'Minimalist') {
+      primaryColor = '#2d3748';
+      secondaryColor = '#4a5568';
+      backgroundColor = '#ffffff';
+    }
+    
+    // Genereer HTML content
+    const htmlContent = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${tournamentName} - Esports Tournament</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, ${backgroundColor} 0%, #1a1a2e 100%);
+            color: white;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%);
+            padding: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tournament-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tournament-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .tournament-info {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .main-content {
+            padding: 4rem 0;
+        }
+        
+        .section {
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(45deg, ${primaryColor}, ${secondaryColor});
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bracket-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .bracket-type {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: ${primaryColor};
+        }
+        
+        .participants-count {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, ${primaryColor}, ${secondaryColor});
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .game-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .schedule {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            border-left: 4px solid ${primaryColor};
+        }
+        
+        .schedule-time {
+            font-weight: 600;
+            color: ${primaryColor};
+        }
+        
+        .schedule-event {
+            font-size: 1.1rem;
+        }
+        
+        .prizes {
+            background: linear-gradient(135deg, ${primaryColor}20, ${secondaryColor}20);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid ${primaryColor}40;
+        }
+        
+        .prize-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .prize-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .prize-position {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: ${primaryColor};
+            margin-bottom: 1rem;
+        }
+        
+        .prize-amount {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
+            border-radius: 20px;
+            padding: 4rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: ${primaryColor};
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .footer {
+            background: rgba(0,0,0,0.5);
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 4rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tournament-title {
+                font-size: 2.5rem;
+            }
+            
+            .tournament-info {
+                gap: 1.5rem;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .schedule-item {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="tournament-title">${tournamentName}</h1>
+                <p class="tournament-subtitle">Esports Tournament</p>
+                <div class="tournament-info">
+                    <div class="info-item">
+                        <div class="info-label">Datum</div>
+                        <div class="info-value">${tournamentDate}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Format</div>
+                        <div class="info-value">${bracketType}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Deelnemers</div>
+                        <div class="info-value">${participants} teams</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="section">
+                <h2 class="section-title">Tournament Format</h2>
+                <div class="bracket-info">
+                    <div class="bracket-type">${bracketType}</div>
+                    <div class="participants-count">${participants} teams strijden om de overwinning</div>
+                    <div class="game-info">
+                        <div class="game-icon">🎮</div>
+                        <div class="game-name">${gameType}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">Schedule</h2>
+                <div class="schedule">
+                    <div class="schedule-item">
+                        <div class="schedule-time">09:00</div>
+                        <div class="schedule-event">Registratie & Check-in</div>
+                    </div>
+                    <div class="schedule-item">
+                        <div class="schedule-time">10:00</div>
+                        <div class="schedule-event">Opening Ceremony</div>
+                    </div>
+                    <div class="schedule-item">
+                        <div class="schedule-time">10:30</div>
+                        <div class="schedule-event">Eerste Ronde Begint</div>
+                    </div>
+                    <div class="schedule-item">
+                        <div class="schedule-time">14:00</div>
+                        <div class="schedule-event">Lunch Break</div>
+                    </div>
+                    <div class="schedule-item">
+                        <div class="schedule-time">15:00</div>
+                        <div class="schedule-event">Finale Rondes</div>
+                    </div>
+                    <div class="schedule-item">
+                        <div class="schedule-time">18:00</div>
+                        <div class="schedule-event">Awards Ceremony</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">Prize Pool</h2>
+                <div class="prizes">
+                    <div class="prize-grid">
+                        <div class="prize-item">
+                            <div class="prize-position">1st Place</div>
+                            <div class="prize-amount">€${getPrizeAmount(participants, 1)}</div>
+                            <div>Champion</div>
+                        </div>
+                        <div class="prize-item">
+                            <div class="prize-position">2nd Place</div>
+                            <div class="prize-amount">€${getPrizeAmount(participants, 2)}</div>
+                            <div>Runner-up</div>
+                        </div>
+                        <div class="prize-item">
+                            <div class="prize-position">3rd Place</div>
+                            <div class="prize-amount">€${getPrizeAmount(participants, 3)}</div>
+                            <div>Third Place</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cta-section">
+                <h2 class="cta-title">Ready to Compete?</h2>
+                <p>Registreer je team en maak kans op de hoofdprijs!</p>
+                <a href="#" class="cta-button">Registreer Nu</a>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 ${tournamentName}. Alle rechten voorbehouden.</p>
+        </div>
+    </footer>
+</body>
+</html>`;
+
+    return {
+      html: htmlContent,
+      css: '',
+      colors: {
+        primary: primaryColor,
+        secondary: secondaryColor,
+        background: backgroundColor
+      },
+      metadata: {
+        title: tournamentName,
+        game: gameType,
+        format: bracketType,
+        participants: participants,
+        date: tournamentDate
+      }
+    };
+  };
+
+  // Helper functie voor prize amounts
+  const getPrizeAmount = (participants: string, position: number) => {
+    const baseAmount = parseInt(participants) * 50;
+    switch (position) {
+      case 1: return Math.floor(baseAmount * 0.5);
+      case 2: return Math.floor(baseAmount * 0.3);
+      case 3: return Math.floor(baseAmount * 0.2);
+      default: return 0;
+    }
+  };
+
   // Template generatie functie (buiten views)
   const generateTemplateFromAnswers = (answers: Record<string, any>) => {
     let components: string[] = ['description', 'tournamentDetails'];
@@ -1454,12 +1925,90 @@ export default function Dashboard() {
       }));
     };
 
+    // AI typing animation
+    const simulateAiTyping = (message: string, callback?: () => void) => {
+      setAiTyping(true);
+      setAiMessage('');
+      setShowAiResponse(true);
+      
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < message.length) {
+          setAiMessage(message.substring(0, i + 1));
+          i++;
+        } else {
+          clearInterval(interval);
+          setAiTyping(false);
+          if (callback) callback();
+        }
+      }, 30);
+    };
+
+    // AI responses based on answers
+    const getAiResponse = (step: number, answer: any) => {
+      const responses = {
+        0: {
+          'Championship': "Geweldig! Een Championship toernooi - dat wordt een epische strijd! 🏆",
+          'Cup': "Perfect! Een Cup toernooi is altijd spannend en intens! ⚽",
+          'League': "Uitstekend! Een League format zorgt voor veel actie! 🏈",
+          'default': "Interessant! Laat me dat onthouden voor je perfecte toernooi setup."
+        },
+        1: {
+          'Single Elimination': "Single Elimination - de ultieme do-or-die format! 💀",
+          'Group Stage': "Group Stage - perfect voor veel teams en spannende matches! 👥",
+          'Double Elimination': "Double Elimination - iedereen krijgt een tweede kans! 🔄",
+          'default': "Goede keuze! Dit format past perfect bij je toernooi."
+        },
+        2: {
+          '8': "8 teams - een compacte maar intense competitie! 🔥",
+          '16': "16 teams - de perfecte balans tussen grootte en overzicht! ⚖️",
+          '32': "32 teams - een mega toernooi! Dit wordt episch! 🚀",
+          '64': "64 teams - een volledig professioneel toernooi! 🏆",
+          'default': "Perfect aantal teams voor een geweldig toernooi!"
+        },
+        3: {
+          'Counter-Strike': "CS2 - de koning van tactical shooters! Perfect voor intense matches! 🔫",
+          'Valorant': "Valorant - Riot's tactical masterpiece! Gaat een geweldig toernooi worden! 💥",
+          'League of Legends': "LoL - de MOBA legende! Dit wordt een epische battle! ⚔️",
+          'Dota 2': "Dota 2 - de complexe strategie game! Perfect voor pro players! 🧠",
+          'Rocket League': "Rocket League - voetbal met auto's! Altijd spectaculair! 🚗⚽",
+          'default': "Geweldige game keuze! Perfect voor een toernooi!"
+        },
+        4: {
+          'Futuristic': "Futuristic style - clean, modern en high-tech! Perfect voor esports! 🚀",
+          'Gaming': "Gaming style - bold, energetic en vol actie! Gaat er geweldig uitzien! 🎮",
+          'Minimalist': "Minimalist style - clean, elegant en professioneel! Zeer classy! ✨",
+          'default': "Uitstekende stijl keuze! Gaat een prachtig toernooi worden!"
+        }
+      };
+      
+      const stepResponses = responses[step as keyof typeof responses] || responses[0];
+      return (stepResponses as any)[answer] || (stepResponses as any).default;
+    };
+
     const handleNextStep = () => {
       if (wizardStep < WIZARD_QUESTIONS.length - 1) {
-        setWizardStep(prev => prev + 1);
+        // AI response voor huidige stap
+        const currentAnswer = wizardAnswers[WIZARD_QUESTIONS[wizardStep].id];
+        if (currentAnswer) {
+          const response = getAiResponse(wizardStep, currentAnswer);
+          simulateAiTyping(response, () => {
+            setTimeout(() => {
+              setWizardStep(prev => prev + 1);
+              setShowAiResponse(false);
+            }, 1500);
+          });
+        } else {
+          setWizardStep(prev => prev + 1);
+        }
       } else {
-        // Wizard voltooid - genereer template
-        const template = generateTemplateFromAnswers(wizardAnswers);
+        // Wizard voltooid - AI final response
+        const finalMessage = "Fantastisch! Ik heb alle informatie verzameld. Laat me nu je complete toernooi website genereren... 🎯✨";
+        simulateAiTyping(finalMessage, () => {
+          setTimeout(() => {
+            // Genereer complete website
+            const website = generateWebsiteFromAnswers(wizardAnswers);
+            const template = generateTemplateFromAnswers(wizardAnswers);
         
         // Stel componenten in
         const enabledComponents: Record<string, boolean> = {};
@@ -1493,12 +2042,14 @@ export default function Dashboard() {
           customComponents: template.customComponents || []
         }));
 
-        // Reset wizard state
-        setWizardStep(0);
-        setWizardAnswers({});
-        
-        // Ga naar wizard resultaat view
-        setCurrentView('wizard-result');
+            // Reset wizard state
+            setWizardStep(0);
+            setWizardAnswers({});
+            
+            // Ga naar wizard resultaat view
+            setCurrentView('wizard-result');
+          }, 2000);
+        });
       }
     };
 
@@ -1543,7 +2094,7 @@ export default function Dashboard() {
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-300">
                   Stap {wizardStep + 1} van {WIZARD_QUESTIONS.length}
-                </span>
+                    </span>
                 <div className="w-32 bg-gray-700 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
@@ -1556,15 +2107,86 @@ export default function Dashboard() {
         </div>
 
         {/* Wizard Content */}
-        <div className="max-w-4xl mx-auto px-6 py-12">
-          <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* AI Chat Panel */}
+            <div className="lg:col-span-1">
+              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6 h-full">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
+                    <p className="text-sm text-gray-400">Je persoonlijke toernooi expert</p>
+                  </div>
+                  <div className="ml-auto">
+                    <div className={`w-3 h-3 rounded-full ${aiTyping ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
+                  </div>
+                </div>
+                
+                {/* AI Response */}
+                {showAiResponse && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-xs text-white font-bold">AI</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white text-sm leading-relaxed">
+                          {aiMessage}
+                          {aiTyping && <span className="animate-pulse">|</span>}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Welcome Message */}
+                {!showAiResponse && wizardStep === 0 && (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <p className="text-gray-300 text-sm">
+                      Hallo! Ik ben je AI assistant en ga je helpen om het perfecte toernooi te maken. 
+                      Beantwoord de vragen en ik geef je slimme suggesties! 🚀
+                    </p>
+                  </div>
+                )}
+                
+                {/* Progress Info */}
+                <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+                  <h4 className="text-sm font-semibold text-white mb-2">Voortgang</h4>
+                  <div className="space-y-2">
+                    {WIZARD_QUESTIONS.map((question, index) => (
+                      <div key={index} className={`flex items-center space-x-2 text-xs ${
+                        index < wizardStep ? 'text-green-400' : 
+                        index === wizardStep ? 'text-yellow-400' : 
+                        'text-gray-500'
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full ${
+                          index < wizardStep ? 'bg-green-400' : 
+                          index === wizardStep ? 'bg-yellow-400' : 
+                          'bg-gray-500'
+                        }`}></div>
+                        <span>{question.question.split('?')[0]}</span>
+                  </div>
+                ))}
               </div>
-              <h2 className="text-3xl font-bold text-white mb-4">
+            </div>
+              </div>
+            </div>
+            
+            {/* Main Wizard Form */}
+            <div className="lg:col-span-2">
+              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold text-white mb-4">
                 {currentQuestion.question}
               </h2>
               <p className="text-gray-300">
@@ -1669,11 +2291,14 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      </div>
+      </div>
     );
   }
 
   // Wizard resultaat view
   if (currentView === 'wizard-result') {
+    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
     const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
     
     return (
@@ -1694,46 +2319,193 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <button
-                onClick={() => setCurrentView('create-tournament')}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <span>Ga naar Editor</span>
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => {
+                    // Download website als HTML bestand
+                    const blob = new Blob([generatedWebsite.html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${generatedWebsite.metadata.title.replace(/\s+/g, '_')}_website.html`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Download Website</span>
+                </button>
+                <button
+                  onClick={() => setCurrentView('create-tournament')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span>Ga naar Editor</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Resultaat Content */}
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Template Overzicht */}
-            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Je Template</h2>
-              
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: generatedTemplate.primaryColor }}></div>
-                  <span className="text-gray-300">Primaire kleur: {generatedTemplate.primaryColor}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: generatedTemplate.secondaryColor }}></div>
-                  <span className="text-gray-300">Secundaire kleur: {generatedTemplate.secondaryColor}</span>
-                </div>
-                
-                <div className="pt-4 border-t border-gray-600">
-                  <h3 className="font-semibold text-white mb-3">Standaard Componenten:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedTemplate.components.map((component: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-purple-900 text-purple-200 text-sm rounded-full">
-                        {component}
-                      </span>
-                ))}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Website Preview */}
+            <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Website Preview</h2>
+              <div className="bg-white rounded-lg overflow-hidden" style={{ height: '600px' }}>
+                <iframe
+                  srcDoc={generatedWebsite.html}
+                  className="w-full h-full border-0"
+                  title="Website Preview"
+                />
+              </div>
+              <div className="mt-4 flex gap-4">
+                <button
+                  onClick={() => {
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                      newWindow.document.write(generatedWebsite.html);
+                      newWindow.document.close();
+                    }
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  <span>Open in Nieuw Tab</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedWebsite.html);
+                    alert('HTML code gekopieerd naar clipboard!');
+                  }}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Kopieer HTML</span>
+                </button>
               </div>
             </div>
+
+            {/* Template Overzicht */}
+            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Website Details</h2>
+              
+              <div className="space-y-6">
+                {/* Website Metadata */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white">Website Info</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Titel:</span>
+                      <span className="text-white">{generatedWebsite.metadata.title}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Game:</span>
+                      <span className="text-white">{generatedWebsite.metadata.game}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Format:</span>
+                      <span className="text-white">{generatedWebsite.metadata.format}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Deelnemers:</span>
+                      <span className="text-white">{generatedWebsite.metadata.participants}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Datum:</span>
+                      <span className="text-white">{generatedWebsite.metadata.date}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Kleuren */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white">Kleuren</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.primary }}></div>
+                      <span className="text-gray-300">Primair: {generatedWebsite.colors.primary}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.secondary }}></div>
+                      <span className="text-gray-300">Secundair: {generatedWebsite.colors.secondary}</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.background }}></div>
+                      <span className="text-gray-300">Achtergrond: {generatedWebsite.colors.background}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-white">Website Features</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Responsive Design</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Modern CSS Grid</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Gradient Effects</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Tournament Schedule</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Prize Pool Display</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-300 text-sm">Call-to-Action</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Generated Info */}
+                <div className="p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-purple-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <div>
+                      <h4 className="font-semibold text-purple-300">AI Generated</h4>
+                      <p className="text-purple-200 text-sm mt-1">
+                        Deze complete website is gegenereerd op basis van jouw antwoorden en is klaar voor gebruik!
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -3280,13 +4052,13 @@ export default function Dashboard() {
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">T</span>
               </div>
-              <div>
+            <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                  Toernooi Beheren
-                </h1>
+                Toernooi Beheren
+              </h1>
                 <p className="text-lg text-gray-300">
-                  Beheer je toernooien en bekijk hun status
-                </p>
+                Beheer je toernooien en bekijk hun status
+              </p>
               </div>
             </div>
             <div className="flex gap-4">
@@ -3548,21 +4320,32 @@ export default function Dashboard() {
 
   // Dashboard content
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen p-8 relative">
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        <DarkVeil 
+          hueShift={310}
+          noiseIntensity={0.06}
+          scanlineIntensity={0}
+          speed={0.4}
+          scanlineFrequency={0.3}
+          warpAmount={0.15}
+          resolutionScale={1}
+        />
+      </div>
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header met logout knop */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">T</span>
             </div>
-            <div>
+          <div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                Toernooi Dashboard
-              </h1>
+              Toernooi Dashboard
+            </h1>
               <p className="text-lg text-gray-300">
-                Welkom, {username}! Kies wat je wilt doen met toernooien
-              </p>
+              Welkom, {username}! Kies wat je wilt doen met toernooien
+            </p>
             </div>
           </div>
           <button
@@ -3578,7 +4361,7 @@ export default function Dashboard() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Toernooi Aanmaken */}
-          <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
+          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3648,7 +4431,7 @@ export default function Dashboard() {
           </div>
 
           {/* Toernooi Beheren */}
-          <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
+          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
