@@ -766,7 +766,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center p-8 relative">
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
           <DarkVeil 
-            hueShift={310}
+            hueShift={0}
             noiseIntensity={0.05}
             scanlineIntensity={0}
             speed={0.3}
@@ -4323,7 +4323,7 @@ export default function Dashboard() {
     <div className="min-h-screen p-8 relative">
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
         <DarkVeil 
-          hueShift={310}
+          hueShift={0}
           noiseIntensity={0.06}
           scanlineIntensity={0}
           speed={0.4}
