@@ -1,11 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
+import DarkVeil from "./components/DarkVeil";
 
 export default function Home() {
   return (
-    <div className="min-h-screen grid grid-rows-[auto_1fr_auto] max-w-full overflow-hidden" style={{
-      background: 'var(--legion-gradient)'
-    }}>
+    <div className="min-h-screen grid grid-rows-[auto_1fr_auto] max-w-full overflow-hidden relative">
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        <DarkVeil 
+          hueShift={0}
+          noiseIntensity={0.03}
+          scanlineIntensity={0}
+          speed={0.2}
+          scanlineFrequency={0.3}
+          warpAmount={0.1}
+          resolutionScale={1}
+        />
+      </div>
       {/* Header */}
       <header className="text-white w-full" style={{ backgroundColor: 'var(--legion-header-bg)' }}>
         <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center max-w-7xl mx-auto">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from '../components/header';
 import DarkVeil from '../components/DarkVeil';
+import SplitText from '../components/SplitText';
 
 // Type definities
 import {
@@ -1059,24 +1060,56 @@ export default function Dashboard() {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
+      <div className="min-h-screen relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1 }}>
+          <DarkVeil 
+            hueShift={0}
+            noiseIntensity={0.04}
+            scanlineIntensity={0}
+            speed={0.3}
+            scanlineFrequency={0.2}
+            warpAmount={0.15}
+            resolutionScale={1}
+          />
+        </div>
         {/* Header */}
-        <div className="bg-gray-800 border-b border-gray-700 shadow-lg">
+        <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-white mb-3">
-                Kies hoe je je Toernooi Pagina wilt Maken
-              </h1>
-              <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-                Laat onze wizard de perfecte template voor je genereren op basis van je wensen, 
-                of start met een volledig lege pagina en bouw alles zelf op.
-              </p>
+              <SplitText
+                text="Kies hoe je je Toernooi Pagina wilt Maken"
+                className="text-4xl font-bold text-white mb-3"
+                tag="h1"
+                delay={50}
+                duration={0.8}
+                ease="power3.out"
+                splitType="chars"
+                from={{ opacity: 0, y: 60 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-50px"
+                textAlign="center"
+              />
+              <SplitText
+                text="Laat onze wizard de perfecte template voor je genereren op basis van je wensen, of start met een volledig lege pagina en bouw alles zelf op."
+                className="text-lg text-gray-300 max-w-3xl mx-auto"
+                tag="p"
+                delay={100}
+                duration={0.6}
+                ease="power3.out"
+                splitType="words"
+                from={{ opacity: 0, y: 30 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="-50px"
+                textAlign="center"
+              />
             </div>
           </div>
         </div>
 
         {/* Template Grid */}
-        <div className="max-w-[1600px] mx-auto px-6 py-12">
+        <div className="max-w-[1600px] mx-auto px-6 py-12 relative z-20">
           {/* Category Filter Info */}
           <div className="mb-8 text-center">
             <p className="text-gray-300">
@@ -1092,90 +1125,6 @@ export default function Dashboard() {
             <CustomCard onSelect={() => handleTemplateSelect('custom')} />
           </div>
 
-          {/* Info Section */}
-          <div className="mt-16 space-y-8">
-            {/* Features Grid */}
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Waarom Templates Gebruiken?</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                <div>
-                  <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">100% Whitelabel</h3>
-                  <p className="text-gray-600 text-sm">Alle kleuren, fonts, teksten en layouts volledig aanpasbaar.</p>
-                </div>
-                
-                <div>
-                  <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Responsive Design</h3>
-                  <p className="text-gray-600 text-sm">Perfect weergegeven op alle apparaten met live preview.</p>
-                </div>
-                
-                <div>
-                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Snel Starten</h3>
-                  <p className="text-gray-600 text-sm">Professioneel ontwerp direct gebruiken, binnen minuten live.</p>
-                </div>
-
-                <div>
-                  <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1.5">Drag & Drop</h3>
-                  <p className="text-gray-600 text-sm">Verplaats en herschik alle secties naar jouw wens.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Options Comparison */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Kies de Optie die bij je Past</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg p-6 text-center border border-gray-200 shadow-sm">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Template Wizard</h3>
-                  <p className="text-gray-600 text-sm mb-4">Perfect voor beginners en gebruikers die snel willen starten</p>
-                  <ul className="text-xs text-gray-500 space-y-1">
-                    <li>✓ Persoonlijke aanbevelingen</li>
-                    <li>✓ Automatische configuratie</li>
-                    <li>✓ Snel en eenvoudig</li>
-                  </ul>
-                </div>
-                
-                <div className="bg-white rounded-lg p-6 text-center border border-gray-200 shadow-sm">
-                  <div className="w-16 h-16 bg-gradient-to-br from-gray-900 to-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Custom</h3>
-                  <p className="text-gray-600 text-sm mb-4">Voor ervaren gebruikers die volledige controle willen</p>
-                  <ul className="text-xs text-gray-500 space-y-1">
-                    <li>✓ Volledige creatieve vrijheid</li>
-                    <li>✓ Alle componenten beschikbaar</li>
-                    <li>✓ Geen beperkingen</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -2578,9 +2527,20 @@ export default function Dashboard() {
   // Toernooi aanmaken view
   if (currentView === 'create-tournament') {
     return (
-      <div className="h-screen bg-gray-50 overflow-hidden">
+      <div className="h-screen overflow-hidden relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1 }}>
+          <DarkVeil 
+            hueShift={0}
+            noiseIntensity={0.06}
+            scanlineIntensity={0}
+            speed={0.5}
+            scanlineFrequency={0.2}
+            warpAmount={0.25}
+            resolutionScale={1}
+          />
+        </div>
         {/* Top Navigation */}
-        <div className="bg-white shadow-sm border-b px-6 py-4">
+        <div className="bg-white/90 backdrop-blur-sm shadow-sm border-b px-6 py-4 relative z-20">
           <div className="max-w-7xl mx-auto flex justify-end">
             <div className="flex gap-4">
               <button
@@ -2599,13 +2559,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="h-[calc(100vh-80px)] grid grid-cols-1 lg:grid-cols-3 p-6 gap-6 overflow-hidden">
+        <div className="h-[calc(100vh-80px)] grid grid-cols-1 lg:grid-cols-3 p-6 gap-6 overflow-hidden relative z-20">
           {/* Linker paneel - Configuratie */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg h-[calc(100vh-80px-48px)] flex flex-col">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg h-[calc(100vh-80px-48px)] flex flex-col">
               {/* Header */}
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Toernooi Manager</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Toernooi Manager</h2>
                 
                 {/* Tab Navigation */}
                 <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
@@ -2613,7 +2573,7 @@ export default function Dashboard() {
                     onClick={() => setLeftPanelTab('edit')}
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                       leftPanelTab === 'edit'
-                        ? 'bg-white text-gray-900 shadow-sm'
+                        ? 'bg-white text-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -2623,7 +2583,7 @@ export default function Dashboard() {
                     onClick={() => setLeftPanelTab('add')}
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                       leftPanelTab === 'add'
-                        ? 'bg-white text-gray-900 shadow-sm'
+                        ? 'bg-white text-white shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -2680,7 +2640,7 @@ export default function Dashboard() {
                                 type="text"
                                 value={tournamentConfig.backgroundColor}
                                 onChange={(e) => handleConfigChange('backgroundColor', e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white placeholder-gray-600"
                               />
                             </div>
                           </div>
@@ -2694,7 +2654,7 @@ export default function Dashboard() {
                          <div className="flex items-center justify-between mb-4">
                            <div>
                              <h3 className="text-lg font-semibold text-gray-800">Bewerk Componenten</h3>
-                             <p className="text-sm text-gray-600">Configureer je huidige componenten</p>
+                             <p className="text-sm text-gray-300">Configureer je huidige componenten</p>
                            </div>
                            <button
                              onClick={() => toggleSectionDropdown('components')}
@@ -2730,7 +2690,7 @@ export default function Dashboard() {
                                      >
                                        <span className="text-lg">{component.icon}</span>
                                        <div>
-                                         <div className="font-medium text-gray-900">{component.name}</div>
+                                         <div className="font-medium text-white">{component.name}</div>
                                          <div className="text-sm text-gray-500">{component.description}</div>
                                        </div>
                                        <div className="ml-auto">
@@ -2793,7 +2753,7 @@ export default function Dashboard() {
                                              type="url"
                                              value={tournamentConfig.logo || ''}
                                              onChange={(e) => handleConfigChange('logo', e.target.value)}
-                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white placeholder-gray-600"
                                              placeholder="https://example.com/logo.png"
                                            />
                                          </div>
@@ -2826,14 +2786,14 @@ export default function Dashboard() {
                                                <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                                </svg>
-                                               <span className="text-sm text-gray-600">Klik om logo te uploaden</span>
+                                               <span className="text-sm text-gray-300">Klik om logo te uploaden</span>
                                                <span className="text-xs text-gray-500">PNG, JPG, SVG (max 5MB)</span>
                                              </label>
                                            </div>
                                          </div>
                                          {tournamentConfig.logo && (
                                            <div className="mt-3">
-                                             <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                                             <p className="text-sm text-gray-300 mb-2">Preview:</p>
                                              <img
                                                src={tournamentConfig.logo}
                                                alt="Logo preview"
@@ -2863,7 +2823,7 @@ export default function Dashboard() {
                                                  type="text"
                                                  value={tournamentConfig.headerBackgroundColor || '#ffffff'}
                                                  onChange={(e) => handleConfigChange('headerBackgroundColor', e.target.value)}
-                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white"
                                                  placeholder="#ffffff"
                                                />
                                              </div>
@@ -2889,7 +2849,7 @@ export default function Dashboard() {
                                                  type="text"
                                                  value={tournamentConfig.headerTextColor || '#000000'}
                                                  onChange={(e) => handleConfigChange('headerTextColor', e.target.value)}
-                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white"
                                                  placeholder="#000000"
                                                />
                                              </div>
@@ -2907,7 +2867,7 @@ export default function Dashboard() {
                                              type="url"
                                              value={tournamentConfig.twitchUrl || ''}
                                              onChange={(e) => handleConfigChange('twitchUrl', e.target.value)}
-                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-600"
+                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white placeholder-gray-600"
                                              placeholder="https://www.twitch.tv/jouwkanaal"
                                            />
                                          </div>
@@ -2950,7 +2910,7 @@ export default function Dashboard() {
                        <div className="flex items-center justify-between mb-4">
                          <div>
                            <h3 className="text-lg font-semibold text-gray-800">Component Bibliotheek</h3>
-                           <p className="text-sm text-gray-600">Sleep componenten naar de preview om ze toe te voegen of beheer ze hier</p>
+                           <p className="text-sm text-gray-300">Sleep componenten naar de preview om ze toe te voegen of beheer ze hier</p>
                          </div>
                          <button
                            onClick={() => toggleSectionDropdown('library')}
@@ -3000,7 +2960,7 @@ export default function Dashboard() {
                                        <div className="flex items-center gap-3">
                                          <span className="text-lg">{component.icon}</span>
                                          <div>
-                                           <div className="font-medium text-gray-900">{component.name}</div>
+                                           <div className="font-medium text-white">{component.name}</div>
                                            <div className="text-sm text-gray-500">{component.description}</div>
                                          </div>
                                        </div>
@@ -3095,10 +3055,10 @@ export default function Dashboard() {
 
             {/* Rechter paneel - Live Preview */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-lg p-6 h-[calc(100vh-80px-48px)] flex flex-col">
+              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6 h-[calc(100vh-80px-48px)] flex flex-col">
                 {/* Preview Header met Viewport Controls */}
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Live Preview</h2>
+                  <h2 className="text-2xl font-bold text-white">Live Preview</h2>
                   
                   {/* Viewport Controls */}
                   <div className="flex items-center gap-3">
@@ -3356,8 +3316,8 @@ export default function Dashboard() {
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                           </svg>
                                                         </div>
-                                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Twitch Livestream</h3>
-                                                        <p className="text-gray-600">Voer een Twitch URL in om de livestream te tonen</p>
+                                                        <h3 className="text-lg font-semibold text-white mb-2">Twitch Livestream</h3>
+                                                        <p className="text-gray-300">Voer een Twitch URL in om de livestream te tonen</p>
                                                       </div>
                                                     )}
                                                   </div>
@@ -3400,24 +3360,24 @@ export default function Dashboard() {
                                                   </h2>
                                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                                      <h3 className="font-semibold text-gray-900 mb-2">📅 Datum</h3>
-                                                      <p className="text-gray-600">
+                                                      <h3 className="font-semibold text-white mb-2">📅 Datum</h3>
+                                                      <p className="text-gray-300">
                                                         {tournamentConfig.startDate || 'Startdatum'} - {tournamentConfig.endDate || 'Einddatum'}
                                                       </p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                                      <h3 className="font-semibold text-gray-900 mb-2">📍 Locatie</h3>
-                                                      <p className="text-gray-600">{tournamentConfig.location || 'Locatie nog niet bekend'}</p>
+                                                      <h3 className="font-semibold text-white mb-2">📍 Locatie</h3>
+                                                      <p className="text-gray-300">{tournamentConfig.location || 'Locatie nog niet bekend'}</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                                      <h3 className="font-semibold text-gray-900 mb-2">👥 Deelnemers</h3>
-                                                      <p className="text-gray-600">
+                                                      <h3 className="font-semibold text-white mb-2">👥 Deelnemers</h3>
+                                                      <p className="text-gray-300">
                                                         Max {tournamentConfig.maxParticipants || 'onbeperkt'} deelnemers
                                                       </p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border">
-                                                      <h3 className="font-semibold text-gray-900 mb-2">💰 Inschrijfgeld</h3>
-                                                      <p className="text-gray-600">
+                                                      <h3 className="font-semibold text-white mb-2">💰 Inschrijfgeld</h3>
+                                                      <p className="text-gray-300">
                                                         {tournamentConfig.entryFee ? `€${tournamentConfig.entryFee}` : 'Gratis'}
                                                       </p>
                                                     </div>
@@ -3443,36 +3403,36 @@ export default function Dashboard() {
                                                     <div className="bg-white p-4 rounded-lg shadow-sm border">
                                                       <div className="flex justify-between items-center">
                                                         <div>
-                                                          <h3 className="font-semibold text-gray-900">Kwalificaties</h3>
-                                                          <p className="text-sm text-gray-600">Eerste ronde</p>
+                                                          <h3 className="font-semibold text-white">Kwalificaties</h3>
+                                                          <p className="text-sm text-gray-300">Eerste ronde</p>
                                                         </div>
                                                         <div className="text-right">
-                                                          <p className="font-semibold text-gray-900">10:00 - 12:00</p>
-                                                          <p className="text-sm text-gray-600">Zaal A</p>
+                                                          <p className="font-semibold text-white">10:00 - 12:00</p>
+                                                          <p className="text-sm text-gray-300">Zaal A</p>
                                                         </div>
                                                       </div>
                                                     </div>
                                                     <div className="bg-white p-4 rounded-lg shadow-sm border">
                                                       <div className="flex justify-between items-center">
                                                         <div>
-                                                          <h3 className="font-semibold text-gray-900">Halve Finales</h3>
-                                                          <p className="text-sm text-gray-600">Tweede ronde</p>
+                                                          <h3 className="font-semibold text-white">Halve Finales</h3>
+                                                          <p className="text-sm text-gray-300">Tweede ronde</p>
                                                         </div>
                                                         <div className="text-right">
-                                                          <p className="font-semibold text-gray-900">14:00 - 16:00</p>
-                                                          <p className="text-sm text-gray-600">Zaal A</p>
+                                                          <p className="font-semibold text-white">14:00 - 16:00</p>
+                                                          <p className="text-sm text-gray-300">Zaal A</p>
                                                         </div>
                                                       </div>
                                                     </div>
                                                     <div className="bg-white p-4 rounded-lg shadow-sm border">
                                                       <div className="flex justify-between items-center">
                                                         <div>
-                                                          <h3 className="font-semibold text-gray-900">Finale</h3>
-                                                          <p className="text-sm text-gray-600">Eindstrijd</p>
+                                                          <h3 className="font-semibold text-white">Finale</h3>
+                                                          <p className="text-sm text-gray-300">Eindstrijd</p>
                                                         </div>
                                                         <div className="text-right">
-                                                          <p className="font-semibold text-gray-900">18:00 - 20:00</p>
-                                                          <p className="text-sm text-gray-600">Hoofdpodium</p>
+                                                          <p className="font-semibold text-white">18:00 - 20:00</p>
+                                                          <p className="text-sm text-gray-300">Hoofdpodium</p>
                                                         </div>
                                                       </div>
                                                     </div>
@@ -3497,19 +3457,19 @@ export default function Dashboard() {
                                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="text-3xl font-bold mb-2" style={{ color: tournamentConfig.primaryColor }}>24</div>
-                                                      <p className="text-gray-600">Deelnemers</p>
+                                                      <p className="text-gray-300">Deelnemers</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="text-3xl font-bold mb-2" style={{ color: tournamentConfig.secondaryColor }}>12</div>
-                                                      <p className="text-gray-600">Wedstrijden</p>
+                                                      <p className="text-gray-300">Wedstrijden</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="text-3xl font-bold mb-2" style={{ color: tournamentConfig.primaryColor }}>8</div>
-                                                      <p className="text-gray-600">Teams</p>
+                                                      <p className="text-gray-300">Teams</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="text-3xl font-bold mb-2" style={{ color: tournamentConfig.secondaryColor }}>3</div>
-                                                      <p className="text-gray-600">Rondes</p>
+                                                      <p className="text-gray-300">Rondes</p>
                                                     </div>
                                                   </div>
                                                 </div>
@@ -3534,7 +3494,7 @@ export default function Dashboard() {
                                                       <div className="flex items-center space-x-4">
                                                         <div className="text-4xl">🥇</div>
                                                         <div>
-                                                          <h3 className="text-xl font-bold text-gray-900">1e Plaats</h3>
+                                                          <h3 className="text-xl font-bold text-white">1e Plaats</h3>
                                                           <p className="text-lg font-semibold text-yellow-600">
                                                             {tournamentConfig.prizePool ? `€${Math.floor(parseInt(tournamentConfig.prizePool) * 0.5)}` : '€500'}
                                                           </p>
@@ -3545,8 +3505,8 @@ export default function Dashboard() {
                                                       <div className="flex items-center space-x-4">
                                                         <div className="text-4xl">🥈</div>
                                                         <div>
-                                                          <h3 className="text-xl font-bold text-gray-900">2e Plaats</h3>
-                                                          <p className="text-lg font-semibold text-gray-600">
+                                                          <h3 className="text-xl font-bold text-white">2e Plaats</h3>
+                                                          <p className="text-lg font-semibold text-gray-300">
                                                             {tournamentConfig.prizePool ? `€${Math.floor(parseInt(tournamentConfig.prizePool) * 0.3)}` : '€300'}
                                                           </p>
                                                         </div>
@@ -3556,7 +3516,7 @@ export default function Dashboard() {
                                                       <div className="flex items-center space-x-4">
                                                         <div className="text-4xl">🥉</div>
                                                         <div>
-                                                          <h3 className="text-xl font-bold text-gray-900">3e Plaats</h3>
+                                                          <h3 className="text-xl font-bold text-white">3e Plaats</h3>
                                                           <p className="text-lg font-semibold text-orange-600">
                                                             {tournamentConfig.prizePool ? `€${Math.floor(parseInt(tournamentConfig.prizePool) * 0.2)}` : '€200'}
                                                           </p>
@@ -3636,20 +3596,20 @@ export default function Dashboard() {
                                                   <div className="bg-white p-6 rounded-lg shadow-sm border">
                                                     <div className="space-y-4">
                                                       <div>
-                                                        <h3 className="font-semibold text-gray-900 mb-2">1. Algemene Regels</h3>
-                                                        <p className="text-gray-600">Alle deelnemers moeten zich houden aan de algemene gedragscode en fair play principes.</p>
+                                                        <h3 className="font-semibold text-white mb-2">1. Algemene Regels</h3>
+                                                        <p className="text-gray-300">Alle deelnemers moeten zich houden aan de algemene gedragscode en fair play principes.</p>
                                                       </div>
                                                       <div>
-                                                        <h3 className="font-semibold text-gray-900 mb-2">2. Inschrijving</h3>
-                                                        <p className="text-gray-600">Inschrijving is verplicht en sluit 24 uur voor aanvang van het toernooi.</p>
+                                                        <h3 className="font-semibold text-white mb-2">2. Inschrijving</h3>
+                                                        <p className="text-gray-300">Inschrijving is verplicht en sluit 24 uur voor aanvang van het toernooi.</p>
                                                       </div>
                                                       <div>
-                                                        <h3 className="font-semibold text-gray-900 mb-2">3. Wedstrijdregels</h3>
-                                                        <p className="text-gray-600">Elke wedstrijd duurt maximaal 30 minuten. Bij gelijkspel volgt een penalty shootout.</p>
+                                                        <h3 className="font-semibold text-white mb-2">3. Wedstrijdregels</h3>
+                                                        <p className="text-gray-300">Elke wedstrijd duurt maximaal 30 minuten. Bij gelijkspel volgt een penalty shootout.</p>
                                                       </div>
                                                       <div>
-                                                        <h3 className="font-semibold text-gray-900 mb-2">4. Disciplinaire Maatregelen</h3>
-                                                        <p className="text-gray-600">Overtreding van de regels kan leiden tot diskwalificatie van het toernooi.</p>
+                                                        <h3 className="font-semibold text-white mb-2">4. Disciplinaire Maatregelen</h3>
+                                                        <p className="text-gray-300">Overtreding van de regels kan leiden tot diskwalificatie van het toernooi.</p>
                                                       </div>
                                                     </div>
                                                   </div>
@@ -3675,25 +3635,25 @@ export default function Dashboard() {
                                                       <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-2 flex items-center justify-center">
                                                         <span className="text-gray-500 font-semibold">Logo</span>
                                                       </div>
-                                                      <p className="text-sm text-gray-600">Hoofdsponsor</p>
+                                                      <p className="text-sm text-gray-300">Hoofdsponsor</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-2 flex items-center justify-center">
                                                         <span className="text-gray-500 font-semibold">Logo</span>
                                                       </div>
-                                                      <p className="text-sm text-gray-600">Partner</p>
+                                                      <p className="text-sm text-gray-300">Partner</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-2 flex items-center justify-center">
                                                         <span className="text-gray-500 font-semibold">Logo</span>
                                                       </div>
-                                                      <p className="text-sm text-gray-600">Supporter</p>
+                                                      <p className="text-sm text-gray-300">Supporter</p>
                                                     </div>
                                                     <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                                                       <div className="w-16 h-16 bg-gray-200 rounded-lg mx-auto mb-2 flex items-center justify-center">
                                                         <span className="text-gray-500 font-semibold">Logo</span>
                                                       </div>
-                                                      <p className="text-sm text-gray-600">Partner</p>
+                                                      <p className="text-sm text-gray-300">Partner</p>
                                                     </div>
                                                   </div>
                                                 </div>
@@ -3752,31 +3712,31 @@ export default function Dashboard() {
                                                   </h2>
                                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                     <div>
-                                                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Organisatie</h3>
+                                                      <h3 className="text-lg font-semibold text-white mb-4">Organisatie</h3>
                                                       <div className="space-y-3">
                                                         <div className="flex items-center space-x-3">
                                                           <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                           </svg>
-                                                          <span className="text-gray-600">info@toernooi.nl</span>
+                                                          <span className="text-gray-300">info@toernooi.nl</span>
                                                         </div>
                                                         <div className="flex items-center space-x-3">
                                                           <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                           </svg>
-                                                          <span className="text-gray-600">+31 6 12345678</span>
+                                                          <span className="text-gray-300">+31 6 12345678</span>
                                                         </div>
                                                         <div className="flex items-center space-x-3">
                                                           <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                           </svg>
-                                                          <span className="text-gray-600">Amsterdam, Nederland</span>
+                                                          <span className="text-gray-300">Amsterdam, Nederland</span>
                                                         </div>
                                                       </div>
                                                     </div>
                                                     <div>
-                                                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Stel een vraag</h3>
+                                                      <h3 className="text-lg font-semibold text-white mb-4">Stel een vraag</h3>
                                                       <form className="space-y-4">
                                                         <input 
                                                           type="text" 
@@ -3826,15 +3786,15 @@ export default function Dashboard() {
                                                       <div className="flex items-center space-x-4 mb-4">
                                                         <div className="text-4xl">{component.icon}</div>
                                                         <div>
-                                                          <h3 className="text-lg font-semibold text-gray-900">{component.name}</h3>
-                                                          <p className="text-gray-600">{component.description}</p>
+                                                          <h3 className="text-lg font-semibold text-white">{component.name}</h3>
+                                                          <p className="text-gray-300">{component.description}</p>
                                                           <span className="inline-block mt-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                                                             {component.category}
                                                           </span>
                                                         </div>
                                                       </div>
                                                       <div className="bg-gray-50 p-4 rounded-lg">
-                                                        <p className="text-gray-600 text-sm">
+                                                        <p className="text-gray-300 text-sm">
                                                           Dit is een custom component gegenereerd door de wizard. 
                                                           Hier kun je specifieke content toevoegen voor {component.name.toLowerCase()}.
                                                         </p>
@@ -3913,12 +3873,12 @@ export default function Dashboard() {
                                           </h2>
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="bg-gray-50 p-4 rounded-lg">
-                                              <h3 className="font-semibold text-gray-900 mb-2">Locatie</h3>
-                                              <p className="text-gray-600">{tournamentConfig.location || 'Niet opgegeven'}</p>
+                                              <h3 className="font-semibold text-white mb-2">Locatie</h3>
+                                              <p className="text-gray-300">{tournamentConfig.location || 'Niet opgegeven'}</p>
                                             </div>
                                             <div className="bg-gray-50 p-4 rounded-lg">
-                                              <h3 className="font-semibold text-gray-900 mb-2">Max. Deelnemers</h3>
-                                              <p className="text-gray-600">{tournamentConfig.maxParticipants || 'Onbeperkt'}</p>
+                                              <h3 className="font-semibold text-white mb-2">Max. Deelnemers</h3>
+                                              <p className="text-gray-300">{tournamentConfig.maxParticipants || 'Onbeperkt'}</p>
                                             </div>
                                           </div>
                                         </div>
@@ -3936,7 +3896,7 @@ export default function Dashboard() {
                                             <h3 className="text-xl font-bold mb-4">Inschrijven</h3>
                                             <p className="mb-4">Schrijf je nu in voor dit toernooi!</p>
                                             <button 
-                                              className="w-full bg-white text-gray-900 py-3 px-4 rounded-lg font-semibold"
+                                              className="w-full bg-white text-white py-3 px-4 rounded-lg font-semibold"
                                               style={{ color: tournamentConfig.primaryColor }}
                                             >
                                               Inschrijven voor Toernooi
@@ -3984,8 +3944,8 @@ export default function Dashboard() {
                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                </svg>
                                              </div>
-                                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Twitch Livestream</h3>
-                                             <p className="text-gray-600">Voer een Twitch URL in om de livestream te tonen</p>
+                                             <h3 className="text-lg font-semibold text-white mb-2">Twitch Livestream</h3>
+                                             <p className="text-gray-300">Voer een Twitch URL in om de livestream te tonen</p>
                                            </div>
                                          </div>
                                        </div>
@@ -4002,7 +3962,7 @@ export default function Dashboard() {
                                              {draggedComponent.name}
                                            </h2>
                                            <div className="bg-gray-50 p-4 rounded-lg">
-                                             <p className="text-gray-600">{draggedComponent.description}</p>
+                                             <p className="text-gray-300">{draggedComponent.description}</p>
                                            </div>
                                          </div>
                                        </div>
@@ -4020,7 +3980,7 @@ export default function Dashboard() {
                                           {draggedComponent.name}
                                         </h2>
                                         <div className="bg-gray-50 p-4 rounded-lg">
-                                          <p className="text-gray-600">{draggedComponent.description}</p>
+                                          <p className="text-gray-300">{draggedComponent.description}</p>
                                         </div>
                                       </div>
                                     </div>
@@ -4044,8 +4004,19 @@ export default function Dashboard() {
     const publishedTournaments = tournaments.filter(t => t.status === 'published');
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900 p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen p-8 relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+          <DarkVeil 
+            hueShift={0}
+            noiseIntensity={0.05}
+            scanlineIntensity={0}
+            speed={0.4}
+            scanlineFrequency={0.3}
+            warpAmount={0.2}
+            resolutionScale={1}
+          />
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center space-x-4">
@@ -4229,7 +4200,7 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Published ({publishedTournaments.length})</h2>
+                <h2 className="text-2xl font-bold text-white">Published ({publishedTournaments.length})</h2>
               </div>
 
               {publishedTournaments.length === 0 ? (
@@ -4239,8 +4210,8 @@ export default function Dashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Geen gepubliceerde toernooien</h3>
-                  <p className="text-gray-600">Publiceer je eerste toernooi om het hier te zien.</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">Geen gepubliceerde toernooien</h3>
+                  <p className="text-gray-300">Publiceer je eerste toernooi om het hier te zien.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -4258,8 +4229,8 @@ export default function Dashboard() {
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{tournament.name}</h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{tournament.description}</p>
+                      <h3 className="text-lg font-semibold text-white mb-2">{tournament.name}</h3>
+                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">{tournament.description}</p>
                       
                       <div className="space-y-2 text-sm text-gray-500">
                         <div className="flex items-center gap-2">

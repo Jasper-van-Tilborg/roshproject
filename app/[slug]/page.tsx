@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import DarkVeil from '../components/DarkVeil';
 
 interface Tournament {
   id: string;
@@ -65,8 +66,19 @@ export default function TournamentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+          <DarkVeil 
+            hueShift={0}
+            noiseIntensity={0.03}
+            scanlineIntensity={0}
+            speed={0.2}
+            scanlineFrequency={0.3}
+            warpAmount={0.1}
+            resolutionScale={1}
+          />
+        </div>
+        <div className="text-center relative z-10">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Toernooi laden...</p>
         </div>
@@ -76,8 +88,19 @@ export default function TournamentPage() {
 
   if (notFound || !tournament) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center relative">
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+          <DarkVeil 
+            hueShift={0}
+            noiseIntensity={0.03}
+            scanlineIntensity={0}
+            speed={0.2}
+            scanlineFrequency={0.3}
+            warpAmount={0.1}
+            resolutionScale={1}
+          />
+        </div>
+        <div className="text-center relative z-10">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -98,12 +121,23 @@ export default function TournamentPage() {
 
   return (
     <div 
-      className="min-h-screen"
+      className="min-h-screen relative"
       style={{ 
         backgroundColor: '#ffffff',
         color: '#000000'
       }}
     >
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
+        <DarkVeil 
+          hueShift={0}
+          noiseIntensity={0.04}
+          scanlineIntensity={0}
+          speed={0.3}
+          scanlineFrequency={0.2}
+          warpAmount={0.15}
+          resolutionScale={1}
+        />
+      </div>
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
