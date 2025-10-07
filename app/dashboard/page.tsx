@@ -796,7 +796,7 @@ export default function Dashboard() {
           />
         </div>
         <div className="max-w-md w-full relative z-10">
-          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8">
+          <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-8">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -859,7 +859,7 @@ export default function Dashboard() {
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-700 rounded-lg border border-gray-600 text-center text-sm">
+            <div className="mt-6 p-4 bg-gray-700/70 backdrop-blur-sm rounded-lg border border-white/20 text-center text-sm">
               <p className="text-gray-300 mb-1">Demo credentials:</p>
               <p className="text-gray-400">Gebruikersnaam: admin</p>
               <p className="text-gray-400">Wachtwoord: admin123</p>
@@ -2538,18 +2538,18 @@ export default function Dashboard() {
           />
         </div>
         {/* Top Navigation */}
-        <div className="bg-white/90 backdrop-blur-sm shadow-sm border-b px-6 py-4 relative z-20">
+        <div className="bg-gray-800/40 backdrop-blur-md shadow-lg border-b border-white/20 px-6 py-4 relative z-20">
           <div className="max-w-7xl mx-auto flex justify-end">
             <div className="flex gap-4">
               <button
                 onClick={() => setCurrentView('manage-tournament')}
-                className="bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                className="bg-gray-600/20 backdrop-blur-md border border-gray-500/30 text-gray-300 py-2 px-4 rounded-xl font-medium hover:bg-gray-600/30 hover:border-gray-500/50 hover:text-gray-200 transition-all duration-300 shadow-lg hover:shadow-gray-500/20"
               >
                 Terug naar Toernooien
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                className="bg-red-600/20 backdrop-blur-md border border-red-500/30 text-red-300 py-2 px-4 rounded-xl font-medium hover:bg-red-600/30 hover:border-red-500/50 hover:text-red-200 transition-all duration-300 shadow-lg hover:shadow-red-500/20"
               >
                 Uitloggen
               </button>
@@ -2560,19 +2560,19 @@ export default function Dashboard() {
         <div className="h-[calc(100vh-80px)] grid grid-cols-1 lg:grid-cols-3 p-6 gap-6 overflow-hidden relative z-20">
           {/* Linker paneel - Configuratie */}
           <div className="lg:col-span-1">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg h-[calc(100vh-80px-48px)] flex flex-col">
+            <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 h-[calc(100vh-80px-48px)] flex flex-col">
               {/* Header */}
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-white/20">
                 <h2 className="text-2xl font-bold text-white mb-4">Toernooi Manager</h2>
                 
                 {/* Tab Navigation */}
-                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                <div className="flex space-x-1 bg-gray-700/70 backdrop-blur-sm p-1 rounded-lg border border-white/20">
                   <button
                     onClick={() => setLeftPanelTab('edit')}
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                       leftPanelTab === 'edit'
-                        ? 'bg-white text-white shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-gray-600 text-white shadow-sm'
+                        : 'text-gray-300 hover:text-white'
                     }`}
                   >
                     Bewerk
@@ -2581,8 +2581,8 @@ export default function Dashboard() {
                     onClick={() => setLeftPanelTab('add')}
                     className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                       leftPanelTab === 'add'
-                        ? 'bg-white text-white shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-gray-600 text-white shadow-sm'
+                        : 'text-gray-300 hover:text-white'
                     }`}
                   >
                     Toevoeg
@@ -2597,13 +2597,13 @@ export default function Dashboard() {
                     {/* Kleuren */}
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Kleuren</h3>
+                        <h3 className="text-lg font-semibold text-white">Kleuren</h3>
                         <button
                           onClick={() => toggleSectionDropdown('colors')}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                         >
                           <svg 
-                            className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections.colors ? 'rotate-180' : ''}`} 
+                            className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.colors ? 'rotate-180' : ''}`} 
                             fill="none" 
                             stroke="currentColor" 
                             viewBox="0 0 24 24"
@@ -2618,7 +2618,7 @@ export default function Dashboard() {
                       }`}>
                         <div className="space-y-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                               Achtergrond Kleur
                             </label>
                             <div className="flex items-center gap-3">
@@ -2630,7 +2630,7 @@ export default function Dashboard() {
                                   className="w-12 h-10 opacity-0 absolute cursor-pointer"
                                 />
                                 <div 
-                                  className="w-12 h-10 border-2 border-gray-300 rounded cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                                  className="w-12 h-10 border-2 border-gray-600 rounded cursor-pointer shadow-sm hover:shadow-md transition-shadow"
                                   style={{ backgroundColor: tournamentConfig.backgroundColor }}
                                 />
                               </div>
@@ -2638,7 +2638,7 @@ export default function Dashboard() {
                                 type="text"
                                 value={tournamentConfig.backgroundColor}
                                 onChange={(e) => handleConfigChange('backgroundColor', e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-white placeholder-gray-600"
+                                className="flex-1 px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 text-white placeholder-gray-400"
                               />
                             </div>
                           </div>
@@ -2651,15 +2651,15 @@ export default function Dashboard() {
                        <div className="mb-6">
                          <div className="flex items-center justify-between mb-4">
                            <div>
-                             <h3 className="text-lg font-semibold text-gray-800">Bewerk Componenten</h3>
-                             <p className="text-sm text-gray-300">Configureer je huidige componenten</p>
+                             <h3 className="text-lg font-semibold text-white">Bewerk Componenten</h3>
+                             <p className="text-sm text-gray-400">Configureer je huidige componenten</p>
                            </div>
                            <button
                              onClick={() => toggleSectionDropdown('components')}
-                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                             className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                            >
                              <svg 
-                               className={`w-5 h-5 text-gray-500 transition-transform ${expandedSections.components ? 'rotate-180' : ''}`} 
+                               className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections.components ? 'rotate-180' : ''}`} 
                                fill="none" 
                                stroke="currentColor" 
                                viewBox="0 0 24 24"
@@ -2678,18 +2678,18 @@ export default function Dashboard() {
                              if (!component) return null;
                              const isExpanded = expandedComponents[component.id];
                              return (
-                               <div key={component.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                               <div key={component.id} className="border border-white/20 rounded-xl overflow-hidden bg-gray-700/70 backdrop-blur-sm">
                                  {/* Component Header */}
-                                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                 <div className="bg-gray-700/70 backdrop-blur-sm px-4 py-3 border-b border-white/20">
                                    <div className="flex items-center justify-between">
                                      <button
                                        onClick={() => toggleComponentDropdown(component.id)}
-                                       className="flex items-center gap-3 flex-1 text-left hover:bg-gray-100 rounded-md p-2 -m-2 transition-colors"
+                                       className="flex items-center gap-3 flex-1 text-left hover:bg-gray-600 rounded-md p-2 -m-2 transition-colors"
                                      >
                                        <span className="text-lg">{component.icon}</span>
                                        <div>
                                          <div className="font-medium text-white">{component.name}</div>
-                                         <div className="text-sm text-gray-500">{component.description}</div>
+                                         <div className="text-sm text-gray-400">{component.description}</div>
                                        </div>
                                        <div className="ml-auto">
                                          <svg 
@@ -2709,7 +2709,7 @@ export default function Dashboard() {
                                          className={`w-12 h-6 rounded-full transition-colors ${
                                            enabledComponents[component.id as keyof typeof enabledComponents]
                                              ? 'bg-green-500'
-                                             : 'bg-gray-300'
+                                             : 'bg-gray-600'
                                          }`}
                                          title={enabledComponents[component.id as keyof typeof enabledComponents] ? 'Component uitschakelen' : 'Component inschakelen'}
                                        >
@@ -3010,12 +3010,12 @@ export default function Dashboard() {
                 </div>
 
                 {/* Actie knoppen */}
-                <div className="p-6 border-t border-gray-200">
+                <div className="p-6 border-t border-white/20">
                   <div className="grid grid-cols-3 gap-3">
                     {(!editingTournament || editingTournamentStatus === 'draft') && (
                       <button
                         onClick={handleSaveDraft}
-                        className="bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+                        className="bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-4 rounded-lg font-medium hover:from-gray-700 hover:to-gray-800 transition-colors text-sm shadow-lg"
                       >
                         Save Draft
                       </button>
@@ -3031,20 +3031,20 @@ export default function Dashboard() {
                             setEditingTournamentStatus(null);
                           }
                         }}
-                        className="bg-gray-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+                        className="bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-4 rounded-lg font-medium hover:from-gray-700 hover:to-gray-800 transition-colors text-sm shadow-lg"
                       >
                         Unpublish
                       </button>
                     )}
                     <button
                       onClick={handlePublish}
-                      className="bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-colors text-sm shadow-lg"
                     >
                       {editingTournament ? (editingTournamentStatus === 'published' ? 'Update' : 'Publish') : 'Publish'}
                     </button>
                     <button
                       onClick={handleReset}
-                      className="bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors text-sm"
+                      className="bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition-colors text-sm shadow-lg"
                     >
                       Reset
                     </button>
@@ -3055,7 +3055,7 @@ export default function Dashboard() {
 
             {/* Rechter paneel - Live Preview */}
             <div className="lg:col-span-2">
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6 h-[calc(100vh-80px-48px)] flex flex-col">
+              <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-6 h-[calc(100vh-80px-48px)] flex flex-col">
                 {/* Preview Header met Viewport Controls */}
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-white">Live Preview</h2>
@@ -3063,19 +3063,19 @@ export default function Dashboard() {
                   {/* Viewport Controls */}
                   <div className="flex items-center gap-3">
                     {/* Viewport Indicator */}
-                    <div className="text-sm text-gray-500 font-medium">
+                    <div className="text-sm text-gray-400 font-medium">
                       {previewViewport === 'desktop' && 'Desktop (1920px)'}
                       {previewViewport === 'tablet' && 'Tablet (768px)'}
                       {previewViewport === 'mobile' && 'Mobile (375px)'}
                     </div>
                     
-                    <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                    <div className="flex items-center gap-2 bg-gray-700/70 backdrop-blur-sm rounded-lg p-1 border border-white/20">
                       <button
                         onClick={() => handleViewportChange('desktop')}
                         className={`p-2 rounded-md transition-colors ${
                           previewViewport === 'desktop'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                            ? 'bg-gray-600 text-blue-400 shadow-sm'
+                            : 'text-gray-400 hover:text-white'
                         }`}
                         title="Desktop View"
                       >
@@ -3088,8 +3088,8 @@ export default function Dashboard() {
                         onClick={() => handleViewportChange('tablet')}
                         className={`p-2 rounded-md transition-colors ${
                           previewViewport === 'tablet'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                            ? 'bg-gray-600 text-blue-400 shadow-sm'
+                            : 'text-gray-400 hover:text-white'
                         }`}
                         title="Tablet View"
                       >
@@ -3102,8 +3102,8 @@ export default function Dashboard() {
                         onClick={() => handleViewportChange('mobile')}
                         className={`p-2 rounded-md transition-colors ${
                           previewViewport === 'mobile'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                            ? 'bg-gray-600 text-blue-400 shadow-sm'
+                            : 'text-gray-400 hover:text-white'
                         }`}
                         title="Mobile View"
                       >
@@ -4036,7 +4036,7 @@ export default function Dashboard() {
             <div className="flex gap-4">
               <button
                 onClick={() => setCurrentView('dashboard')}
-                className="bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                className="bg-gray-600/20 backdrop-blur-md border border-gray-500/30 text-gray-300 py-2 px-4 rounded-xl font-medium hover:bg-gray-600/30 hover:border-gray-500/50 hover:text-gray-200 transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-gray-500/20"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -4045,10 +4045,10 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+                className="bg-red-600/20 backdrop-blur-md border border-red-500/30 text-red-300 py-2 px-4 rounded-xl font-medium hover:bg-red-600/30 hover:border-red-500/50 hover:text-red-200 transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-red-500/20"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H3m4 4v-4a4 4 0 014-4h8" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
                 <span>Uitloggen</span>
               </button>
@@ -4068,7 +4068,7 @@ export default function Dashboard() {
               </div>
 
               {draftTournaments.length === 0 ? (
-                <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700 p-8 text-center">
+                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-8 text-center">
                   <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -4133,7 +4133,7 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {draftTournaments.map((tournament) => (
-                    <div key={tournament.id} className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700 p-6 hover:shadow-xl transition-shadow">
+                    <div key={tournament.id} className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-6 hover:shadow-xl hover:bg-gray-800/50 transition-all duration-300">
                       <div className="flex items-start justify-between mb-4">
                         <div 
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
@@ -4168,19 +4168,19 @@ export default function Dashboard() {
                       <div className="mt-4 flex gap-2">
                         <button 
                           onClick={() => handleEditTournament(tournament.id)}
-                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-colors shadow-lg"
                         >
                           Bewerken
                         </button>
                         <button 
                           onClick={() => handlePublishFromManage(tournament.id)}
-                          className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-green-700 hover:to-emerald-700 transition-colors shadow-lg"
                         >
                           Publiceren
                         </button>
                         <button 
                           onClick={() => handleDeleteTournament(tournament.id)}
-                          className="bg-red-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                          className="bg-gradient-to-r from-red-600 to-red-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-red-700 hover:to-red-800 transition-colors shadow-lg"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -4196,8 +4196,8 @@ export default function Dashboard() {
             {/* Published Sectie */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -4205,8 +4205,8 @@ export default function Dashboard() {
               </div>
 
               {publishedTournaments.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-8 text-center">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -4217,7 +4217,7 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {publishedTournaments.map((tournament) => (
-                    <div key={tournament.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+                    <div key={tournament.id} className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-6 hover:shadow-xl hover:bg-gray-800/50 transition-all duration-300">
                       <div className="flex items-start justify-between mb-4">
                         <div 
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
@@ -4225,7 +4225,7 @@ export default function Dashboard() {
                         >
                           {tournament.name.charAt(0).toUpperCase()}
                         </div>
-                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        <span className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">
                           Published
                         </span>
                       </div>
@@ -4233,7 +4233,7 @@ export default function Dashboard() {
                       <h3 className="text-lg font-semibold text-white mb-2">{tournament.name}</h3>
                       <p className="text-gray-300 text-sm mb-4 line-clamp-2">{tournament.description}</p>
                       
-                      <div className="space-y-2 text-sm text-gray-500">
+                      <div className="space-y-2 text-sm text-gray-400">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -4254,25 +4254,25 @@ export default function Dashboard() {
                           href={`/${generateSlug(tournament.name)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 bg-green-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors text-center"
+                          className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-green-700 hover:to-emerald-700 transition-colors text-center shadow-lg"
                         >
                           Bekijk Pagina
                         </a>
                         <button 
                           onClick={() => handleEditTournament(tournament.id)}
-                          className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-colors shadow-lg"
                         >
                           Bewerken
                         </button>
                         <button 
                           onClick={() => handleUnpublish(tournament.id)}
-                          className="flex-1 bg-gray-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+                          className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-gray-700 hover:to-gray-800 transition-colors shadow-lg"
                         >
                           Unpublish
                         </button>
                         <button 
                           onClick={() => handleDeleteTournament(tournament.id)}
-                          className="bg-red-600 text-white py-2 px-3 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                          className="bg-gradient-to-r from-red-600 to-red-700 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-red-700 hover:to-red-800 transition-colors shadow-lg"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -4322,10 +4322,10 @@ export default function Dashboard() {
           </div>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+            className="bg-red-600/20 backdrop-blur-md border border-red-500/30 text-red-300 py-2 px-4 rounded-xl font-medium hover:bg-red-600/30 hover:border-red-500/50 hover:text-red-200 transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-red-500/20"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H3m4 4v-4a4 4 0 014-4h8" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
             <span>Uitloggen</span>
           </button>
@@ -4333,7 +4333,7 @@ export default function Dashboard() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Toernooi Aanmaken */}
-          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
+          <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-8 hover:shadow-xl hover:bg-gray-800/50 transition-all duration-300">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4403,7 +4403,7 @@ export default function Dashboard() {
           </div>
 
           {/* Toernooi Beheren */}
-          <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-700 p-8 hover:shadow-xl transition-shadow">
+          <div className="bg-gray-800/40 backdrop-blur-md rounded-xl shadow-2xl border border-white/20 p-8 hover:shadow-xl hover:bg-gray-800/50 transition-all duration-300">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
