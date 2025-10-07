@@ -1,9 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Header from '../components/header';
 import DarkVeil from '../components/DarkVeil';
-import SplitText from '../components/SplitText';
+
+// Type definities
+interface Tournament {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  maxParticipants: string;
+  entryFee: string;
+  prizePool: string;
+  primaryColor: string;
+  secondaryColor: string;
+  customComponents?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>;
+  status: 'draft' | 'published';
+  createdAt: string;
+}
 
 // Type definities
 import {
@@ -93,7 +110,7 @@ export default function Dashboard() {
   
   // Template wizard state
   const [wizardStep, setWizardStep] = useState(0);
-  const [wizardAnswers, setWizardAnswers] = useState<Record<string, any>>({});
+  const [wizardAnswers, setWizardAnswers] = useState<Record<string, string | number | boolean>>({});
   const [aiTyping, setAiTyping] = useState(false);
   const [aiMessage, setAiMessage] = useState('');
   const [showAiResponse, setShowAiResponse] = useState(false);
@@ -118,7 +135,7 @@ export default function Dashboard() {
     chatEnabled: 'false',
     headerBackgroundColor: '#ffffff',
     headerTextColor: '#000000',
-    customComponents: [] as any[]
+    customComponents: [] as Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
   });
 
   // Componenten configuratie - alle componenten standaard uitgeschakeld
@@ -233,20 +250,12 @@ export default function Dashboard() {
     prizePool: string;
     primaryColor: string;
     secondaryColor: string;
-    customComponents?: any[];
+    customComponents?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>;
     status: 'draft' | 'published';
     createdAt: string;
   }>>([]);
 
   // Laad toernooien uit localStorage bij component mount
-  // Functie om custom componenten toe te voegen aan allComponents
-  const addCustomComponentsToLibrary = (customComponents: any[]) => {
-    if (customComponents && customComponents.length > 0) {
-      customComponents.forEach((customComp: any) => {
-        allComponents[customComp.id] = customComp;
-      });
-    }
-  };
 
   useEffect(() => {
     const savedTournaments = localStorage.getItem('tournaments');
@@ -256,7 +265,7 @@ export default function Dashboard() {
         setTournaments(parsedTournaments);
         
         // Voeg custom componenten toe aan de bibliotheek
-        parsedTournaments.forEach((tournament: any) => {
+        parsedTournaments.forEach((tournament: Tournament) => {
           if (tournament.customComponents) {
             addCustomComponentsToLibrary(tournament.customComponents);
           }
@@ -537,20 +546,20 @@ export default function Dashboard() {
 
   // Drag & Drop handlers
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
+    const { active: _active } = event;
+    setActiveId(_active.id as string);
     
     // Sla de component data op (alleen als component bestaat)
-    const component = allComponents[active.id as keyof typeof allComponents];
+    const component = allComponents[_active.id as keyof typeof allComponents];
     if (component) {
       setDraggedComponent(component);
       // Check of het van de library komt (niet in componentOrder)
-      setIsDraggingFromLibrary(!componentOrder.includes(active.id as string));
+      setIsDraggingFromLibrary(!componentOrder.includes(_active.id as string));
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
+    const { active: _active, over } = event; // eslint-disable-line @typescript-eslint/no-unused-vars
     
     if (!over) {
       setDragOverIndex(null);
@@ -680,6 +689,16 @@ export default function Dashboard() {
      }
    };
 
+  // Functie om custom componenten toe te voegen aan allComponents
+  const addCustomComponentsToLibrary = useCallback((customComponents: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>) => {
+    if (customComponents && customComponents.length > 0) {
+      customComponents.forEach((customComp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (allComponents as any)[customComp.id] = customComp;
+      });
+    }
+  }, [allComponents]);
+
   // Alleen de momenteel ingeschakelde componenten (wordt straks uit components map geladen)
   // const enabledComponentsList = Object.values(allComponents).filter(comp => 
   //   enabledComponents[comp.id as keyof typeof enabledComponents]
@@ -705,7 +724,7 @@ export default function Dashboard() {
       chatEnabled: 'false',
       headerBackgroundColor: '#ffffff',
       headerTextColor: '#000000',
-      customComponents: [] as any[]
+      customComponents: [] as Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
     });
     
     // Reset enabled components - alle componenten uitgeschakeld
@@ -853,7 +872,7 @@ export default function Dashboard() {
 
   // Template selectie view
   if (currentView === 'template-selection') {
-    const TOURNAMENT_TEMPLATES: any[] = [];
+    // const TOURNAMENT_TEMPLATES: Array<{id: string, name: string, description: string}> = [];
 
     const CUSTOM_TEMPLATE = {
       id: 'custom',
@@ -1076,34 +1095,12 @@ export default function Dashboard() {
         <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="text-center">
-              <SplitText
-                text="Kies hoe je je Toernooi Pagina wilt Maken"
-                className="text-4xl font-bold text-white mb-3"
-                tag="h1"
-                delay={50}
-                duration={0.8}
-                ease="power3.out"
-                splitType="chars"
-                from={{ opacity: 0, y: 60 }}
-                to={{ opacity: 1, y: 0 }}
-                threshold={0.1}
-                rootMargin="-50px"
-                textAlign="center"
-              />
-              <SplitText
-                text="Laat onze wizard de perfecte template voor je genereren op basis van je wensen, of start met een volledig lege pagina en bouw alles zelf op."
-                className="text-lg text-gray-300 max-w-3xl mx-auto"
-                tag="p"
-                delay={100}
-                duration={0.6}
-                ease="power3.out"
-                splitType="words"
-                from={{ opacity: 0, y: 30 }}
-                to={{ opacity: 1, y: 0 }}
-                threshold={0.1}
-                rootMargin="-50px"
-                textAlign="center"
-              />
+              <h1 className="text-4xl font-bold text-white mb-3">
+                Kies hoe je je Toernooi Pagina wilt Maken
+              </h1>
+              <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+                Laat onze wizard de perfecte template voor je genereren op basis van je wensen, of start met een volledig lege pagina en bouw alles zelf op.
+              </p>
             </div>
           </div>
         </div>
@@ -1131,7 +1128,7 @@ export default function Dashboard() {
   }
 
   // AI Website generatie functie
-  const generateWebsiteFromAnswers = (answers: Record<string, any>) => {
+  const generateWebsiteFromAnswers = (answers: Record<string, string | number | boolean>) => {
     const tournamentName = answers.tournament_name || 'Toernooi';
     const tournamentDate = answers.tournament_date || 'Datum TBD';
     const bracketType = answers.bracket_type || 'Single Elimination';
@@ -1524,17 +1521,17 @@ export default function Dashboard() {
                     <div class="prize-grid">
                         <div class="prize-item">
                             <div class="prize-position">1st Place</div>
-                            <div class="prize-amount">€${getPrizeAmount(participants, 1)}</div>
+                            <div class="prize-amount">€${getPrizeAmount(String(participants), 1)}</div>
                             <div>Champion</div>
                         </div>
                         <div class="prize-item">
                             <div class="prize-position">2nd Place</div>
-                            <div class="prize-amount">€${getPrizeAmount(participants, 2)}</div>
+                            <div class="prize-amount">€${getPrizeAmount(String(participants), 2)}</div>
                             <div>Runner-up</div>
                         </div>
                         <div class="prize-item">
                             <div class="prize-position">3rd Place</div>
-                            <div class="prize-amount">€${getPrizeAmount(participants, 3)}</div>
+                            <div class="prize-amount">€${getPrizeAmount(String(participants), 3)}</div>
                             <div>Third Place</div>
                         </div>
                     </div>
@@ -1587,12 +1584,12 @@ export default function Dashboard() {
   };
 
   // Template generatie functie (buiten views)
-  const generateTemplateFromAnswers = (answers: Record<string, any>) => {
-    let components: string[] = ['description', 'tournamentDetails'];
+  const generateTemplateFromAnswers = (answers: Record<string, string | number | boolean>) => {
+    const components: string[] = ['description', 'tournamentDetails'];
     let primaryColor = '#2563eb';
     let secondaryColor = '#7c3aed';
     let backgroundColor = '#ffffff';
-    let customComponents: any[] = [];
+    const customComponents: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}> = [];
 
     // Op basis van bracket type
     if (answers.bracket_type === 'single_elimination') {
@@ -1638,7 +1635,7 @@ export default function Dashboard() {
     }
 
     // Op basis van aantal deelnemers
-    const participantCount = parseInt(answers.participants) || 16;
+    const participantCount = parseInt(String(answers.participants)) || 16;
     if (participantCount <= 16) {
       components.push('registration', 'rules');
     } else if (participantCount <= 64) {
@@ -1757,7 +1754,7 @@ export default function Dashboard() {
     }
 
     // Op basis van toernooi naam keywords
-    const tournamentName = answers.tournament_name?.toLowerCase() || '';
+    const tournamentName = String(answers.tournament_name || '').toLowerCase();
     if (tournamentName.includes('championship') || tournamentName.includes('kampioenschap')) {
       customComponents.push({
         id: 'championship-badge',
@@ -1780,7 +1777,7 @@ export default function Dashboard() {
     }
 
     // Op basis van datum keywords
-    const tournamentDate = answers.tournament_date?.toLowerCase() || '';
+    const tournamentDate = String(answers.tournament_date || '').toLowerCase();
     if (tournamentDate.includes('kerst') || tournamentDate.includes('christmas')) {
       customComponents.push({
         id: 'christmas-theme',
@@ -1894,7 +1891,7 @@ export default function Dashboard() {
     };
 
     // AI responses based on answers
-    const getAiResponse = (step: number, answer: any) => {
+    const getAiResponse = (step: number, answer: string | number | boolean) => {
       const responses = {
         0: {
           'Championship': "Geweldig! Een Championship toernooi - dat wordt een epische strijd! 🏆",
@@ -1932,7 +1929,7 @@ export default function Dashboard() {
       };
       
       const stepResponses = responses[step as keyof typeof responses] || responses[0];
-      return (stepResponses as any)[answer] || (stepResponses as any).default;
+      return (stepResponses as Record<string, string>)[String(answer)] || (stepResponses as Record<string, string>).default;
     };
 
     const handleNextStep = () => {
@@ -1956,7 +1953,7 @@ export default function Dashboard() {
         simulateAiTyping(finalMessage, () => {
           setTimeout(() => {
             // Genereer complete website
-            const website = generateWebsiteFromAnswers(wizardAnswers);
+            // const website = generateWebsiteFromAnswers(wizardAnswers);
             const template = generateTemplateFromAnswers(wizardAnswers);
         
         // Stel componenten in
@@ -1972,18 +1969,19 @@ export default function Dashboard() {
         
         // Voeg custom componenten toe aan allComponents en enabledComponents
         if (template.customComponents && template.customComponents.length > 0) {
-          template.customComponents.forEach((customComp: any) => {
-            allComponents[customComp.id] = customComp;
+          template.customComponents.forEach((customComp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (allComponents as any)[customComp.id] = customComp;
             enabledComponents[customComp.id] = true;
           });
           setEnabledComponents(enabledComponents);
-          setComponentOrder(prev => [...prev, ...template.customComponents.map((comp: any) => comp.id)]);
+          setComponentOrder(prev => [...prev, ...template.customComponents.map((comp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => comp.id)]);
         }
         
         // Kleuren en basis info toepassen
         setTournamentConfig(prev => ({
           ...prev,
-          name: wizardAnswers.tournament_name || '',
+          name: String(wizardAnswers.tournament_name || ''),
           description: `Toernooi op ${wizardAnswers.tournament_date || 'datum nog in te vullen'}`,
           primaryColor: template.primaryColor,
           secondaryColor: template.secondaryColor,
@@ -2150,13 +2148,13 @@ export default function Dashboard() {
                   <input
                     type="text"
                     placeholder={currentQuestion.placeholder}
-                    value={wizardAnswers[currentQuestion.id] || ''}
+                    value={String(wizardAnswers[currentQuestion.id] || '')}
                     onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.value)}
                     className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-lg text-white placeholder-gray-400"
                   />
                 </div>
               ) : (
-                currentQuestion.options?.map((option, index) => (
+                currentQuestion.options?.map((option, _index) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
                   <label
                     key={option.value}
                     className={`block p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
@@ -2276,7 +2274,7 @@ export default function Dashboard() {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${generatedWebsite.metadata.title.replace(/\s+/g, '_')}_website.html`;
+                    a.download = `${String(generatedWebsite.metadata.title).replace(/\s+/g, '_')}_website.html`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -2464,7 +2462,7 @@ export default function Dashboard() {
               
               {generatedTemplate.customComponents && generatedTemplate.customComponents.length > 0 ? (
                 <div className="space-y-4">
-                  {generatedTemplate.customComponents.map((component: any, index: number) => (
+                  {generatedTemplate.customComponents.map((component: {id: string, name: string, type: string, description: string, icon: string, category?: string}, index: number) => (
                     <div key={index} className="flex items-start space-x-4 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
                       <div className="text-2xl">{component.icon}</div>
                       <div className="flex-1">
@@ -2794,9 +2792,11 @@ export default function Dashboard() {
                                          {tournamentConfig.logo && (
                                            <div className="mt-3">
                                              <p className="text-sm text-gray-300 mb-2">Preview:</p>
-                                             <img
+                                             <Image
                                                src={tournamentConfig.logo}
                                                alt="Logo preview"
+                                               width={128}
+                                               height={80}
                                                className="max-h-20 max-w-32 object-contain border rounded"
                                              />
                                            </div>
@@ -3767,6 +3767,7 @@ export default function Dashboard() {
                                               );
                                             default:
                                               // Voor custom componenten
+                                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                               if ((component as any).type === 'custom') {
                                                 return (
                                                   <div 
@@ -4097,7 +4098,7 @@ export default function Dashboard() {
                          chatEnabled: 'false',
                          headerBackgroundColor: '#ffffff',
                          headerTextColor: '#000000',
-                         customComponents: [] as any[]
+                         customComponents: [] as Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
                        });
                        
                        // Reset enabled components - alle componenten uitgeschakeld
@@ -4367,7 +4368,7 @@ export default function Dashboard() {
                      chatEnabled: 'false',
                      headerBackgroundColor: '#ffffff',
                      headerTextColor: '#000000',
-                     customComponents: [] as any[]
+                     customComponents: [] as Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
                    });
                    
                    // Reset enabled components - alle componenten uitgeschakeld
