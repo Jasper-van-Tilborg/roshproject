@@ -100,6 +100,169 @@ const TournamentInfo = () => {
           </div>
         </div>
       </main>
+
+      {/* Step-to-Step Component */}
+      <section className="px-6 py-16 w-full">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-bold text-white text-center mb-12 uppercase">
+            DOE JE MEE?
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1: Play Minigame */}
+            <div className="relative rounded-2xl p-8 overflow-hidden transform hover:scale-105 transition-all duration-300" style={{ 
+              backgroundColor: 'var(--legion-box-bg)',
+              boxShadow: 'var(--legion-box-border)'
+            }}>
+              {/* Background Number */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[12rem] font-extrabold text-slate-700 opacity-20 leading-none">1</span>
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 uppercase">
+                  Speel De Minigame
+                </h3>
+                <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                  Elk punt dat jij scoort telt mee voor de progressbar. Je kunt zo vaak als je wilt proberen de highscore te verbreken. Met alle behaalde punten samen zorgen jullie ervoor dat de prijzenpot blijft groeien.
+                </p>
+                <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                  Daarnaast geven we elke week een prijs aan de speler met de hoogste score. De winnaar wordt iedere vrijdag tijdens de match day live op stream door Morrog bekendgemaakt.
+                </p>
+                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                  <span className="flex items-center justify-center">
+                    Speel De Minigame
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Step 2: Chat on Twitch */}
+            <div className="relative rounded-2xl p-8 overflow-hidden transform hover:scale-105 transition-all duration-300" style={{ 
+              backgroundColor: 'var(--legion-box-bg)',
+              boxShadow: 'var(--legion-box-border)'
+            }}>
+              {/* Background Number */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[12rem] font-extrabold text-slate-700 opacity-20 leading-none">2</span>
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M2.149 0L.537 4.119v16.296h5.731V24h3.224l3.045-3.585h4.659l6.269-6.296V0H2.149zm19.164 13.612l-3.582 3.585H12l-3.045 3.585v-3.585H4.119V2.149h17.194v11.463zm-3.582-7.179v6.358h-2.149V6.433h2.149zm-5.731 0v6.358H9.403V6.433h2.149z"/>
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 uppercase">
+                  Chat Mee Op Twitch
+                </h3>
+                <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                  Op matchdays kun je de progressbar écht een boost geven. Tijdens de matches telt elke chatmessage in de livestream van <span className="font-semibold text-blue-400">Morrog</span> als een punt voor de progressbar.
+                </p>
+                <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                  Deze chatpunten wegen zwaarder dan die van de minigame, dus live aanwezig zijn is dé manier om de volledige prijzenpot vrij te spelen.
+                </p>
+                <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                  Dus pak iets te drinken, leg de snacks klaar en tune in!
+                </p>
+                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                  <span className="flex items-center justify-center">
+                    Chat Mee Op Twitch
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Step 3: Comment on Instagram */}
+            <div className="relative rounded-2xl p-8 overflow-hidden transform hover:scale-105 transition-all duration-300" style={{ 
+              backgroundColor: 'var(--legion-box-bg)',
+              boxShadow: 'var(--legion-box-border)'
+            }}>
+              {/* Background Number */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[12rem] font-extrabold text-slate-700 opacity-20 leading-none">3</span>
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 uppercase">
+                  Comment Op Instagram
+                </h3>
+                <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                  Zie je een post van <span className="font-semibold text-blue-400">@lenovobenelux</span> voorbij komen? Laat een comment achter voor extra bonuspunten!
+                </p>
+                <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                  Iedere comment telt mee als een punt voor de progressbar.
+                </p>
+                <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                  <span className="font-bold text-white">Let wel op:</span> spammen heeft geen zin. Ons systeem negeert dubbele comments, dus kwaliteit boven kwantiteit!
+                </p>
+                <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                  <span className="flex items-center justify-center">
+                    Laat Een Comment Achter
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-r from-slate-800/90 to-slate-900/90 text-white py-12 border-t border-slate-700">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12">
+              <div className="flex justify-center mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">THE LEGION EVENT</h3>
+              <p className="text-slate-300 text-sm mb-6">
+                Het ultieme platform voor CS2 esports competitie
+              </p>
+              <div className="flex justify-center space-x-8 text-sm">
+                <a href="#" className="text-slate-400 hover:text-blue-400 transition-all duration-300 hover:scale-105">Bracket</a>
+                <a href="#" className="text-slate-400 hover:text-purple-400 transition-all duration-300 hover:scale-105">Clips</a>
+                <a href="#" className="text-slate-400 hover:text-cyan-400 transition-all duration-300 hover:scale-105">Predictions</a>
+                <a href="#" className="text-slate-400 hover:text-orange-400 transition-all duration-300 hover:scale-105">Tournaments</a>
+              </div>
+              <div className="mt-6 pt-6 border-t border-slate-700">
+                <p className="text-slate-500 text-xs">
+                  © 2024 The Legion Event. All rights reserved.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
