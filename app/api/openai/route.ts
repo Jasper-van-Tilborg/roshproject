@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('API Key exists:', !!process.env.ANTHROPIC_API_KEY);
     console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length || 0);
-    console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('ANTHROPIC')));
     
     // Parse de request body
-    const { message, model = 'claude-3-5-sonnet-20241022' } = await request.json();
+    const { message, model = 'claude-sonnet-4-5-20250929' } = await request.json();
 
     // Valideer dat er een message is
     if (!message) {
@@ -27,27 +25,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialiseer Anthropic client dynamisch
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+    // Roep Claude API direct aan via fetch
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 1024,
+        messages: [
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+      }),
     });
 
-    // Maak een message request
-    const completion = await anthropic.messages.create({
-      model: model,
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: message,
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Claude API error:', errorData);
+      return NextResponse.json(
+        { 
+          error: 'Claude API request failed',
+          details: errorData
         },
-      ],
-    });
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
 
     // Return de response
     return NextResponse.json({
-      response: completion.content[0]?.type === 'text' ? completion.content[0].text : 'No response generated',
-      usage: completion.usage,
+      response: data.content[0]?.type === 'text' ? data.content[0].text : 'No response generated',
+      usage: data.usage,
     });
 
   } catch (error) {
@@ -70,6 +85,5 @@ export async function GET() {
     status: 'ready',
     apiKeyExists: !!process.env.ANTHROPIC_API_KEY,
     apiKeyLength: process.env.ANTHROPIC_API_KEY?.length || 0,
-    allAnthropicEnvVars: Object.keys(process.env).filter(key => key.includes('ANTHROPIC'))
   });
 }
