@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function OpenAITest() {
+export default function ClaudeTest() {
   const [message, setMessage] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,12 +50,12 @@ export default function OpenAITest() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4">OpenAI Test</h2>
+      <h2 className="text-2xl font-bold mb-4">Claude Test</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-            Stel een vraag aan OpenAI:
+            Stel een vraag aan Claude:
           </label>
           <textarea
             id="message"
