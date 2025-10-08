@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('API Key exists:', !!process.env.OPENAI_API_KEY);
-    console.log('API Key length:', process.env.OPENAI_API_KEY?.length || 0);
-    console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('OPENAI')));
+    console.log('API Key exists:', !!process.env.ANTHROPIC_API_KEY);
+    console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length || 0);
     
     // Parse de request body
-    const { message, model = 'gpt-3.5-turbo' } = await request.json();
+    const { message, model = 'claude-sonnet-4-5-20250929' } = await request.json();
 
     // Valideer dat er een message is
     if (!message) {
@@ -19,44 +17,60 @@ export async function POST(request: NextRequest) {
     }
 
     // Valideer dat de API key bestaat
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('OpenAI API key is missing');
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('Anthropic API key is missing');
       return NextResponse.json(
-        { error: 'OpenAI API key not configured. Please create a .env.local file with OPENAI_API_KEY=your_key_here' },
+        { error: 'Anthropic API key not configured. Please create a .env.local file with ANTHROPIC_API_KEY=your_key_here' },
         { status: 500 }
       );
     }
 
-    // Initialiseer OpenAI client dynamisch
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    // Roep Claude API direct aan via fetch
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 1024,
+        messages: [
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+      }),
     });
 
-    // Maak een chat completion request
-    const completion = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: 'user',
-          content: message,
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Claude API error:', errorData);
+      return NextResponse.json(
+        { 
+          error: 'Claude API request failed',
+          details: errorData
         },
-      ],
-      max_tokens: 1000,
-      temperature: 0.7,
-    });
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
 
     // Return de response
     return NextResponse.json({
-      response: completion.choices[0]?.message?.content || 'No response generated',
-      usage: completion.usage,
+      response: data.content[0]?.type === 'text' ? data.content[0].text : 'No response generated',
+      usage: data.usage,
     });
 
   } catch (error) {
-    console.error('OpenAI API Error:', error);
+    console.error('Claude API Error:', error);
     
     return NextResponse.json(
       { 
-        error: 'Failed to get response from OpenAI',
+        error: 'Failed to get response from Claude',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
@@ -67,10 +81,9 @@ export async function POST(request: NextRequest) {
 // GET endpoint voor testing
 export async function GET() {
   return NextResponse.json({
-    message: 'OpenAI API endpoint is working',
+    message: 'Claude API endpoint is working',
     status: 'ready',
-    apiKeyExists: !!process.env.OPENAI_API_KEY,
-    apiKeyLength: process.env.OPENAI_API_KEY?.length || 0,
-    allOpenAIEnvVars: Object.keys(process.env).filter(key => key.includes('OPENAI'))
+    apiKeyExists: !!process.env.ANTHROPIC_API_KEY,
+    apiKeyLength: process.env.ANTHROPIC_API_KEY?.length || 0,
   });
 }
