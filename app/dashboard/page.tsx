@@ -1806,17 +1806,17 @@ export default function Dashboard() {
         description: 'Vertel ons over je toernooi',
         icon: '📝',
         questions: [
-          {
-            id: 'tournament_name',
+      {
+        id: 'tournament_name',
             question: 'Wat is de titel van het toernooi?',
-            type: 'text',
+        type: 'text',
             placeholder: 'Bijv. ROSH Winter Championship 2025',
             required: true
-          },
-          {
-            id: 'tournament_date',
+      },
+      {
+        id: 'tournament_date',
             question: 'Wat is de datum van het toernooi?',
-            type: 'text',
+        type: 'text',
             placeholder: 'Bijv. 15 maart 2025 of 10-12 april 2025',
             required: true
           },
@@ -1886,36 +1886,36 @@ export default function Dashboard() {
         description: 'Format en deelnemers',
         icon: '🏆',
         questions: [
-          {
-            id: 'bracket_type',
+      {
+        id: 'bracket_type',
             question: 'Bracket/Format type',
-            type: 'radio',
+        type: 'radio',
             required: true,
-            options: [
-              { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
+        options: [
+          { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
               { value: 'double_elimination', label: 'Double Elimination', description: 'Twee levens' },
               { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase + knockout' },
               { value: 'round_robin', label: 'Round Robin', description: 'Iedereen tegen iedereen' }
-            ]
-          },
-          {
-            id: 'participants',
+        ]
+      },
+      {
+        id: 'participants',
             question: 'Aantal deelnemers/teams',
-            type: 'radio',
+        type: 'radio',
             required: true,
-            options: [
+        options: [
               { value: '8', label: '8', description: 'Klein' },
               { value: '16', label: '16', description: 'Medium' },
               { value: '32', label: '32', description: 'Groot' },
               { value: '64', label: '64+', description: 'Major' }
-            ]
-          },
-          {
-            id: 'game_type',
+        ]
+      },
+      {
+        id: 'game_type',
             question: 'Welk spel?',
-            type: 'radio',
+        type: 'radio',
             required: true,
-            options: [
+        options: [
               { value: 'cs2', label: 'Counter-Strike 2', description: 'FPS' },
               { value: 'valorant', label: 'Valorant', description: 'Tactical Shooter' },
               { value: 'lol', label: 'League of Legends', description: 'MOBA' },
@@ -2017,7 +2017,7 @@ export default function Dashboard() {
     const handleNextStep = () => {
       if (wizardStep < WIZARD_STEPS.length - 1) {
         setWizardStep(prev => prev + 1);
-      } else {
+        } else {
         // Wizard voltooid - Genereer template
         handleGenerate();
       }
@@ -2039,7 +2039,7 @@ export default function Dashboard() {
         }
         
         // Fallback: gebruik bestaande template generator
-        const template = generateTemplateFromAnswers(wizardAnswers);
+            const template = generateTemplateFromAnswers(wizardAnswers);
         
         // Stel componenten in
         const enabledComponents: Record<string, boolean> = {};
@@ -2074,12 +2074,12 @@ export default function Dashboard() {
           customComponents: template.customComponents || []
         }));
 
-        // Reset wizard state
-        setWizardStep(0);
-        setWizardAnswers({});
-        
-        // Ga naar wizard resultaat view
-        setCurrentView('wizard-result');
+            // Reset wizard state
+            setWizardStep(0);
+            setWizardAnswers({});
+            
+            // Ga naar wizard resultaat view
+            setCurrentView('wizard-result');
       } catch (error) {
         console.error('Error generating template:', error);
         alert('Er is een fout opgetreden bij het genereren van de template.');
@@ -2180,13 +2180,13 @@ export default function Dashboard() {
                             <div key={q.id} className="truncate">
                               {String(wizardAnswers[q.id]).substring(0, 30)}
                               {String(wizardAnswers[q.id]).length > 30 && '...'}
-                            </div>
+                      </div>
                           ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+                  </div>
+                ))}
+            </div>
               </div>
             </div>
             
@@ -2197,13 +2197,13 @@ export default function Dashboard() {
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">
                       {currentStep.icon}
-                    </div>
+                  </div>
                     <div>
                       <h2 className="text-3xl font-bold text-white">{currentStep.title}</h2>
                       <p className="text-gray-400 mt-1">{currentStep.description}</p>
                     </div>
                   </div>
-                </div>
+            </div>
 
             {/* Questions for this step */}
             <div className="space-y-8 mb-8">
@@ -2221,8 +2221,8 @@ export default function Dashboard() {
                     </label>
                     
                     {question.type === 'text' ? (
-                      <input
-                        type="text"
+                  <input
+                    type="text"
                         placeholder={question.placeholder}
                         value={String(wizardAnswers[question.id] || '')}
                         onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
@@ -2249,48 +2249,48 @@ export default function Dashboard() {
                           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                           {(question as any).description || 'Ja, voeg dit toe'}
                         </label>
-                      </div>
-                    ) : (
+                </div>
+              ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         {(question as any).options?.map((option: {value: string, label: string, description?: string}) => (
-                          <label
-                            key={option.value}
+                  <label
+                    key={option.value}
                             className={`block p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
                               wizardAnswers[question.id] === option.value
                                 ? 'border-purple-500 bg-purple-900/30'
                                 : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'
-                            }`}
-                          >
-                            <input
-                              type="radio"
+                    }`}
+                  >
+                    <input
+                      type="radio"
                               name={question.id}
-                              value={option.value}
+                      value={option.value}
                               checked={wizardAnswers[question.id] === option.value}
                               onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
-                              className="sr-only"
-                            />
+                      className="sr-only"
+                    />
                             <div className="flex items-start space-x-3">
                               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                                 wizardAnswers[question.id] === option.value
-                                  ? 'border-purple-500 bg-purple-500'
-                                  : 'border-gray-500'
-                              }`}>
+                          ? 'border-purple-500 bg-purple-500'
+                          : 'border-gray-500'
+                      }`}>
                                 {wizardAnswers[question.id] === option.value && (
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                )}
-                              </div>
-                              <div className="flex-1">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex-1">
                                 <h4 className="font-semibold text-white mb-1">{option.label}</h4>
                                 {option.description && (
                                   <p className="text-sm text-gray-400">{option.description}</p>
                                 )}
-                              </div>
-                            </div>
-                          </label>
+                      </div>
+                    </div>
+                  </label>
                         ))}
                       </div>
-                    )}
+              )}
                   </div>
                 );
               })}
@@ -2349,6 +2349,15 @@ export default function Dashboard() {
     const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
     const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
     
+    // Converteer de gegenereerde code naar HTML voor preview
+    const getPreviewHTML = () => {
+      if (generatedCode) {
+        const { convertCodeToPreviewHTML } = require('../utils/code-to-preview');
+        return convertCodeToPreviewHTML(generatedCode);
+      }
+      return generatedWebsite.html;
+    };
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
         {/* Header */}
@@ -2371,11 +2380,13 @@ export default function Dashboard() {
                 <button
                   onClick={() => {
                     // Download website als HTML bestand
-                    const blob = new Blob([generatedWebsite.html], { type: 'text/html' });
+                    const html = getPreviewHTML();
+                    const blob = new Blob([html], { type: 'text/html' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${String(generatedWebsite.metadata.title).replace(/\s+/g, '_')}_website.html`;
+                    const filename = (wizardAnswers.tournament_name || 'tournament').toString().replace(/\s+/g, '_');
+                    a.download = `${filename}_website.html`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -2386,17 +2397,22 @@ export default function Dashboard() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span>Download Website</span>
+                  <span>Download HTML</span>
                 </button>
+                {generatedCode && (
                 <button
-                  onClick={() => setCurrentView('create-tournament')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedCode);
+                      alert('Code gekopieerd! 🎉');
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center space-x-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  <span>Ga naar Editor</span>
+                    <span>Kopieer Code</span>
                 </button>
+                )}
               </div>
             </div>
           </div>
@@ -2405,35 +2421,72 @@ export default function Dashboard() {
         {/* Resultaat Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* AI Generated Code Preview */}
-            <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                AI-Gegenereerde Next.js Code
-              </h2>
+            {/* Live Preview */}
+            <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Live Preview
+                </h2>
+                
+                <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                      const html = getPreviewHTML();
+                    const newWindow = window.open('', '_blank');
+                    if (newWindow) {
+                        newWindow.document.write(html);
+                      newWindow.document.close();
+                    }
+                  }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  <span>Open in Nieuw Tab</span>
+                </button>
+                </div>
+              </div>
               
-              {generatedCode ? (
-                <>
-                  <div className="bg-gray-900 rounded-lg p-4 overflow-auto" style={{ maxHeight: '600px' }}>
-                    <pre className="text-sm text-green-400 font-mono">
+              <div className="bg-white rounded-lg overflow-hidden shadow-2xl" style={{ height: '700px' }}>
+                <iframe
+                  srcDoc={getPreviewHTML()}
+                  className="w-full h-full border-0"
+                  title="Tournament Preview"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+              
+              {generatedCode && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-white font-medium hover:text-purple-400 transition-colors flex items-center gap-2 p-3 bg-gray-700/50 rounded-lg">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                    Bekijk Gegenereerde Code
+                  </summary>
+                  <div className="mt-3 bg-gray-900 rounded-lg p-4 overflow-auto" style={{ maxHeight: '400px' }}>
+                    <pre className="text-xs text-green-400 font-mono">
                       <code>{generatedCode}</code>
                     </pre>
                   </div>
-                  <div className="mt-4 flex gap-4">
-                    <button
-                      onClick={() => {
+                  <div className="mt-3 flex gap-3">
+                <button
+                  onClick={() => {
                         navigator.clipboard.writeText(generatedCode);
-                        alert('Code gekopieerd naar clipboard! 🎉');
-                      }}
-                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      <span>Kopieer Code</span>
-                    </button>
+                        alert('Code gekopieerd! 🎉');
+                  }}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                      Kopieer Code
+                </button>
                     <button
                       onClick={() => {
                         const filename = (wizardAnswers.tournament_name || 'tournament').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -2447,218 +2500,76 @@ export default function Dashboard() {
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                       }}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2"
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors flex items-center space-x-2 text-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <span>Download .tsx Bestand</span>
+                      Download .tsx
                     </button>
-                  </div>
-                  <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-sm text-blue-200">
-                        <p className="font-semibold mb-1">Hoe gebruik je deze code:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-blue-300">
-                          <li>Maak een nieuw bestand aan: <code className="bg-blue-950 px-2 py-0.5 rounded">app/tournaments/[naam]/page.tsx</code></li>
-                          <li>Plak de gekopieerde code in het bestand</li>
-                          <li>Pas de content aan naar wens</li>
-                          <li>Bezoek je nieuwe toernooi pagina!</li>
-                        </ol>
-                      </div>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <div className="bg-gray-900 rounded-lg p-8 text-center">
-                  <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  <p className="text-gray-400">Geen AI-gegenereerde code beschikbaar</p>
-                  <p className="text-gray-500 text-sm mt-2">De code werd niet opgeslagen of genereren is mislukt</p>
-                </div>
+                </details>
               )}
-            </div>
+                </div>
 
-            {/* Template Overzicht */}
-            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Website Details</h2>
+            {/* Antwoorden Overzicht */}
+            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <span>📋</span> Jouw Antwoorden
+              </h2>
               
-              <div className="space-y-6">
-                {/* Website Metadata */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Website Info</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Titel:</span>
-                      <span className="text-white">{generatedWebsite.metadata.title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Game:</span>
-                      <span className="text-white">{generatedWebsite.metadata.game}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Format:</span>
-                      <span className="text-white">{generatedWebsite.metadata.format}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Deelnemers:</span>
-                      <span className="text-white">{generatedWebsite.metadata.participants}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Datum:</span>
-                      <span className="text-white">{generatedWebsite.metadata.date}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kleuren */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Kleuren</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.primary }}></div>
-                      <span className="text-gray-300">Primair: {generatedWebsite.colors.primary}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.secondary }}></div>
-                      <span className="text-gray-300">Secundair: {generatedWebsite.colors.secondary}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.background }}></div>
-                      <span className="text-gray-300">Achtergrond: {generatedWebsite.colors.background}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Website Features</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Responsive Design</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Modern CSS Grid</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Gradient Effects</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Tournament Schedule</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Prize Pool Display</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Call-to-Action</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Generated Info */}
-                <div className="p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-purple-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    <div>
-                      <h4 className="font-semibold text-purple-300">AI Generated</h4>
-                      <p className="text-purple-200 text-sm mt-1">
-                        Deze complete website is gegenereerd op basis van jouw antwoorden en is klaar voor gebruik!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Custom Componenten */}
-            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Gegenereerde Componenten</h2>
-              
-              {generatedTemplate.customComponents && generatedTemplate.customComponents.length > 0 ? (
-                <div className="space-y-4">
-                  {generatedTemplate.customComponents.map((component: {id: string, name: string, type: string, description: string, icon: string, category?: string}, index: number) => (
-                    <div key={index} className="flex items-start space-x-4 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
-                      <div className="text-2xl">{component.icon}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white">{component.name}</h3>
-                        <p className="text-gray-300 text-sm">{component.description}</p>
-                        <span className="inline-block mt-2 px-2 py-1 bg-purple-700 text-purple-200 text-xs rounded-full">
-                          {component.category}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2">
+                {Object.entries(wizardAnswers).map(([key, value]) => {
+                  if (!value || value === 'false') return null;
                   
-                  <div className="mt-6 p-4 bg-yellow-900 bg-opacity-30 border border-yellow-600 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 text-yellow-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <h4 className="font-semibold text-yellow-300">Slimme Componenten</h4>
-                        <p className="text-yellow-200 text-sm mt-1">
-                          Deze componenten zijn speciaal gegenereerd op basis van jouw antwoorden en zijn uniek voor jouw toernooi!
-                        </p>
+                  const displayKey = key
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase());
+                  
+                  return (
+                    <div key={key} className="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
+                      <div className="text-xs text-gray-400 mb-1">{displayKey}</div>
+                      <div className="text-sm text-white font-medium">
+                        {String(value) === 'true' ? '✓ Ja' : String(value)}
                       </div>
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-400">Geen custom componenten gegenereerd</p>
-                </div>
-              )}
-            </div>
+                  );
+                })}
           </div>
 
-          {/* Actie Knoppen */}
-          <div className="mt-8 flex justify-center space-x-4">
+              <div className="mt-6 pt-6 border-t border-gray-700 space-y-3">
             <button
-              onClick={() => setCurrentView('template-wizard')}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              Opnieuw Starten
+                  onClick={() => {
+                    setWizardStep(0);
+                    setWizardAnswers({});
+                    setGeneratedCode('');
+                    setCurrentView('template-wizard');
+                  }}
+                  className="w-full bg-gray-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-gray-500 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>Opnieuw Genereren</span>
             </button>
+                
             <button
-              onClick={() => setCurrentView('create-tournament')}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  onClick={() => setCurrentView('dashboard')}
+                  className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
             >
-              Ga naar Editor
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span>Terug naar Dashboard</span>
             </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     );
   }
+  
 
   // Toernooi aanmaken view
   if (currentView === 'create-tournament') {

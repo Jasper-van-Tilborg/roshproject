@@ -131,6 +131,30 @@ roshproject/
 
 ## 🤖 Claude AI Integratie
 
+### Template Wizard (AI-Powered) 🧙‍♂️
+
+De Template Wizard is een geavanceerde tool in het dashboard die gebruik maakt van Claude AI om automatisch complete Next.js tournament pagina's te genereren.
+
+**Hoe werkt het:**
+
+1. **Log in op Dashboard** → Ga naar `/dashboard`
+2. **Start Template Wizard** → Klik op "Template Wizard"
+3. **Beantwoord Vragen** in 4 stappen:
+   - 📝 **Algemene Informatie**: Titel, datum, locatie, beschrijving
+   - 🎨 **Design & Branding**: Kleuren, stijl, lettertype
+   - 🏆 **Toernooi Details**: Bracket type, aantal deelnemers, game
+   - 🧩 **Extra Componenten**: Programma, teams, sponsoren, formulier, social, Twitch
+4. **Genereer met AI** → Claude genereert een complete pagina
+5. **Live Preview** → Bekijk direct hoe de pagina eruitziet
+6. **Download** → Download de code als .tsx bestand of HTML
+
+**Features:**
+- ✨ Real-time antwoorden overzicht in sidebar
+- 🎯 Smart question dependencies
+- 👁️ Live preview van gegenereerde pagina
+- 📥 Download als TypeScript component of standalone HTML
+- 🔄 Opnieuw genereren mogelijk
+
 ### API Endpoint
 
 **POST** `/api/openai`
