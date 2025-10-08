@@ -111,10 +111,8 @@ export default function Dashboard() {
   // Template wizard state
   const [wizardStep, setWizardStep] = useState(0);
   const [wizardAnswers, setWizardAnswers] = useState<Record<string, string | number | boolean>>({});
-  const [aiTyping, setAiTyping] = useState(false);
-  const [aiMessage, setAiMessage] = useState('');
-  const [showAiResponse, setShowAiResponse] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
@@ -1801,177 +1799,210 @@ export default function Dashboard() {
 
   // Template wizard view
   if (currentView === 'template-wizard') {
-    const WIZARD_QUESTIONS = [
-      // Stap 1: Algemene Info
+    // Wizard steps gegroepeerd per categorie
+    const WIZARD_STEPS = [
       {
-        id: 'tournament_name',
-        question: 'Wat is de titel van het toernooi?',
-        type: 'text',
-        placeholder: 'Bijv. ROSH Winter Championship 2025'
-      },
-      {
-        id: 'tournament_date',
-        question: 'Wat is de datum van het toernooi?',
-        type: 'text',
-        placeholder: 'Bijv. 15 maart 2025 of 10-12 april 2025'
-      },
-      {
-        id: 'tournament_location',
-        question: 'Wat is de locatie?',
-        type: 'text',
-        placeholder: 'Bijv. Amsterdam, Nederland of Online'
-      },
-      {
-        id: 'tournament_description',
-        question: 'Geef een korte beschrijving van het toernooi',
-        type: 'textarea',
-        placeholder: 'Beschrijf wat het toernooi uniek maakt...'
-      },
-      
-      // Stap 2: Design & Branding
-      {
-        id: 'primary_color',
-        question: 'Wat zijn de primaire kleuren? (Hex-code)',
-        type: 'text',
-        placeholder: '#3B82F6'
-      },
-      {
-        id: 'secondary_color',
-        question: 'Wat zijn de secundaire kleuren? (Hex-code)',
-        type: 'text',
-        placeholder: '#10B981'
-      },
-      {
-        id: 'brand_style',
-        question: 'Wat is de gewenste stijl?',
-        type: 'radio',
-        options: [
-          { value: 'modern', label: 'Modern & Strak', description: 'Clean en professioneel' },
-          { value: 'sportief', label: 'Sportief & Energiek', description: 'Dynamisch en actief' },
-          { value: 'elegant', label: 'Elegant & Professioneel', description: 'Luxe uitstraling' },
-          { value: 'playful', label: 'Speels & Kleurrijk', description: 'Fun en toegankelijk' }
+        title: 'Algemene Informatie',
+        description: 'Vertel ons over je toernooi',
+        icon: '📝',
+        questions: [
+          {
+            id: 'tournament_name',
+            question: 'Wat is de titel van het toernooi?',
+            type: 'text',
+            placeholder: 'Bijv. ROSH Winter Championship 2025',
+            required: true
+          },
+          {
+            id: 'tournament_date',
+            question: 'Wat is de datum van het toernooi?',
+            type: 'text',
+            placeholder: 'Bijv. 15 maart 2025 of 10-12 april 2025',
+            required: true
+          },
+          {
+            id: 'tournament_location',
+            question: 'Wat is de locatie?',
+            type: 'text',
+            placeholder: 'Bijv. Amsterdam, Nederland of Online',
+            required: true
+          },
+          {
+            id: 'tournament_description',
+            question: 'Geef een korte beschrijving',
+            type: 'textarea',
+            placeholder: 'Beschrijf wat het toernooi uniek maakt...',
+            required: true
+          }
         ]
       },
       {
-        id: 'font_family',
-        question: 'Heb je een specifiek lettertype in gedachten?',
-        type: 'radio',
-        options: [
-          { value: 'Inter', label: 'Inter', description: 'Modern en clean' },
-          { value: 'Roboto', label: 'Roboto', description: 'Professioneel' },
-          { value: 'Montserrat', label: 'Montserrat', description: 'Elegant' },
-          { value: 'Poppins', label: 'Poppins', description: 'Vriendelijk' }
+        title: 'Design & Branding',
+        description: 'Kies de visuele stijl',
+        icon: '🎨',
+        questions: [
+          {
+            id: 'primary_color',
+            question: 'Primaire kleur (Hex-code)',
+            type: 'text',
+            placeholder: '#3B82F6',
+            required: true
+          },
+          {
+            id: 'secondary_color',
+            question: 'Secundaire kleur (Hex-code)',
+            type: 'text',
+            placeholder: '#10B981',
+            required: true
+          },
+          {
+            id: 'brand_style',
+            question: 'Gewenste stijl',
+            type: 'radio',
+            required: true,
+            options: [
+              { value: 'modern', label: 'Modern & Strak', description: 'Clean en professioneel' },
+              { value: 'sportief', label: 'Sportief & Energiek', description: 'Dynamisch en actief' },
+              { value: 'elegant', label: 'Elegant & Professioneel', description: 'Luxe uitstraling' },
+              { value: 'playful', label: 'Speels & Kleurrijk', description: 'Fun en toegankelijk' }
+            ]
+          },
+          {
+            id: 'font_family',
+            question: 'Lettertype',
+            type: 'radio',
+            required: true,
+            options: [
+              { value: 'Inter', label: 'Inter', description: 'Modern' },
+              { value: 'Roboto', label: 'Roboto', description: 'Professioneel' },
+              { value: 'Montserrat', label: 'Montserrat', description: 'Elegant' },
+              { value: 'Poppins', label: 'Poppins', description: 'Vriendelijk' }
+            ]
+          }
         ]
       },
-      
-      // Stap 3: Toernooi Details
       {
-        id: 'bracket_type',
-        question: 'Welk type bracket/format wil je gebruiken?',
-        type: 'radio',
-        options: [
-          { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
-          { value: 'double_elimination', label: 'Double Elimination', description: 'Twee levens per deelnemer' },
-          { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase gevolgd door knock-out' },
-          { value: 'round_robin', label: 'Round Robin', description: 'Iedereen speelt tegen iedereen' }
+        title: 'Toernooi Details',
+        description: 'Format en deelnemers',
+        icon: '🏆',
+        questions: [
+          {
+            id: 'bracket_type',
+            question: 'Bracket/Format type',
+            type: 'radio',
+            required: true,
+            options: [
+              { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
+              { value: 'double_elimination', label: 'Double Elimination', description: 'Twee levens' },
+              { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase + knockout' },
+              { value: 'round_robin', label: 'Round Robin', description: 'Iedereen tegen iedereen' }
+            ]
+          },
+          {
+            id: 'participants',
+            question: 'Aantal deelnemers/teams',
+            type: 'radio',
+            required: true,
+            options: [
+              { value: '8', label: '8', description: 'Klein' },
+              { value: '16', label: '16', description: 'Medium' },
+              { value: '32', label: '32', description: 'Groot' },
+              { value: '64', label: '64+', description: 'Major' }
+            ]
+          },
+          {
+            id: 'game_type',
+            question: 'Welk spel?',
+            type: 'radio',
+            required: true,
+            options: [
+              { value: 'cs2', label: 'Counter-Strike 2', description: 'FPS' },
+              { value: 'valorant', label: 'Valorant', description: 'Tactical Shooter' },
+              { value: 'lol', label: 'League of Legends', description: 'MOBA' },
+              { value: 'fifa', label: 'FIFA', description: 'Voetbal' },
+              { value: 'rocket_league', label: 'Rocket League', description: 'Auto-voetbal' },
+              { value: 'other', label: 'Anders', description: 'Specificeer zelf' }
+            ]
+          }
         ]
       },
       {
-        id: 'participants',
-        question: 'Hoeveel deelnemers of teams verwacht je?',
-        type: 'radio',
-        options: [
-          { value: '8', label: '8', description: 'Klein toernooi' },
-          { value: '16', label: '16', description: 'Medium toernooi' },
-          { value: '32', label: '32', description: 'Groot toernooi' },
-          { value: '64', label: '64+', description: 'Major toernooi' }
+        title: 'Extra Componenten',
+        description: 'Welke onderdelen wil je toevoegen?',
+        icon: '🧩',
+        questions: [
+          {
+            id: 'include_schedule',
+            question: '🗓️ Programma/Schema sectie',
+            type: 'boolean',
+            description: 'Dagindeling of tijdschema'
+          },
+          {
+            id: 'schedule_details',
+            question: 'Programma details',
+            type: 'text',
+            placeholder: '10:00 Opening, 11:00 Kwartfinales, 14:00 Finale',
+            dependsOn: 'include_schedule'
+          },
+          {
+            id: 'include_teams',
+            question: '🧑‍🤝‍🧑 Teams sectie',
+            type: 'boolean',
+            description: 'Teams met bracket visualisatie'
+          },
+          {
+            id: 'include_sponsors',
+            question: '💼 Sponsoren sectie',
+            type: 'boolean',
+            description: 'Sponsor logo\'s'
+          },
+          {
+            id: 'sponsors_list',
+            question: 'Welke sponsoren?',
+            type: 'text',
+            placeholder: 'Lenovo Legion, HyperX, Red Bull',
+            dependsOn: 'include_sponsors'
+          },
+          {
+            id: 'include_registration',
+            question: '📬 Inschrijfformulier',
+            type: 'boolean',
+            description: 'Voor aanmeldingen'
+          },
+          {
+            id: 'form_fields',
+            question: 'Formulier velden',
+            type: 'text',
+            placeholder: 'naam, email, teamnaam, aantal spelers',
+            dependsOn: 'include_registration'
+          },
+          {
+            id: 'include_social',
+            question: '🔗 Social Media links',
+            type: 'boolean',
+            description: 'Links naar sociale platformen'
+          },
+          {
+            id: 'social_links',
+            question: 'Welke platformen?',
+            type: 'text',
+            placeholder: 'Facebook, Instagram, Twitter, Discord',
+            dependsOn: 'include_social'
+          },
+          {
+            id: 'include_twitch',
+            question: '📺 Twitch integratie',
+            type: 'boolean',
+            description: 'Embed livestream'
+          },
+          {
+            id: 'twitch_channel',
+            question: 'Twitch kanaal',
+            type: 'text',
+            placeholder: 'jouw_twitch_kanaal',
+            dependsOn: 'include_twitch'
+          }
         ]
-      },
-      {
-        id: 'game_type',
-        question: 'Welk spel wordt er gespeeld?',
-        type: 'radio',
-        options: [
-          { value: 'cs2', label: 'Counter-Strike 2', description: 'FPS' },
-          { value: 'valorant', label: 'Valorant', description: 'Tactical Shooter' },
-          { value: 'lol', label: 'League of Legends', description: 'MOBA' },
-          { value: 'fifa', label: 'FIFA', description: 'Voetbal' },
-          { value: 'rocket_league', label: 'Rocket League', description: 'Auto-voetbal' },
-          { value: 'other', label: 'Anders', description: 'Specificeer zelf' }
-        ]
-      },
-      
-      // Stap 4: Componenten
-      {
-        id: 'include_schedule',
-        question: '🗓️ Wil je een Programma/Schema sectie?',
-        type: 'boolean',
-        description: 'Dagindeling of tijdschema van het toernooi'
-      },
-      {
-        id: 'schedule_details',
-        question: 'Geef details over het programma',
-        type: 'text',
-        placeholder: 'Bijv. 10:00 Opening, 11:00 Kwartfinales, 14:00 Finale',
-        dependsOn: 'include_schedule'
-      },
-      {
-        id: 'include_teams',
-        question: '🧑‍🤝‍🧑 Wil je een Teams sectie?',
-        type: 'boolean',
-        description: 'Toon teams met bracket visualisatie'
-      },
-      {
-        id: 'include_sponsors',
-        question: '💼 Wil je een Sponsoren sectie?',
-        type: 'boolean',
-        description: 'Toon sponsor logo\'s'
-      },
-      {
-        id: 'sponsors_list',
-        question: 'Welke sponsoren? (komma gescheiden)',
-        type: 'text',
-        placeholder: 'Bijv. Lenovo Legion, HyperX, Red Bull',
-        dependsOn: 'include_sponsors'
-      },
-      {
-        id: 'include_registration',
-        question: '📬 Wil je een Inschrijfformulier?',
-        type: 'boolean',
-        description: 'Voor aanmeldingen'
-      },
-      {
-        id: 'form_fields',
-        question: 'Welke velden in het formulier?',
-        type: 'text',
-        placeholder: 'Bijv. naam, email, teamnaam, aantal spelers',
-        dependsOn: 'include_registration'
-      },
-      {
-        id: 'include_social',
-        question: '🔗 Wil je Social Media links?',
-        type: 'boolean',
-        description: 'Links naar sociale platformen'
-      },
-      {
-        id: 'social_links',
-        question: 'Welke social media platformen?',
-        type: 'text',
-        placeholder: 'Bijv. Facebook, Instagram, Twitter, Discord',
-        dependsOn: 'include_social'
-      },
-      {
-        id: 'include_twitch',
-        question: '📺 Wil je Twitch integratie?',
-        type: 'boolean',
-        description: 'Embed een livestream'
-      },
-      {
-        id: 'twitch_channel',
-        question: 'Wat is je Twitch kanaal naam?',
-        type: 'text',
-        placeholder: 'Bijv. jouw_twitch_kanaal',
-        dependsOn: 'include_twitch'
       }
     ];
 
@@ -1983,120 +2014,32 @@ export default function Dashboard() {
       }));
     };
 
-    // AI typing animation
-    const simulateAiTyping = (message: string, callback?: () => void) => {
-      setAiTyping(true);
-      setAiMessage('');
-      setShowAiResponse(true);
-      
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < message.length) {
-          setAiMessage(message.substring(0, i + 1));
-          i++;
-        } else {
-          clearInterval(interval);
-          setAiTyping(false);
-          if (callback) callback();
-        }
-      }, 30);
-    };
-
-    // AI responses based on answers
-    const getAiResponse = (step: number, answer: string | number | boolean) => {
-      const responses = {
-        0: {
-          'Championship': "Geweldig! Een Championship toernooi - dat wordt een epische strijd! 🏆",
-          'Cup': "Perfect! Een Cup toernooi is altijd spannend en intens! ⚽",
-          'League': "Uitstekend! Een League format zorgt voor veel actie! 🏈",
-          'default': "Interessant! Laat me dat onthouden voor je perfecte toernooi setup."
-        },
-        1: {
-          'Single Elimination': "Single Elimination - de ultieme do-or-die format! 💀",
-          'Group Stage': "Group Stage - perfect voor veel teams en spannende matches! 👥",
-          'Double Elimination': "Double Elimination - iedereen krijgt een tweede kans! 🔄",
-          'default': "Goede keuze! Dit format past perfect bij je toernooi."
-        },
-        2: {
-          '8': "8 teams - een compacte maar intense competitie! 🔥",
-          '16': "16 teams - de perfecte balans tussen grootte en overzicht! ⚖️",
-          '32': "32 teams - een mega toernooi! Dit wordt episch! 🚀",
-          '64': "64 teams - een volledig professioneel toernooi! 🏆",
-          'default': "Perfect aantal teams voor een geweldig toernooi!"
-        },
-        3: {
-          'Counter-Strike': "CS2 - de koning van tactical shooters! Perfect voor intense matches! 🔫",
-          'Valorant': "Valorant - Riot's tactical masterpiece! Gaat een geweldig toernooi worden! 💥",
-          'League of Legends': "LoL - de MOBA legende! Dit wordt een epische battle! ⚔️",
-          'Dota 2': "Dota 2 - de complexe strategie game! Perfect voor pro players! 🧠",
-          'Rocket League': "Rocket League - voetbal met auto's! Altijd spectaculair! 🚗⚽",
-          'default': "Geweldige game keuze! Perfect voor een toernooi!"
-        },
-        4: {
-          'Futuristic': "Futuristic style - clean, modern en high-tech! Perfect voor esports! 🚀",
-          'Gaming': "Gaming style - bold, energetic en vol actie! Gaat er geweldig uitzien! 🎮",
-          'Minimalist': "Minimalist style - clean, elegant en professioneel! Zeer classy! ✨",
-          'default': "Uitstekende stijl keuze! Gaat een prachtig toernooi worden!"
-        }
-      };
-      
-      const stepResponses = responses[step as keyof typeof responses] || responses[0];
-      return (stepResponses as Record<string, string>)[String(answer)] || (stepResponses as Record<string, string>).default;
-    };
-
-    const shouldSkipQuestion = (question: typeof WIZARD_QUESTIONS[number]) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((question as any).dependsOn) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dependency = (question as any).dependsOn;
-        return !wizardAnswers[dependency]; // Skip if dependency is not filled
-      }
-      return false;
-    };
-
     const handleNextStep = () => {
-      if (wizardStep < WIZARD_QUESTIONS.length - 1) {
-        // AI response voor huidige stap
-        const currentAnswer = wizardAnswers[WIZARD_QUESTIONS[wizardStep].id];
-        if (currentAnswer) {
-          const response = getAiResponse(wizardStep, currentAnswer);
-          simulateAiTyping(response, () => {
-            setTimeout(() => {
-              // Skip to next non-dependent question
-              let nextStep = wizardStep + 1;
-              while (nextStep < WIZARD_QUESTIONS.length && shouldSkipQuestion(WIZARD_QUESTIONS[nextStep])) {
-                nextStep++;
-              }
-              setWizardStep(nextStep);
-              setShowAiResponse(false);
-            }, 1500);
-          });
-        } else {
-          // Skip to next non-dependent question
-          let nextStep = wizardStep + 1;
-          while (nextStep < WIZARD_QUESTIONS.length && shouldSkipQuestion(WIZARD_QUESTIONS[nextStep])) {
-            nextStep++;
-          }
-          setWizardStep(nextStep);
-        }
+      if (wizardStep < WIZARD_STEPS.length - 1) {
+        setWizardStep(prev => prev + 1);
       } else {
-        // Wizard voltooid - AI final response
-        const finalMessage = "Fantastisch! Ik heb alle informatie verzameld. Laat me nu je complete toernooi website genereren met AI... 🎯✨";
-        simulateAiTyping(finalMessage, () => {
-          setTimeout(async () => {
-            // Genereer complete website met Claude
-            const { generateTournamentTemplate } = await import('../utils/claude-template-generator');
-            const result = await generateTournamentTemplate(wizardAnswers);
-            
-            if (result.success && result.code) {
-              // Sla de gegenereerde code op
-              setGeneratedCode(result.code);
-            } else {
-              alert(`Fout bij genereren: ${result.error}`);
-            }
-            
-            // Fallback: gebruik bestaande template generator als Claude faalt
-            const template = generateTemplateFromAnswers(wizardAnswers);
+        // Wizard voltooid - Genereer template
+        handleGenerate();
+      }
+    };
+
+    const handleGenerate = async () => {
+      setIsGenerating(true);
+      
+      try {
+        // Genereer complete website met Claude
+        const { generateTournamentTemplate } = await import('../utils/claude-template-generator');
+        const result = await generateTournamentTemplate(wizardAnswers);
+        
+        if (result.success && result.code) {
+          // Sla de gegenereerde code op
+          setGeneratedCode(result.code);
+        } else {
+          alert(`Fout bij genereren: ${result.error}`);
+        }
+        
+        // Fallback: gebruik bestaande template generator
+        const template = generateTemplateFromAnswers(wizardAnswers);
         
         // Stel componenten in
         const enabledComponents: Record<string, boolean> = {};
@@ -2131,14 +2074,17 @@ export default function Dashboard() {
           customComponents: template.customComponents || []
         }));
 
-            // Reset wizard state
-            setWizardStep(0);
-            setWizardAnswers({});
-            
-            // Ga naar wizard resultaat view
-            setCurrentView('wizard-result');
-          }, 2000);
-        });
+        // Reset wizard state
+        setWizardStep(0);
+        setWizardAnswers({});
+        
+        // Ga naar wizard resultaat view
+        setCurrentView('wizard-result');
+      } catch (error) {
+        console.error('Error generating template:', error);
+        alert('Er is een fout opgetreden bij het genereren van de template.');
+      } finally {
+        setIsGenerating(false);
       }
     };
 
@@ -2148,9 +2094,21 @@ export default function Dashboard() {
       }
     };
 
-    const currentQuestion = WIZARD_QUESTIONS[wizardStep];
-    const isLastStep = wizardStep === WIZARD_QUESTIONS.length - 1;
-    const canProceed = wizardAnswers[currentQuestion.id];
+    const currentStep = WIZARD_STEPS[wizardStep];
+    const isLastStep = wizardStep === WIZARD_STEPS.length - 1;
+    
+    // Check if all required questions in current step are answered
+    const canProceed = currentStep.questions.every(q => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((q as any).dependsOn && !wizardAnswers[(q as any).dependsOn]) {
+        return true; // Skip dependent questions if dependency not met
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((q as any).required) {
+        return !!wizardAnswers[q.id];
+      }
+      return true;
+    });
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
@@ -2182,12 +2140,12 @@ export default function Dashboard() {
               {/* Progress indicator */}
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-300">
-                  Stap {wizardStep + 1} van {WIZARD_QUESTIONS.length}
+                  Stap {wizardStep + 1} van {WIZARD_STEPS.length}
                     </span>
                 <div className="w-32 bg-gray-700 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((wizardStep + 1) / WIZARD_QUESTIONS.length) * 100}%` }}
+                    style={{ width: `${((wizardStep + 1) / WIZARD_STEPS.length) * 100}%` }}
                   ></div>
                 </div>
               </div>
@@ -2196,169 +2154,146 @@ export default function Dashboard() {
         </div>
 
         {/* Wizard Content */}
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* AI Chat Panel */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar met overzicht antwoorden */}
             <div className="lg:col-span-1">
-              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6 h-full">
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
-                    <p className="text-sm text-gray-400">Je persoonlijke toernooi expert</p>
-                  </div>
-                  <div className="ml-auto">
-                    <div className={`w-3 h-3 rounded-full ${aiTyping ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`}></div>
-                  </div>
-                </div>
+              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6 sticky top-6">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <span>📋</span> Jouw Antwoorden
+                </h3>
                 
-                {/* AI Response */}
-                {showAiResponse && (
-                  <div className="mb-4 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-xs text-white font-bold">AI</span>
+                <div className="space-y-4">
+                  {WIZARD_STEPS.map((step, index) => (
+                    <div key={index} className={`${
+                      index === wizardStep ? 'bg-purple-900/30 border-purple-500' : 
+                      index < wizardStep ? 'bg-green-900/20 border-green-700' : 
+                      'bg-gray-700/30 border-gray-600'
+                    } border rounded-lg p-3`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{step.icon}</span>
+                        <span className="text-sm font-medium text-white">{step.title}</span>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm leading-relaxed">
-                          {aiMessage}
-                          {aiTyping && <span className="animate-pulse">|</span>}
-                        </p>
-                      </div>
+                      {index < wizardStep && (
+                        <div className="text-xs text-gray-400 space-y-1">
+                          {step.questions.map(q => wizardAnswers[q.id] && (
+                            <div key={q.id} className="truncate">
+                              {String(wizardAnswers[q.id]).substring(0, 30)}
+                              {String(wizardAnswers[q.id]).length > 30 && '...'}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-                
-                {/* Welcome Message */}
-                {!showAiResponse && wizardStep === 0 && (
-                  <div className="p-4 bg-gray-700 rounded-lg">
-                    <p className="text-gray-300 text-sm">
-                      Hallo! Ik ben je AI assistant en ga je helpen om het perfecte toernooi te maken. 
-                      Beantwoord de vragen en ik geef je slimme suggesties! 🚀
-                    </p>
-                  </div>
-                )}
-                
-                {/* Progress Info */}
-                <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-                  <h4 className="text-sm font-semibold text-white mb-2">Voortgang</h4>
-                  <div className="space-y-2">
-                    {WIZARD_QUESTIONS.map((question, index) => (
-                      <div key={index} className={`flex items-center space-x-2 text-xs ${
-                        index < wizardStep ? 'text-green-400' : 
-                        index === wizardStep ? 'text-yellow-400' : 
-                        'text-gray-500'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full ${
-                          index < wizardStep ? 'bg-green-400' : 
-                          index === wizardStep ? 'bg-yellow-400' : 
-                          'bg-gray-500'
-                        }`}></div>
-                        <span>{question.question.split('?')[0]}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  ))}
+                </div>
               </div>
             </div>
             
             {/* Main Wizard Form */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-3">
               <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-bold text-white mb-4">
-                {currentQuestion.question}
-              </h2>
-              <p className="text-gray-300">
-                Help ons de perfecte template voor je toernooi te maken
-              </p>
-            </div>
-
-            {/* Question Options */}
-            <div className="space-y-4 mb-8">
-              {currentQuestion.type === 'text' ? (
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder={currentQuestion.placeholder}
-                    value={String(wizardAnswers[currentQuestion.id] || '')}
-                    onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-lg text-white placeholder-gray-400"
-                  />
-                </div>
-              ) : currentQuestion.type === 'textarea' ? (
-                <div className="space-y-4">
-                  <textarea
-                    placeholder={currentQuestion.placeholder}
-                    value={String(wizardAnswers[currentQuestion.id] || '')}
-                    onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-lg text-white placeholder-gray-400"
-                  />
-                </div>
-              ) : currentQuestion.type === 'boolean' ? (
-                <div className="flex items-center space-x-4 p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-gray-500 transition-all">
-                  <label className="flex items-center cursor-pointer flex-1">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(wizardAnswers[currentQuestion.id])}
-                      onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.checked ? 'true' : '')}
-                      className="w-6 h-6 rounded border-gray-400 text-purple-600 focus:ring-2 focus:ring-purple-500"
-                    />
-                    <span className="ml-3 text-white text-lg">
-                      {currentQuestion.description || 'Ja, voeg dit toe'}
-                    </span>
-                  </label>
-                </div>
-              ) : (
-                currentQuestion.options?.map((option, _index) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
-                  <label
-                    key={option.value}
-                    className={`block p-6 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                      wizardAnswers[currentQuestion.id] === option.value
-                        ? 'border-purple-500 bg-purple-900 bg-opacity-30'
-                        : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700 bg-gray-800'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={currentQuestion.id}
-                      value={option.value}
-                      checked={wizardAnswers[currentQuestion.id] === option.value}
-                      onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.value)}
-                      className="sr-only"
-                    />
-                    <div className="flex items-start space-x-4">
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 ${
-                        wizardAnswers[currentQuestion.id] === option.value
-                          ? 'border-purple-500 bg-purple-500'
-                          : 'border-gray-500'
-                      }`}>
-                        {wizardAnswers[currentQuestion.id] === option.value && (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white mb-1">
-                          {option.label}
-                        </h3>
-                        <p className="text-gray-300">
-                          {option.description}
-                        </p>
-                      </div>
+                <div className="mb-8">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">
+                      {currentStep.icon}
                     </div>
-                  </label>
-                ))
-              )}
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">{currentStep.title}</h2>
+                      <p className="text-gray-400 mt-1">{currentStep.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+            {/* Questions for this step */}
+            <div className="space-y-8 mb-8">
+              {currentStep.questions.map((question) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const shouldShow = !(question as any).dependsOn || wizardAnswers[(question as any).dependsOn];
+                if (!shouldShow) return null;
+                
+                return (
+                  <div key={question.id} className="space-y-3">
+                    <label className="block text-white font-medium text-lg">
+                      {question.question}
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {(question as any).required && <span className="text-red-400 ml-1">*</span>}
+                    </label>
+                    
+                    {question.type === 'text' ? (
+                      <input
+                        type="text"
+                        placeholder={question.placeholder}
+                        value={String(wizardAnswers[question.id] || '')}
+                        onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-400"
+                      />
+                    ) : question.type === 'textarea' ? (
+                      <textarea
+                        placeholder={question.placeholder}
+                        value={String(wizardAnswers[question.id] || '')}
+                        onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
+                        rows={4}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-400"
+                      />
+                    ) : question.type === 'boolean' ? (
+                      <div className="flex items-center space-x-3 p-4 bg-gray-700/50 border border-gray-600 rounded-lg hover:border-gray-500 transition-all">
+                        <input
+                          type="checkbox"
+                          id={question.id}
+                          checked={Boolean(wizardAnswers[question.id])}
+                          onChange={(e) => handleWizardAnswer(question.id, e.target.checked ? 'true' : '')}
+                          className="w-5 h-5 rounded border-gray-400 text-purple-600 focus:ring-2 focus:ring-purple-500"
+                        />
+                        <label htmlFor={question.id} className="text-gray-300 cursor-pointer flex-1">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(question as any).description || 'Ja, voeg dit toe'}
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                        {(question as any).options?.map((option: {value: string, label: string, description?: string}) => (
+                          <label
+                            key={option.value}
+                            className={`block p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                              wizardAnswers[question.id] === option.value
+                                ? 'border-purple-500 bg-purple-900/30'
+                                : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={question.id}
+                              value={option.value}
+                              checked={wizardAnswers[question.id] === option.value}
+                              onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
+                              className="sr-only"
+                            />
+                            <div className="flex items-start space-x-3">
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                wizardAnswers[question.id] === option.value
+                                  ? 'border-purple-500 bg-purple-500'
+                                  : 'border-gray-500'
+                              }`}>
+                                {wizardAnswers[question.id] === option.value && (
+                                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-white mb-1">{option.label}</h4>
+                                {option.description && (
+                                  <p className="text-sm text-gray-400">{option.description}</p>
+                                )}
+                              </div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Navigation Buttons */}
@@ -2377,9 +2312,9 @@ export default function Dashboard() {
               
               <button
                 onClick={handleNextStep}
-                disabled={!canProceed}
+                disabled={!canProceed || isGenerating}
                 className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
-                  canProceed
+                  canProceed && !isGenerating
                     ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 }`}
@@ -2389,7 +2324,7 @@ export default function Dashboard() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    <span>Template Genereren</span>
+                    <span>{isGenerating ? 'Genereren...' : 'Template Genereren'}</span>
                   </>
                 ) : (
                   <>
