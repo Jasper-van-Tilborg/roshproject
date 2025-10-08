@@ -114,6 +114,7 @@ export default function Dashboard() {
   const [aiTyping, setAiTyping] = useState(false);
   const [aiMessage, setAiMessage] = useState('');
   const [showAiResponse, setShowAiResponse] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string>('');
   
   // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
@@ -1801,26 +1802,77 @@ export default function Dashboard() {
   // Template wizard view
   if (currentView === 'template-wizard') {
     const WIZARD_QUESTIONS = [
+      // Stap 1: Algemene Info
       {
         id: 'tournament_name',
-        question: 'Wat is de naam van je toernooi?',
+        question: 'Wat is de titel van het toernooi?',
         type: 'text',
-        placeholder: 'Voer de naam van je toernooi in'
+        placeholder: 'Bijv. ROSH Winter Championship 2025'
       },
       {
         id: 'tournament_date',
-        question: 'Wanneer vindt het toernooi plaats?',
+        question: 'Wat is de datum van het toernooi?',
         type: 'text',
-        placeholder: 'Bijv. 15 maart 2024 of 10-12 april 2024'
+        placeholder: 'Bijv. 15 maart 2025 of 10-12 april 2025'
       },
       {
+        id: 'tournament_location',
+        question: 'Wat is de locatie?',
+        type: 'text',
+        placeholder: 'Bijv. Amsterdam, Nederland of Online'
+      },
+      {
+        id: 'tournament_description',
+        question: 'Geef een korte beschrijving van het toernooi',
+        type: 'textarea',
+        placeholder: 'Beschrijf wat het toernooi uniek maakt...'
+      },
+      
+      // Stap 2: Design & Branding
+      {
+        id: 'primary_color',
+        question: 'Wat zijn de primaire kleuren? (Hex-code)',
+        type: 'text',
+        placeholder: '#3B82F6'
+      },
+      {
+        id: 'secondary_color',
+        question: 'Wat zijn de secundaire kleuren? (Hex-code)',
+        type: 'text',
+        placeholder: '#10B981'
+      },
+      {
+        id: 'brand_style',
+        question: 'Wat is de gewenste stijl?',
+        type: 'radio',
+        options: [
+          { value: 'modern', label: 'Modern & Strak', description: 'Clean en professioneel' },
+          { value: 'sportief', label: 'Sportief & Energiek', description: 'Dynamisch en actief' },
+          { value: 'elegant', label: 'Elegant & Professioneel', description: 'Luxe uitstraling' },
+          { value: 'playful', label: 'Speels & Kleurrijk', description: 'Fun en toegankelijk' }
+        ]
+      },
+      {
+        id: 'font_family',
+        question: 'Heb je een specifiek lettertype in gedachten?',
+        type: 'radio',
+        options: [
+          { value: 'Inter', label: 'Inter', description: 'Modern en clean' },
+          { value: 'Roboto', label: 'Roboto', description: 'Professioneel' },
+          { value: 'Montserrat', label: 'Montserrat', description: 'Elegant' },
+          { value: 'Poppins', label: 'Poppins', description: 'Vriendelijk' }
+        ]
+      },
+      
+      // Stap 3: Toernooi Details
+      {
         id: 'bracket_type',
-        question: 'Welk type bracket wil je gebruiken?',
+        question: 'Welk type bracket/format wil je gebruiken?',
         type: 'radio',
         options: [
           { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
-          { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase gevolgd door knock-out' },
           { value: 'double_elimination', label: 'Double Elimination', description: 'Twee levens per deelnemer' },
+          { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase gevolgd door knock-out' },
           { value: 'round_robin', label: 'Round Robin', description: 'Iedereen speelt tegen iedereen' }
         ]
       },
@@ -1829,11 +1881,10 @@ export default function Dashboard() {
         question: 'Hoeveel deelnemers of teams verwacht je?',
         type: 'radio',
         options: [
-          { value: '8', label: '8 deelnemers/teams', description: 'Perfect voor kleine toernooien' },
-          { value: '16', label: '16 deelnemers/teams', description: 'Ideaal voor lokale competities' },
-          { value: '32', label: '32 deelnemers/teams', description: 'Grote regionale toernooien' },
-          { value: '64', label: '64 deelnemers/teams', description: 'Professionele toernooien' },
-          { value: '128', label: '128+ deelnemers/teams', description: 'Major toernooien' }
+          { value: '8', label: '8', description: 'Klein toernooi' },
+          { value: '16', label: '16', description: 'Medium toernooi' },
+          { value: '32', label: '32', description: 'Groot toernooi' },
+          { value: '64', label: '64+', description: 'Major toernooi' }
         ]
       },
       {
@@ -1841,25 +1892,86 @@ export default function Dashboard() {
         question: 'Welk spel wordt er gespeeld?',
         type: 'radio',
         options: [
-          { value: 'fifa', label: 'FIFA', description: 'Voetbal simulatie' },
-          { value: 'lol', label: 'League of Legends', description: 'MOBA game' },
-          { value: 'cs2', label: 'Counter-Strike 2', description: 'First-person shooter' },
-          { value: 'valorant', label: 'Valorant', description: 'Tactical shooter' },
-          { value: 'rocket_league', label: 'Rocket League', description: 'Voetbal met auto\'s' },
-          { value: 'other', label: 'Anders', description: 'Specificeer zelf het spel' }
+          { value: 'cs2', label: 'Counter-Strike 2', description: 'FPS' },
+          { value: 'valorant', label: 'Valorant', description: 'Tactical Shooter' },
+          { value: 'lol', label: 'League of Legends', description: 'MOBA' },
+          { value: 'fifa', label: 'FIFA', description: 'Voetbal' },
+          { value: 'rocket_league', label: 'Rocket League', description: 'Auto-voetbal' },
+          { value: 'other', label: 'Anders', description: 'Specificeer zelf' }
         ]
       },
+      
+      // Stap 4: Componenten
       {
-        id: 'brand_style',
-        question: 'Welke merkstijl wil je gebruiken?',
-        type: 'radio',
-        options: [
-          { value: 'esl', label: 'ESL Style', description: 'Professioneel esports design' },
-          { value: 'riot', label: 'Riot Games Style', description: 'Modern en clean design' },
-          { value: 'fifa', label: 'FIFA Style', description: 'Sportief en dynamisch' },
-          { value: 'custom', label: 'Eigen merkstijl', description: 'Upload je eigen brand guide' },
-          { value: 'minimal', label: 'Minimaal', description: 'Simpel en elegant design' }
-        ]
+        id: 'include_schedule',
+        question: '🗓️ Wil je een Programma/Schema sectie?',
+        type: 'boolean',
+        description: 'Dagindeling of tijdschema van het toernooi'
+      },
+      {
+        id: 'schedule_details',
+        question: 'Geef details over het programma',
+        type: 'text',
+        placeholder: 'Bijv. 10:00 Opening, 11:00 Kwartfinales, 14:00 Finale',
+        dependsOn: 'include_schedule'
+      },
+      {
+        id: 'include_teams',
+        question: '🧑‍🤝‍🧑 Wil je een Teams sectie?',
+        type: 'boolean',
+        description: 'Toon teams met bracket visualisatie'
+      },
+      {
+        id: 'include_sponsors',
+        question: '💼 Wil je een Sponsoren sectie?',
+        type: 'boolean',
+        description: 'Toon sponsor logo\'s'
+      },
+      {
+        id: 'sponsors_list',
+        question: 'Welke sponsoren? (komma gescheiden)',
+        type: 'text',
+        placeholder: 'Bijv. Lenovo Legion, HyperX, Red Bull',
+        dependsOn: 'include_sponsors'
+      },
+      {
+        id: 'include_registration',
+        question: '📬 Wil je een Inschrijfformulier?',
+        type: 'boolean',
+        description: 'Voor aanmeldingen'
+      },
+      {
+        id: 'form_fields',
+        question: 'Welke velden in het formulier?',
+        type: 'text',
+        placeholder: 'Bijv. naam, email, teamnaam, aantal spelers',
+        dependsOn: 'include_registration'
+      },
+      {
+        id: 'include_social',
+        question: '🔗 Wil je Social Media links?',
+        type: 'boolean',
+        description: 'Links naar sociale platformen'
+      },
+      {
+        id: 'social_links',
+        question: 'Welke social media platformen?',
+        type: 'text',
+        placeholder: 'Bijv. Facebook, Instagram, Twitter, Discord',
+        dependsOn: 'include_social'
+      },
+      {
+        id: 'include_twitch',
+        question: '📺 Wil je Twitch integratie?',
+        type: 'boolean',
+        description: 'Embed een livestream'
+      },
+      {
+        id: 'twitch_channel',
+        question: 'Wat is je Twitch kanaal naam?',
+        type: 'text',
+        placeholder: 'Bijv. jouw_twitch_kanaal',
+        dependsOn: 'include_twitch'
       }
     ];
 
@@ -1932,6 +2044,16 @@ export default function Dashboard() {
       return (stepResponses as Record<string, string>)[String(answer)] || (stepResponses as Record<string, string>).default;
     };
 
+    const shouldSkipQuestion = (question: typeof WIZARD_QUESTIONS[number]) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((question as any).dependsOn) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const dependency = (question as any).dependsOn;
+        return !wizardAnswers[dependency]; // Skip if dependency is not filled
+      }
+      return false;
+    };
+
     const handleNextStep = () => {
       if (wizardStep < WIZARD_QUESTIONS.length - 1) {
         // AI response voor huidige stap
@@ -1940,20 +2062,40 @@ export default function Dashboard() {
           const response = getAiResponse(wizardStep, currentAnswer);
           simulateAiTyping(response, () => {
             setTimeout(() => {
-              setWizardStep(prev => prev + 1);
+              // Skip to next non-dependent question
+              let nextStep = wizardStep + 1;
+              while (nextStep < WIZARD_QUESTIONS.length && shouldSkipQuestion(WIZARD_QUESTIONS[nextStep])) {
+                nextStep++;
+              }
+              setWizardStep(nextStep);
               setShowAiResponse(false);
             }, 1500);
           });
         } else {
-          setWizardStep(prev => prev + 1);
+          // Skip to next non-dependent question
+          let nextStep = wizardStep + 1;
+          while (nextStep < WIZARD_QUESTIONS.length && shouldSkipQuestion(WIZARD_QUESTIONS[nextStep])) {
+            nextStep++;
+          }
+          setWizardStep(nextStep);
         }
       } else {
         // Wizard voltooid - AI final response
-        const finalMessage = "Fantastisch! Ik heb alle informatie verzameld. Laat me nu je complete toernooi website genereren... 🎯✨";
+        const finalMessage = "Fantastisch! Ik heb alle informatie verzameld. Laat me nu je complete toernooi website genereren met AI... 🎯✨";
         simulateAiTyping(finalMessage, () => {
-          setTimeout(() => {
-            // Genereer complete website
-            // const website = generateWebsiteFromAnswers(wizardAnswers);
+          setTimeout(async () => {
+            // Genereer complete website met Claude
+            const { generateTournamentTemplate } = await import('../utils/claude-template-generator');
+            const result = await generateTournamentTemplate(wizardAnswers);
+            
+            if (result.success && result.code) {
+              // Sla de gegenereerde code op
+              setGeneratedCode(result.code);
+            } else {
+              alert(`Fout bij genereren: ${result.error}`);
+            }
+            
+            // Fallback: gebruik bestaande template generator als Claude faalt
             const template = generateTemplateFromAnswers(wizardAnswers);
         
         // Stel componenten in
@@ -2153,6 +2295,30 @@ export default function Dashboard() {
                     className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-lg text-white placeholder-gray-400"
                   />
                 </div>
+              ) : currentQuestion.type === 'textarea' ? (
+                <div className="space-y-4">
+                  <textarea
+                    placeholder={currentQuestion.placeholder}
+                    value={String(wizardAnswers[currentQuestion.id] || '')}
+                    onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-lg text-white placeholder-gray-400"
+                  />
+                </div>
+              ) : currentQuestion.type === 'boolean' ? (
+                <div className="flex items-center space-x-4 p-6 bg-gray-800 border-2 border-gray-600 rounded-lg hover:border-gray-500 transition-all">
+                  <label className="flex items-center cursor-pointer flex-1">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(wizardAnswers[currentQuestion.id])}
+                      onChange={(e) => handleWizardAnswer(currentQuestion.id, e.target.checked ? 'true' : '')}
+                      className="w-6 h-6 rounded border-gray-400 text-purple-600 focus:ring-2 focus:ring-purple-500"
+                    />
+                    <span className="ml-3 text-white text-lg">
+                      {currentQuestion.description || 'Ja, voeg dit toe'}
+                    </span>
+                  </label>
+                </div>
               ) : (
                 currentQuestion.options?.map((option, _index) => ( // eslint-disable-line @typescript-eslint/no-unused-vars
                   <label
@@ -2304,45 +2470,82 @@ export default function Dashboard() {
         {/* Resultaat Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Website Preview */}
+            {/* AI Generated Code Preview */}
             <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Website Preview</h2>
-              <div className="bg-white rounded-lg overflow-hidden" style={{ height: '600px' }}>
-                <iframe
-                  srcDoc={generatedWebsite.html}
-                  className="w-full h-full border-0"
-                  title="Website Preview"
-                />
-              </div>
-              <div className="mt-4 flex gap-4">
-                <button
-                  onClick={() => {
-                    const newWindow = window.open('', '_blank');
-                    if (newWindow) {
-                      newWindow.document.write(generatedWebsite.html);
-                      newWindow.document.close();
-                    }
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                AI-Gegenereerde Next.js Code
+              </h2>
+              
+              {generatedCode ? (
+                <>
+                  <div className="bg-gray-900 rounded-lg p-4 overflow-auto" style={{ maxHeight: '600px' }}>
+                    <pre className="text-sm text-green-400 font-mono">
+                      <code>{generatedCode}</code>
+                    </pre>
+                  </div>
+                  <div className="mt-4 flex gap-4">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedCode);
+                        alert('Code gekopieerd naar clipboard! 🎉');
+                      }}
+                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Kopieer Code</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const filename = (wizardAnswers.tournament_name || 'tournament').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                        const blob = new Blob([generatedCode], { type: 'text/typescript' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${filename}-page.tsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Download .tsx Bestand</span>
+                    </button>
+                  </div>
+                  <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/50 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="text-sm text-blue-200">
+                        <p className="font-semibold mb-1">Hoe gebruik je deze code:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-blue-300">
+                          <li>Maak een nieuw bestand aan: <code className="bg-blue-950 px-2 py-0.5 rounded">app/tournaments/[naam]/page.tsx</code></li>
+                          <li>Plak de gekopieerde code in het bestand</li>
+                          <li>Pas de content aan naar wens</li>
+                          <li>Bezoek je nieuwe toernooi pagina!</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-gray-900 rounded-lg p-8 text-center">
+                  <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                   </svg>
-                  <span>Open in Nieuw Tab</span>
-                </button>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(generatedWebsite.html);
-                    alert('HTML code gekopieerd naar clipboard!');
-                  }}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <span>Kopieer HTML</span>
-                </button>
-              </div>
+                  <p className="text-gray-400">Geen AI-gegenereerde code beschikbaar</p>
+                  <p className="text-gray-500 text-sm mt-2">De code werd niet opgeslagen of genereren is mislukt</p>
+                </div>
+              )}
             </div>
 
             {/* Template Overzicht */}
