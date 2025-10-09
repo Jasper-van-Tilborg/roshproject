@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -104,9 +106,17 @@ const TournamentInfo = () => {
       {/* Step-to-Step Component */}
       <section className="px-6 py-16 w-full">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-5xl font-bold text-white text-center mb-12 uppercase">
-            DOE JE MEE?
-          </h2>
+          <div className="flex items-center justify-center mb-12">
+            <div className="w-24 h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+            <div className="mx-8">
+              <h2 className="text-6xl font-bold text-white uppercase tracking-wider text-center" style={{
+                textShadow: '0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3)'
+              }}>
+                DOE JE MEE?
+              </h2>
+            </div>
+            <div className="w-24 h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1: Play Minigame */}
@@ -226,6 +236,222 @@ const TournamentInfo = () => {
                     </svg>
                   </span>
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Twitch Integration Section */}
+      <section className="px-6 py-16 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center mb-16">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-96 h-24 bg-gradient-to-r from-purple-500/20 to-pink-600/20 rounded-full blur-3xl"></div>
+            </div>
+            
+            {/* Title with enhanced styling */}
+            <div className="relative z-10 text-center">
+            <div className="mx-8">
+              <h2 className="text-6xl font-bold text-white uppercase tracking-wider text-center" style={{
+                textShadow: '0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3)'
+              }}>
+                LIVESTREAM
+              </h2>
+            </div>
+              
+              {/* Decorative elements */}
+              <div className="flex items-center justify-center mt-4 space-x-4">
+                <div className="w-8 h-1 bg-gradient-to-r from-transparent to-purple-400 rounded-full"></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                <div className="w-8 h-1 bg-gradient-to-l from-transparent to-pink-400 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Left Sidebar - Countdown & Agenda */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Next Stream Countdown */}
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 uppercase">Next Stream</h3>
+                <div className="text-center">
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div>
+                      <div className="text-2xl font-bold text-purple-400 mb-1">09</div>
+                      <div className="text-xs text-slate-400">Days</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-400 mb-1">14</div>
+                      <div className="text-xs text-slate-400">Hours</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-400 mb-1">50</div>
+                      <div className="text-xs text-slate-400">Min</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-400 mb-1">37</div>
+                      <div className="text-xs text-slate-400">Sec</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-300">
+                    <p className="font-semibold text-purple-400">MORROG</p>
+                    <p>Tournament Practice</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stream Schedule */}
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700 shadow-2xl">
+                <h3 className="text-xl font-bold text-white mb-4 uppercase">Upcoming Streams</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                    <div>
+                      <p className="text-white font-medium">27 September</p>
+                      <p className="text-slate-400 text-sm">Tournament Day 1</p>
+                    </div>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                    <div>
+                      <p className="text-white font-medium">4 October</p>
+                      <p className="text-slate-400 text-sm">Qualification</p>
+                    </div>
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                    <div>
+                      <p className="text-white font-medium">11 October</p>
+                      <p className="text-slate-400 text-sm">Quarter Finals</p>
+                    </div>
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Stream Area */}
+            <div className="lg:col-span-3">
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+                {/* Stream Header */}
+                <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 p-4 border-b border-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">M</span>
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold">MORROG</h3>
+                        <p className="text-slate-400 text-sm">Live on Twitch</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                      <span className="text-red-400 text-sm font-medium">LIVE</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Twitch Stream Embed */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-0">
+                  {/* Video Player */}
+                  <div className="lg:col-span-3 relative">
+                    <div className="aspect-video bg-black">
+                      <iframe
+                        src="https://player.twitch.tv/?channel=morrog&parent=localhost&parent=127.0.0.1&autoplay=true&muted=false"
+                        height="100%"
+                        width="100%"
+                        allowFullScreen
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        className="w-full h-full"
+                        style={{ border: 0 }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Twitch Chat Sidebar */}
+                  <div className="lg:col-span-1 bg-slate-900/50 border-l border-slate-700">
+                    <div className="p-4 border-b border-slate-700">
+                      <h4 className="text-white font-bold text-sm uppercase">Chat over video's</h4>
+                    </div>
+                    
+                    <div className="h-96">
+                      <iframe
+                        src="https://www.twitch.tv/embed/morrog/chat?parent=localhost&parent=127.0.0.1"
+                        height="100%"
+                        width="100%"
+                        style={{ border: 0 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mini Game Section */}
+      <section className="px-6 py-16 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center mb-16">
+            <div className="w-24 h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+            <div className="mx-8">
+              <h2 className="text-6xl font-bold text-white uppercase tracking-wider text-center">
+                MINI GAME
+              </h2>
+            </div>
+            <div className="w-24 h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <div className="w-full max-w-4xl">
+              <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 shadow-2xl flex items-center justify-center relative overflow-hidden">
+                {/* Diagonal pattern background */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute inset-0" style={{
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)'
+                  }}></div>
+                </div>
+                
+                {/* Mini Game Content */}
+                <div className="text-center relative z-10">
+                  <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-4xl font-bold text-white mb-4 uppercase">AIM TRAINER</h3>
+                  <p className="text-slate-400 text-lg mb-8">Test je precisie en verbeter je aim skills</p>
+                  
+                  {/* Game Stats */}
+                  <div className="grid grid-cols-3 gap-8 mb-8 max-w-md mx-auto">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400 mb-2">30s</div>
+                      <div className="text-sm text-slate-400">Duration</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-400 mb-2">∞</div>
+                      <div className="text-sm text-slate-400">Targets</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-400 mb-2">0</div>
+                      <div className="text-sm text-slate-400">High Score</div>
+                    </div>
+                  </div>
+
+                  {/* Play Button */}
+                  <Link href="https://rosh-minigame-aimtrainer.vercel.app/" target="_blank" rel="noopener noreferrer">
+                    <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-12 py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-green-500/25">
+                      <span className="flex items-center justify-center">
+                        START TRAINING
+                        <svg className="w-6 h-6 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </span>
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

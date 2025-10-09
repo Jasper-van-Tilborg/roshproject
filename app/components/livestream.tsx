@@ -160,7 +160,23 @@ function LivestreamAdminControls() {
 
     return (
         <div style={{ maxWidth: 720, margin: "24px auto", padding: 16 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Livestream instellingen</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <div style={{ width: 60, height: 2, backgroundColor: 'white', borderRadius: 9999, boxShadow: '0 0 10px rgba(255,255,255,0.5)' }}></div>
+              <div style={{ margin: '0 16px' }}>
+                <h1 style={{ 
+                  fontSize: 20, 
+                  fontWeight: 700, 
+                  color: 'white', 
+                  textTransform: 'uppercase',
+                  letterSpacing: '2px',
+                  textAlign: 'center',
+                  textShadow: '0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3)'
+                }}>
+                  Livestream instellingen
+                </h1>
+              </div>
+              <div style={{ width: 60, height: 2, backgroundColor: 'white', borderRadius: 9999, boxShadow: '0 0 10px rgba(255,255,255,0.5)' }}></div>
+            </div>
             <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: 12, gap: 12, background: "#fafafa" }}>
                     <div style={{ fontWeight: 600 }}>Twitch stream</div>
