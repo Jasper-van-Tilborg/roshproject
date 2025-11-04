@@ -1,0 +1,210 @@
+/* Bracket Container */
+.bracketContainer {
+  width: 100%;
+  min-height: 100%;
+}
+
+.bracketWrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: var(--bracket-spacing-container, 20px);
+}
+
+.bracketWrapperVertical {
+  overflow-x: visible;
+  overflow-y: auto;
+}
+
+.bracketRounds {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--bracket-spacing-round, 40px);
+  min-width: fit-content;
+}
+
+.bracketWrapperVertical .bracketRounds {
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Round */
+.round {
+  display: flex;
+  flex-direction: column;
+  min-width: fit-content;
+}
+
+.roundTitle {
+  text-align: center;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.roundMatches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bracket-spacing-match, 20px);
+  align-items: center;
+}
+
+/* Match */
+.matchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.match {
+  display: flex;
+  flex-direction: column;
+  border: var(--bracket-border-width, 1px) var(--bracket-border-style, solid)
+    var(--bracket-border, #e0e0e0);
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.match:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-color: var(--bracket-border-active, #3b82f6);
+}
+
+.matchHeader {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.matchLabel {
+  font-size: var(--bracket-font-size-match, 12px);
+  color: var(--bracket-text-secondary, #666666);
+}
+
+.matchContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bracket-spacing-slot, 4px);
+}
+
+.matchVs {
+  text-align: center;
+  font-size: 10px;
+  color: var(--bracket-text-secondary, #666666);
+  font-weight: 600;
+  padding: 2px 0;
+}
+
+.matchResult {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--bracket-border, #e0e0e0);
+  text-align: center;
+  font-size: 11px;
+}
+
+/* Team Slot */
+.teamSlot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--bracket-border-radius, 6px);
+  min-height: 36px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.teamSlot:hover {
+  background-color: var(--bracket-team-slot-hover, #e8e8e8) !important;
+}
+
+.teamSlotEmpty {
+  opacity: 0.6;
+  border: 1px dashed var(--bracket-border, #e0e0e0);
+}
+
+.teamSlotPlaceholder {
+  color: var(--bracket-text-secondary, #666666);
+  font-style: italic;
+}
+
+.teamSlotBye {
+  border: 1px dashed var(--bracket-border, #e0e0e0);
+  font-style: italic;
+}
+
+.teamSlotWinner {
+  border: 2px solid var(--bracket-team-slot-winner, #4ade80);
+  font-weight: 600;
+}
+
+.teamSlotLoser {
+  opacity: 0.7;
+}
+
+.teamSeed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  background-color: var(--bracket-border, #e0e0e0);
+  color: var(--bracket-text-secondary, #666666);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.teamName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamScore {
+  font-weight: 600;
+  color: var(--bracket-text-secondary, #666666);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* Connectors (for future use with SVG lines) */
+.matchConnector {
+  position: absolute;
+  border: 2px solid var(--bracket-connector, #cbd5e1);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bracketRounds {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .round {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .match {
+    width: 100% !important;
+    max-width: 300px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .bracketWrapper {
+    overflow: visible;
+  }
+
+  .match {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
