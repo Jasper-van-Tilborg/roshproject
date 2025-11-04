@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Round as RoundType } from './types';
+import { Round as RoundType, Match as MatchType } from './types';
 import { useBracketTheme } from './ThemeProvider';
 import Match from './Match';
 import styles from './Bracket.module.css';
@@ -9,10 +9,11 @@ import styles from './Bracket.module.css';
 interface RoundProps {
   round: RoundType;
   showSeeds?: boolean;
-  onMatchComplete?: (matchId: string) => void;
+  onMatchComplete?: (matchOrId: string | MatchType) => void;
+  interactive?: boolean;
 }
 
-export default function Round({ round, showSeeds = false, onMatchComplete }: RoundProps) {
+export default function Round({ round, showSeeds = false, onMatchComplete, interactive = false }: RoundProps) {
   const theme = useBracketTheme();
   
   return (
@@ -45,7 +46,8 @@ export default function Round({ round, showSeeds = false, onMatchComplete }: Rou
             <Match
               match={match}
               showSeeds={showSeeds}
-              onMatchComplete={(m) => onMatchComplete?.(m.id)}
+              onMatchComplete={(m) => onMatchComplete?.(m)}
+              interactive={interactive}
             />
           </div>
         ))}

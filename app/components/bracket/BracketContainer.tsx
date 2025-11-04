@@ -15,7 +15,9 @@ export default function BracketContainer({
   seededTeams = false,
   showSeeds = false,
   className = '',
-}: BracketContainerProps) {
+  fitToContainer = false,
+  interactive = false,
+}: BracketContainerProps & { fitToContainer?: boolean; interactive?: boolean }) {
   const [bracketData, setBracketData] = useState<BracketData>(() =>
     BracketGenerator.generate(type, teams, seededTeams)
   );
@@ -25,8 +27,18 @@ export default function BracketContainer({
     setBracketData(BracketGenerator.generate(type, teams, seededTeams));
   }, [type, teams, seededTeams]);
   
-  const handleMatchComplete = (matchId: string) => {
-    const match = findMatch(bracketData, matchId);
+  const handleMatchComplete = (matchOrId: string | MatchType) => {
+    let match: MatchType | null;
+    let matchId: string;
+    
+    if (typeof matchOrId === 'string') {
+      matchId = matchOrId;
+      match = findMatch(bracketData, matchId);
+    } else {
+      match = matchOrId;
+      matchId = match.id;
+    }
+    
     if (!match || !match.result) return;
     
     // Update bracket with result
@@ -39,7 +51,7 @@ export default function BracketContainer({
     setBracketData(updatedBracket);
     
     // Call callback if provided
-    if (onMatchComplete && match) {
+    if (onMatchComplete) {
       onMatchComplete(match, match.result);
     }
   };
@@ -49,17 +61,18 @@ export default function BracketContainer({
   return (
     <ThemeProvider theme={theme}>
       <div
-        className={`${styles.bracketWrapper} ${
+        className={`${fitToContainer ? styles.bracketWrapperFit : styles.bracketWrapper} ${
           direction === 'vertical' ? styles.bracketWrapperVertical : ''
         } ${className}`}
       >
-        <div className={styles.bracketRounds}>
-          {bracketData.rounds.map((round) => (
+        <div className={fitToContainer ? styles.bracketRoundsFit : styles.bracketRounds}>
+          {bracketData.rounds.map((round, index) => (
             <Round
               key={round.id}
               round={round}
               showSeeds={showSeeds}
               onMatchComplete={handleMatchComplete}
+              interactive={interactive}
             />
           ))}
         </div>
