@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import { generateMockTemplate } from '../../utils/mock-template-generator'
 import LivePreview from '../../components/LivePreview'
@@ -42,7 +42,7 @@ export default function AutoEditorPage() {
   const [isGenerating, setIsGenerating] = useState(true)
   const [activeTab, setActiveTab] = useState<'config' | 'preview' | 'code'>('preview')
 
-  const generateTemplate = async () => {
+  const generateTemplate = useCallback(async () => {
     setIsGenerating(true)
     try {
       // Generate with Claude API
@@ -65,7 +65,7 @@ export default function AutoEditorPage() {
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [config])
 
   const updateConfig = (key: string, value: unknown) => {
     if (key.includes('.')) {

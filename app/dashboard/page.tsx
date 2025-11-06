@@ -7,6 +7,7 @@ import Header from '../components/header';
 import DarkVeil from '../components/DarkVeil';
 
 // Type definities
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Tournament {
   id: string;
   name: string;
@@ -684,6 +685,7 @@ export default function Dashboard() {
    }), []);
 
   // Functie om custom componenten toe te voegen aan allComponents
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addCustomComponentsToLibrary = useCallback((customComponents: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>) => {
     if (customComponents && customComponents.length > 0) {
       customComponents.forEach((customComp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => {
@@ -772,6 +774,13 @@ export default function Dashboard() {
       setCurrentView('create-tournament');
     }
   };
+
+  // Template wizard view - Redirect naar nieuwe AI wizard (moet voor alle conditional returns)
+  useEffect(() => {
+    if (currentView === 'template-wizard') {
+      router.push('/editor/wizard')
+    }
+  }, [currentView, router])
 
   // Login form
   if (!isLoggedIn) {
@@ -1121,6 +1130,7 @@ export default function Dashboard() {
   }
 
   // AI Website generatie functie
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateWebsiteFromAnswers = (answers: Record<string, string | number | boolean>) => {
     const tournamentName = answers.tournament_name || 'Toernooi';
     const tournamentDate = answers.tournament_date || 'Datum TBD';
@@ -1577,6 +1587,7 @@ export default function Dashboard() {
   };
 
   // Template generatie functie (buiten views)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const generateTemplateFromAnswers = (answers: Record<string, string | number | boolean>) => {
     const components: string[] = ['description', 'tournamentDetails'];
     let primaryColor = '#2563eb';
@@ -1791,24 +1802,6 @@ export default function Dashboard() {
     };
   };
 
-  // Template wizard view - Redirect naar nieuwe AI wizard
-  useEffect(() => {
-    if (currentView === 'template-wizard') {
-      router.push('/editor/wizard')
-    }
-  }, [currentView, router])
-  
-  if (currentView === 'template-wizard') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-300">Doorsturen naar AI Wizard...</p>
-        </div>
-      </div>
-    )
-  }
-  
   // Oude wizard code is verwijderd - alle wizard functionaliteit is nu in /editor/wizard
   
   // Wizard resultaat view (voor oude flows die hier nog naartoe redirecten)

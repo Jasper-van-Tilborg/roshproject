@@ -13,7 +13,7 @@ export interface Component {
   }
 }
 
-export function parseComponentsFromHTML(html: string, css: string, js: string): Component[] {
+export function parseComponentsFromHTML(html: string, css: string): Component[] {
   // Extract body content if full HTML document
   let bodyContent = html
   if (html.includes('<body')) {
