@@ -39,7 +39,7 @@ export default function LivePreview({ generatedCode, config }: LivePreviewProps)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament Preview</title>
     <style>
-        body { margin: 0; font-family: ${config.theme?.fontFamily || 'Inter'}, sans-serif; }
+        body { margin: 0; font-family: ${(config.theme as { fontFamily?: string })?.fontFamily || 'Inter'}, sans-serif; }
         .error { color: #ef4444; background: #fef2f2; padding: 1rem; border-radius: 0.5rem; margin: 1rem; }
     </style>
 </head>
@@ -85,9 +85,9 @@ import { useState } from 'react'
 export default function TournamentPage() {
   const config = {
     theme: {
-      primaryColor: '${config.theme?.primaryColor || '#3B82F6'}',
-      secondaryColor: '${config.theme?.secondaryColor || '#10B981'}',
-      fontFamily: '${config.theme?.fontFamily || 'Inter'}'
+      primaryColor: '${(config.theme as { primaryColor?: string })?.primaryColor || '#3B82F6'}',
+      secondaryColor: '${(config.theme as { secondaryColor?: string })?.secondaryColor || '#10B981'}',
+      fontFamily: '${(config.theme as { fontFamily?: string })?.fontFamily || 'Inter'}'
     },
     tournament: {
       title: '${config.title || 'Championship Toernooi'}',
@@ -217,7 +217,7 @@ export default function TournamentPage() {
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; font-family: ${config.theme?.fontFamily || 'Inter'}, sans-serif; }
+        body { margin: 0; font-family: ${(config.theme as { fontFamily?: string })?.fontFamily || 'Inter'}, sans-serif; }
         .preview-container { min-height: 100vh; }
         .error { color: #ef4444; background: #fef2f2; padding: 1rem; border-radius: 0.5rem; margin: 1rem; }
     </style>
