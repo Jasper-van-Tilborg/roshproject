@@ -293,7 +293,7 @@ export default function ComponentEditor({
                       <label className="block text-gray-400 text-xs mb-1">Titel</label>
                       <input
                         type="text"
-                        value={selectedComponent.properties.title || ''}
+                        value={String(selectedComponent.properties.title || '')}
                         onChange={(e) => updateComponent(selectedComponent.id, {
                           properties: { title: e.target.value }
                         })}
@@ -307,7 +307,7 @@ export default function ComponentEditor({
                       <label className="block text-gray-400 text-xs mb-1">Ondertitel</label>
                       <input
                         type="text"
-                        value={selectedComponent.properties.subtitle || ''}
+                        value={String(selectedComponent.properties.subtitle || '')}
                         onChange={(e) => updateComponent(selectedComponent.id, {
                           properties: { subtitle: e.target.value }
                         })}
@@ -320,7 +320,7 @@ export default function ComponentEditor({
                     <div>
                       <label className="block text-gray-400 text-xs mb-1">Beschrijving</label>
                       <textarea
-                        value={selectedComponent.properties.description || ''}
+                        value={String(selectedComponent.properties.description || '')}
                         onChange={(e) => updateComponent(selectedComponent.id, {
                           properties: { description: e.target.value }
                         })}
