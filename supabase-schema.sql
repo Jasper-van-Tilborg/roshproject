@@ -72,3 +72,4 @@ CREATE POLICY "Authenticated users can delete tournaments"
 -- CREATE POLICY "Allow all deletes" ON tournaments FOR DELETE USING (true);
 
 
+

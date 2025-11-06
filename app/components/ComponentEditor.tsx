@@ -20,7 +20,7 @@ export default function ComponentEditor({
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null)
   const [previewHtml, setPreviewHtml] = useState('')
   const [editedHtml, setEditedHtml] = useState(html)
-  const [editedCss, setEditedCss] = useState(css)
+  const [editedCss] = useState(css)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const onCodeChangeRef = useRef(onCodeChange)
 
@@ -106,7 +106,7 @@ export default function ComponentEditor({
 
   // Update component
   const updateComponent = useCallback((componentId: string, updates: {
-    properties?: { [key: string]: any }
+    properties?: { [key: string]: unknown }
     styles?: { [key: string]: string }
   }) => {
     const newHtml = updateComponentInHTML(editedHtml, componentId, updates)
@@ -241,7 +241,7 @@ export default function ComponentEditor({
                   
                   // Remove old listeners
                   iframeDoc.querySelectorAll('[data-selectable]').forEach(el => {
-                    el.removeEventListener('click', handleIframeClick as any)
+                    el.removeEventListener('click', handleIframeClick as EventListener)
                     el.removeAttribute('data-selectable')
                   })
 

@@ -217,11 +217,11 @@ export default function WizardPage() {
   // Save as draft
   const handleSaveDraft = useCallback(async () => {
     if (!tournamentName.trim()) {
-      const defaultName = answers.tournament_name || 'Nieuw Toernooi'
+      const defaultName = String(answers.tournament_name || 'Nieuw Toernooi')
       setTournamentName(defaultName)
     }
 
-    const name = tournamentName.trim() || answers.tournament_name || 'Nieuw Toernooi'
+    const name = String(tournamentName.trim() || answers.tournament_name || 'Nieuw Toernooi')
     
     if (!generatedCode) {
       alert('Genereer eerst een website voordat je opslaat!')
@@ -285,11 +285,11 @@ export default function WizardPage() {
 
       // Check if tournament with same name already exists
       const existingResponse = await fetch(`/api/tournaments?status=draft`)
-      let existingTournament: any = null
+      let existingTournament: { id: string; name: string } | null = null
       
       if (existingResponse.ok) {
-        const existingData = await existingResponse.json()
-        existingTournament = existingData.tournaments?.find((t: any) => t.name === name)
+        const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string }> }
+        existingTournament = existingData.tournaments?.find((t) => t.name === name) || null
       }
 
       // Save to Supabase (POST for new, PUT for update)
@@ -314,7 +314,7 @@ export default function WizardPage() {
       // Also save to localStorage as backup
       try {
         const savedTournaments = localStorage.getItem('tournaments')
-        let tournaments: any[] = []
+        let tournaments: Array<Record<string, unknown>> = []
         
         if (savedTournaments) {
           tournaments = JSON.parse(savedTournaments)
@@ -333,9 +333,10 @@ export default function WizardPage() {
       
       alert('✅ Draft opgeslagen in database! Je kunt deze later bewerken vanuit het dashboard.')
       setIsSaving(false)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving draft:', error)
-      alert(`❌ Fout bij opslaan: ${error.message || 'Probeer het opnieuw.'}`)
+      const message = error instanceof Error ? error.message : 'Probeer het opnieuw.'
+      alert(`❌ Fout bij opslaan: ${message}`)
       setIsSaving(false)
     }
   }, [tournamentName, generatedCode, answers])
@@ -343,11 +344,11 @@ export default function WizardPage() {
   // Publish tournament
   const handlePublish = useCallback(async () => {
     if (!tournamentName.trim()) {
-      const defaultName = answers.tournament_name || 'Nieuw Toernooi'
+      const defaultName = String(answers.tournament_name || 'Nieuw Toernooi')
       setTournamentName(defaultName)
     }
 
-    const name = tournamentName.trim() || answers.tournament_name || 'Nieuw Toernooi'
+    const name = String(tournamentName.trim() || answers.tournament_name || 'Nieuw Toernooi')
     
     if (!generatedCode) {
       alert('Genereer eerst een website voordat je publiceert!')
@@ -413,13 +414,13 @@ export default function WizardPage() {
 
       // Check if tournament with same name already exists
       const existingResponse = await fetch('/api/tournaments')
-      let existingTournament: any = null
+      let existingTournament: { id: string; name: string; status: string } | null = null
       
       if (existingResponse.ok) {
-        const existingData = await existingResponse.json()
-        existingTournament = existingData.tournaments?.find((t: any) => 
+        const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string; status: string }> }
+        existingTournament = existingData.tournaments?.find((t) => 
           t.name === name && (t.status === 'published' || t.status === 'draft')
-        )
+        ) || null
       }
 
       // Save to Supabase (POST for new, PUT for update)
@@ -444,10 +445,10 @@ export default function WizardPage() {
       // Also save to localStorage as backup
       try {
         const savedTournaments = localStorage.getItem('tournaments')
-        let tournaments: any[] = []
+        let tournaments: Array<Record<string, unknown>> = []
         
         if (savedTournaments) {
-          tournaments = JSON.parse(savedTournaments)
+          tournaments = JSON.parse(savedTournaments) as Array<Record<string, unknown>>
         }
         
         tournaments.push({
@@ -467,9 +468,10 @@ export default function WizardPage() {
       
       // Optionally redirect to published page
       // window.location.href = `/${slug}`
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error publishing:', error)
-      alert(`❌ Fout bij publiceren: ${error.message || 'Probeer het opnieuw.'}`)
+      const message = error instanceof Error ? error.message : 'Probeer het opnieuw.'
+      alert(`❌ Fout bij publiceren: ${message}`)
       setIsSaving(false)
     }
   }, [tournamentName, generatedCode, answers])

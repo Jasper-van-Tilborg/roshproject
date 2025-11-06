@@ -222,7 +222,7 @@ export async function generateTournamentTemplate(
     const data = await response.json();
     
     // Extract alle code blocks (HTML, CSS, JS)
-    let code = data.response;
+    const code = data.response;
     
     console.log('Claude response length:', code.length);
     console.log('First 500 chars:', code.substring(0, 500));

@@ -27,10 +27,11 @@ export async function GET(request: NextRequest) {
     }
     
     return NextResponse.json({ tournaments: data || [] })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching tournaments:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch tournaments'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch tournaments' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -121,10 +122,11 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ tournament: data }, { status: 201 })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating tournament:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create tournament'
     return NextResponse.json(
-      { error: error.message || 'Failed to create tournament' },
+      { error: message },
       { status: 500 }
     )
   }
@@ -234,10 +236,11 @@ export async function PUT(request: NextRequest) {
     }
     
     return NextResponse.json({ tournament: data })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating tournament:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update tournament'
     return NextResponse.json(
-      { error: error.message || 'Failed to update tournament' },
+      { error: message },
       { status: 500 }
     )
   }

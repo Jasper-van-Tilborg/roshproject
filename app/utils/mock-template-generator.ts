@@ -1,6 +1,6 @@
 // Mock template generator voor testing van de editor
-export function generateMockTemplate(config: any): string {
-  const { title, date, location, description, participants, game, theme, components } = config
+export function generateMockTemplate(config: Record<string, unknown>): string {
+  const { title, date, location, description, participants, game, components } = config
 
   return `'use client'
 

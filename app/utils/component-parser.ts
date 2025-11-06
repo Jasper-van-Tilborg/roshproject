@@ -6,7 +6,7 @@ export interface Component {
   html: string
   section?: HTMLElement
   properties: {
-    [key: string]: any
+    [key: string]: unknown
   }
   styles: {
     [key: string]: string
@@ -124,8 +124,8 @@ function getComponentName(type: string, element: HTMLElement): string {
   return names[type] || type
 }
 
-function extractProperties(element: HTMLElement): { [key: string]: any } {
-  const props: { [key: string]: any } = {}
+function extractProperties(element: HTMLElement): { [key: string]: unknown } {
+  const props: { [key: string]: unknown } = {}
 
   // Extract text content
   const headings = Array.from(element.querySelectorAll('h1, h2, h3'))
@@ -183,7 +183,7 @@ function extractStyles(element: HTMLElement, css: string): { [key: string]: stri
 
   // Get computed styles from CSS (simplified - in production use CSS parser)
   const elementId = element.id
-  const elementClass = element.className
+  // const elementClass = element.className
 
   if (elementId && css.includes(`#${elementId}`)) {
     // Extract styles for this ID
@@ -212,7 +212,7 @@ export function updateComponentInHTML(
   originalHTML: string,
   componentId: string,
   updates: {
-    properties?: { [key: string]: any }
+    properties?: { [key: string]: unknown }
     styles?: { [key: string]: string }
     content?: string
   }

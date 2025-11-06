@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Header from '../components/header';
@@ -110,11 +110,11 @@ export default function Dashboard() {
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
   
-  // Template wizard state
-  const [wizardStep, setWizardStep] = useState(0);
-  const [wizardAnswers, setWizardAnswers] = useState<Record<string, string | number | boolean>>({});
-  const [generatedCode, setGeneratedCode] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Template wizard state - not used anymore (redirected to /editor/wizard)
+  // const [wizardStep, setWizardStep] = useState(0);
+  // const [wizardAnswers, setWizardAnswers] = useState<Record<string, string | number | boolean>>({});
+  // const [generatedCode, setGeneratedCode] = useState<string>('');
+  // const [isGenerating, setIsGenerating] = useState(false);
   
   // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
@@ -256,26 +256,7 @@ export default function Dashboard() {
     createdAt: string;
   }>>([]);
 
-  // Laad toernooien uit localStorage bij component mount
-
-  useEffect(() => {
-    const savedTournaments = localStorage.getItem('tournaments');
-    if (savedTournaments) {
-      try {
-        const parsedTournaments = JSON.parse(savedTournaments);
-        setTournaments(parsedTournaments);
-        
-        // Voeg custom componenten toe aan de bibliotheek
-        parsedTournaments.forEach((tournament: Tournament) => {
-          if (tournament.customComponents) {
-            addCustomComponentsToLibrary(tournament.customComponents);
-          }
-        });
-      } catch (error) {
-        console.error('Error loading tournaments from localStorage:', error);
-      }
-    }
-  }, []);
+  // Laad toernooien uit localStorage bij component mount - wordt later gedefinieerd na addCustomComponentsToLibrary
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -603,10 +584,11 @@ export default function Dashboard() {
   };
 
    // Componenten worden straks uit de components map geladen
-   const allComponents: Record<string, {id: string, name: string, description: string, icon: string, category?: string}> = {
+   const allComponents = useMemo(() => ({
      header: {
        id: 'header',
        name: 'Header',
+       type: 'header',
        description: 'Aanpasbare header met logo en navigatie',
        icon: '🎨',
        category: 'Basis'
@@ -614,6 +596,7 @@ export default function Dashboard() {
      livestream: {
        id: 'livestream',
        name: 'Livestream',
+       type: 'livestream',
        description: 'Twitch livestream embed met chat',
        icon: '📺',
        category: 'Interactie'
@@ -621,6 +604,7 @@ export default function Dashboard() {
      description: {
        id: 'description',
        name: 'Beschrijving',
+       type: 'description',
        description: 'Toernooi beschrijving en details',
        icon: '📝',
        category: 'Content'
@@ -628,6 +612,7 @@ export default function Dashboard() {
      tournamentDetails: {
        id: 'tournamentDetails',
        name: 'Toernooi Details',
+       type: 'tournamentDetails',
        description: 'Datum, locatie, prijzen en regels',
        icon: 'ℹ️',
        category: 'Content'
@@ -635,6 +620,7 @@ export default function Dashboard() {
      schedule: {
        id: 'schedule',
        name: 'Schema',
+       type: 'schedule',
        description: 'Wedstrijd schema en tijden',
        icon: '📅',
        category: 'Content'
@@ -642,6 +628,7 @@ export default function Dashboard() {
      stats: {
        id: 'stats',
        name: 'Statistieken',
+       type: 'stats',
        description: 'Live scores en rankings',
        icon: '📊',
        category: 'Data'
@@ -649,6 +636,7 @@ export default function Dashboard() {
      prizes: {
        id: 'prizes',
        name: 'Prijzen',
+       type: 'prizes',
        description: 'Prijsuitreiking en beloningen',
        icon: '🏆',
        category: 'Content'
@@ -656,6 +644,7 @@ export default function Dashboard() {
      registration: {
        id: 'registration',
        name: 'Registratie',
+       type: 'registration',
        description: 'Inschrijfformulier voor deelnemers',
        icon: '📝',
        category: 'Interactie'
@@ -663,6 +652,7 @@ export default function Dashboard() {
      rules: {
        id: 'rules',
        name: 'Regels',
+       type: 'rules',
        description: 'Toernooi regels en voorwaarden',
        icon: '📋',
        category: 'Content'
@@ -670,6 +660,7 @@ export default function Dashboard() {
      sponsors: {
        id: 'sponsors',
        name: 'Sponsors',
+       type: 'sponsors',
        description: 'Sponsor logos en informatie',
        icon: '🤝',
        category: 'Content'
@@ -677,6 +668,7 @@ export default function Dashboard() {
      social: {
        id: 'social',
        name: 'Social Media',
+       type: 'social',
        description: 'Social media links en feeds',
        icon: '📱',
        category: 'Interactie'
@@ -684,18 +676,18 @@ export default function Dashboard() {
      contact: {
        id: 'contact',
        name: 'Contact',
+       type: 'contact',
        description: 'Contact informatie en formulier',
        icon: '📞',
-       category: 'Content'
-     }
-   };
+      category: 'Content'
+    }
+   }), []);
 
   // Functie om custom componenten toe te voegen aan allComponents
   const addCustomComponentsToLibrary = useCallback((customComponents: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>) => {
     if (customComponents && customComponents.length > 0) {
       customComponents.forEach((customComp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (allComponents as any)[customComp.id] = customComp;
+        (allComponents as unknown as Record<string, {id: string, name: string, type: string, description: string, icon: string, category?: string}>)[customComp.id] = customComp;
       });
     }
   }, [allComponents]);
@@ -1800,12 +1792,13 @@ export default function Dashboard() {
   };
 
   // Template wizard view - Redirect naar nieuwe AI wizard
-  if (currentView === 'template-wizard') {
-    // Redirect effect
-    useEffect(() => {
+  useEffect(() => {
+    if (currentView === 'template-wizard') {
       router.push('/editor/wizard')
-    }, [router])
-    
+    }
+  }, [currentView, router])
+  
+  if (currentView === 'template-wizard') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -1820,8 +1813,8 @@ export default function Dashboard() {
   
   // Wizard resultaat view (voor oude flows die hier nog naartoe redirecten)
   if (currentView === 'wizard-result') {
-    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
-    const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
+    // const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
+    // const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
@@ -1875,11 +1868,8 @@ export default function Dashboard() {
   
   // Oude wizard code hier verwijderd - alle functionaliteit is nu in /editor/wizard
   
-  // Wizard resultaat view
+  // Wizard resultaat view - redirect naar nieuwe wizard
   if (currentView === 'wizard-result') {
-    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
-    const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
-    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
         {/* Header */}
@@ -1928,323 +1918,10 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  // Wizard resultaat view
-  if (currentView === 'wizard-result') {
-    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
-    const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
-        {/* Header */}
-        <div className="bg-gray-800 shadow-lg border-b border-gray-700">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Template Wizard Voltooid!</h1>
-                  <p className="text-gray-300">Je gepersonaliseerde template is klaar</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <button
-                  onClick={() => {
-                    // Download website als HTML bestand
-                    const blob = new Blob([generatedWebsite.html], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${String(generatedWebsite.metadata.title).replace(/\s+/g, '_')}_website.html`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span>Download Website</span>
-                </button>
-                <button
-                  onClick={() => setCurrentView('create-tournament')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <span>Ga naar Editor</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Resultaat Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* AI Generated Code Preview */}
-            <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                AI-Gegenereerde Next.js Code
-              </h2>
-              
-              {generatedCode ? (
-                <>
-                  <div className="bg-gray-900 rounded-lg p-4 overflow-auto" style={{ maxHeight: '600px' }}>
-                    <pre className="text-sm text-green-400 font-mono">
-                      <code>{generatedCode}</code>
-                    </pre>
-                  </div>
-                  <div className="mt-4 flex gap-4">
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedCode);
-                        alert('Code gekopieerd naar clipboard! 🎉');
-                      }}
-                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      <span>Kopieer Code</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        const filename = (wizardAnswers.tournament_name || 'tournament').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                        const blob = new Blob([generatedCode], { type: 'text/typescript' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${filename}-page.tsx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span>Download .tsx Bestand</span>
-                    </button>
-                  </div>
-                  <div className="mt-4 p-4 bg-blue-900/30 border border-blue-500/50 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-sm text-blue-200">
-                        <p className="font-semibold mb-1">Hoe gebruik je deze code:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-blue-300">
-                          <li>Maak een nieuw bestand aan: <code className="bg-blue-950 px-2 py-0.5 rounded">app/tournaments/[naam]/page.tsx</code></li>
-                          <li>Plak de gekopieerde code in het bestand</li>
-                          <li>Pas de content aan naar wens</li>
-                          <li>Bezoek je nieuwe toernooi pagina!</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="bg-gray-900 rounded-lg p-8 text-center">
-                  <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  <p className="text-gray-400">Geen AI-gegenereerde code beschikbaar</p>
-                  <p className="text-gray-500 text-sm mt-2">De code werd niet opgeslagen of genereren is mislukt</p>
-                </div>
-              )}
-            </div>
-
-            {/* Template Overzicht */}
-            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Website Details</h2>
-              
-              <div className="space-y-6">
-                {/* Website Metadata */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Website Info</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Titel:</span>
-                      <span className="text-white">{generatedWebsite.metadata.title}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Game:</span>
-                      <span className="text-white">{generatedWebsite.metadata.game}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Format:</span>
-                      <span className="text-white">{generatedWebsite.metadata.format}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Deelnemers:</span>
-                      <span className="text-white">{generatedWebsite.metadata.participants}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Datum:</span>
-                      <span className="text-white">{generatedWebsite.metadata.date}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kleuren */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Kleuren</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.primary }}></div>
-                      <span className="text-gray-300">Primair: {generatedWebsite.colors.primary}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.secondary }}></div>
-                      <span className="text-gray-300">Secundair: {generatedWebsite.colors.secondary}</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-600" style={{ backgroundColor: generatedWebsite.colors.background }}></div>
-                      <span className="text-gray-300">Achtergrond: {generatedWebsite.colors.background}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold text-white">Website Features</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Responsive Design</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Modern CSS Grid</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Gradient Effects</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Tournament Schedule</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Prize Pool Display</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-300 text-sm">Call-to-Action</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Generated Info */}
-                <div className="p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-purple-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    <div>
-                      <h4 className="font-semibold text-purple-300">AI Generated</h4>
-                      <p className="text-purple-200 text-sm mt-1">
-                        Deze complete website is gegenereerd op basis van jouw antwoorden en is klaar voor gebruik!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Custom Componenten */}
-            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Gegenereerde Componenten</h2>
-              
-              {generatedTemplate.customComponents && generatedTemplate.customComponents.length > 0 ? (
-                <div className="space-y-4">
-                  {generatedTemplate.customComponents.map((component: {id: string, name: string, type: string, description: string, icon: string, category?: string}, index: number) => (
-                    <div key={index} className="flex items-start space-x-4 p-4 bg-gradient-to-r from-purple-900 to-blue-900 rounded-lg border border-purple-700">
-                      <div className="text-2xl">{component.icon}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white">{component.name}</h3>
-                        <p className="text-gray-300 text-sm">{component.description}</p>
-                        <span className="inline-block mt-2 px-2 py-1 bg-purple-700 text-purple-200 text-xs rounded-full">
-                          {component.category}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <div className="mt-6 p-4 bg-yellow-900 bg-opacity-30 border border-yellow-600 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 text-yellow-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <h4 className="font-semibold text-yellow-300">Slimme Componenten</h4>
-                        <p className="text-yellow-200 text-sm mt-1">
-                          Deze componenten zijn speciaal gegenereerd op basis van jouw antwoorden en zijn uniek voor jouw toernooi!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-400">Geen custom componenten gegenereerd</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Actie Knoppen */}
-          <div className="mt-8 flex justify-center space-x-4">
-            <button
-              onClick={() => router.push('/editor/wizard')}
-              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              Opnieuw Starten
-            </button>
-            <button
-              onClick={() => setCurrentView('create-tournament')}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Ga naar Editor
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  
+  // Oude wizard resultaat view - verwijderd omdat wizardAnswers niet meer bestaat
+  // Deze code is vervangen door redirect naar /editor/wizard
+  
   // Toernooi aanmaken view
   if (currentView === 'create-tournament') {
     return (
@@ -3490,8 +3167,7 @@ export default function Dashboard() {
                                               );
                                             default:
                                               // Voor custom componenten
-                                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                              if ((component as any).type === 'custom') {
+                                              if ((component as {type?: string}).type === 'custom') {
                                                 return (
                                                   <div 
                                                     className="px-4 py-8"

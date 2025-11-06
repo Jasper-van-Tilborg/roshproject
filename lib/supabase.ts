@@ -30,8 +30,9 @@ export interface Tournament {
   generated_code_css: string
   generated_code_js: string
   generated_code_full: string
-  wizard_answers: Record<string, any>
-  custom_components?: any[]
+  wizard_answers: Record<string, unknown>
+  custom_components?: Array<Record<string, unknown>>
 }
+
 
 

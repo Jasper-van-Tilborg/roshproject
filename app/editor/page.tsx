@@ -68,7 +68,7 @@ export default function EditorPage() {
     }
   }
 
-  const updateConfig = (key: string, value: any) => {
+  const updateConfig = (key: string, value: unknown) => {
     if (key.includes('.')) {
       const [parent, child] = key.split('.')
       setConfig(prev => ({
@@ -108,7 +108,7 @@ export default function EditorPage() {
     if (!generatedCode) {
       generateTemplate()
     }
-  }, [])
+  }, [generateTemplate, generatedCode])
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -399,7 +399,7 @@ export default function EditorPage() {
                       </pre>
                     ) : (
                       <div className="text-center py-12 text-gray-500">
-                        <p>Klik op "Genereer Template" om de code te zien</p>
+                        <p>Klik op &quot;Genereer Template&quot; om de code te zien</p>
                       </div>
                     )}
                   </div>

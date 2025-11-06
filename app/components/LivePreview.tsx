@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 
 interface LivePreviewProps {
   generatedCode: string
-  config: any
+  config: Record<string, unknown>
 }
 
 export default function LivePreview({ generatedCode, config }: LivePreviewProps) {
@@ -266,7 +266,7 @@ export default function TournamentPage() {
       <div className="flex items-center justify-center h-96 bg-gray-100 rounded-lg">
         <div className="text-center">
           <div className="text-4xl mb-4">🎮</div>
-          <p className="text-gray-600">Klik op "Genereer Template" om een preview te zien</p>
+          <p className="text-gray-600">Klik op &quot;Genereer Template&quot; om een preview te zien</p>
         </div>
       </div>
     )

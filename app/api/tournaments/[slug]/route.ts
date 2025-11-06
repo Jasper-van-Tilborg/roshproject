@@ -32,13 +32,15 @@ export async function GET(
     }
     
     return NextResponse.json({ tournament: data })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching tournament:', error)
+    const message = error instanceof Error ? error.message : 'Failed to fetch tournament'
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch tournament' },
+      { error: message },
       { status: 500 }
     )
   }
 }
+
 
 

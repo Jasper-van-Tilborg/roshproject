@@ -67,7 +67,7 @@ export default function AutoEditorPage() {
     }
   }
 
-  const updateConfig = (key: string, value: any) => {
+  const updateConfig = (key: string, value: unknown) => {
     if (key.includes('.')) {
       const [parent, child] = key.split('.')
       setConfig(prev => ({
@@ -109,14 +109,14 @@ export default function AutoEditorPage() {
     }
     
     generateTemplate()
-  }, [])
+  }, [generateTemplate])
 
   // Auto-generate preview when config changes
   useEffect(() => {
     if (generatedCode) {
       generateTemplate()
     }
-  }, [config])
+  }, [config, generateTemplate, generatedCode])
 
   return (
     <div className="min-h-screen bg-gray-100">
