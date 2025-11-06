@@ -90,12 +90,12 @@ export default function TournamentPage() {
       fontFamily: '${(config.theme as { fontFamily?: string })?.fontFamily || 'Inter'}'
     },
     tournament: {
-      title: '${config.title || 'Championship Toernooi'}',
-      date: '${config.date || 'Datum nog te bepalen'}',
-      location: '${config.location || 'Online/TBA'}',
+      title: '${String(config.title || 'Championship Toernooi')}',
+      date: '${String(config.date || 'Datum nog te bepalen')}',
+      location: '${String(config.location || 'Online/TBA')}',
       description: '${config.description || 'Een spannend toernooi voor alle deelnemers'}',
       participants: ${config.participants || 8},
-      game: '${config.game || 'CS2'}'
+      game: '${String(config.game || 'CS2')}'
     }
   }
 
@@ -108,7 +108,7 @@ export default function TournamentPage() {
         <nav className="relative z-10 container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div className="text-white font-bold text-2xl tracking-tight">
-              ${config.title?.toUpperCase() || 'CHAMPIONSHIP'}
+              ${String(config.title || 'CHAMPIONSHIP').toUpperCase()}
             </div>
             <div className="hidden md:flex space-x-8 text-white">
               <a href="#about" className="hover:text-purple-400 transition-colors duration-300">Over</a>
@@ -125,7 +125,7 @@ export default function TournamentPage() {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight tracking-tight">
-              ${config.title?.toUpperCase() || 'CHAMPIONSHIP'}
+              ${String(config.title || 'CHAMPIONSHIP').toUpperCase()}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                 EVENT
               </span>
@@ -134,12 +134,12 @@ export default function TournamentPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 text-white text-lg">
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📅</span>
-                <span className="font-semibold">${config.date || 'Datum TBD'}</span>
+                <span className="font-semibold">${String(config.date || 'Datum TBD')}</span>
               </div>
               <div className="hidden sm:block w-2 h-2 bg-purple-400 rounded-full"></div>
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📍</span>
-                <span className="font-semibold">${config.location || 'Online'}</span>
+                <span className="font-semibold">${String(config.location || 'Online')}</span>
               </div>
             </div>
 
@@ -177,14 +177,14 @@ export default function TournamentPage() {
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
               <div className="text-5xl mb-4">👥</div>
               <h3 className="text-2xl font-bold text-white mb-4">Teams</h3>
-              <p className="text-3xl font-black text-purple-400 mb-2">${config.participants || 8}</p>
+              <p className="text-3xl font-black text-purple-400 mb-2">${String(config.participants || 8)}</p>
               <p className="text-gray-300">Deelnemende teams</p>
             </div>
             
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
               <div className="text-5xl mb-4">🎮</div>
               <h3 className="text-2xl font-bold text-white mb-4">Game</h3>
-              <p className="text-3xl font-black text-purple-400 mb-2">${config.game || 'CS2'}</p>
+              <p className="text-3xl font-black text-purple-400 mb-2">${String(config.game || 'CS2')}</p>
               <p className="text-gray-300">Counter-Strike 2</p>
             </div>
           </div>
@@ -193,9 +193,9 @@ export default function TournamentPage() {
 
       <footer className="py-12 px-4 border-t border-white border-opacity-20">
         <div className="container mx-auto max-w-6xl text-center">
-          <div className="text-white font-bold text-2xl mb-4">${config.title?.toUpperCase() || 'CHAMPIONSHIP'} EVENT</div>
-          <p className="text-gray-300 mb-6">Het ultieme ${config.game || 'CS2'} toernooi</p>
-          <p className="text-gray-400">&copy; 2025 ${config.title || 'Championship'} Event. Alle rechten voorbehouden.</p>
+          <div className="text-white font-bold text-2xl mb-4">${String(config.title || 'CHAMPIONSHIP').toUpperCase()} EVENT</div>
+          <p className="text-gray-300 mb-6">Het ultieme ${String(config.game || 'CS2')} toernooi</p>
+          <p className="text-gray-400">&copy; 2025 ${String(config.title || 'Championship')} Event. Alle rechten voorbehouden.</p>
         </div>
       </footer>
     </div>
