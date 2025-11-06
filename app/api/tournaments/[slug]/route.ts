@@ -4,10 +4,10 @@ import { supabase } from '../../../../lib/supabase'
 // GET - Haal tournament op via slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const slug = params.slug
+    const { slug } = await params
     
     const { data, error } = await supabase
       .from('tournaments')
