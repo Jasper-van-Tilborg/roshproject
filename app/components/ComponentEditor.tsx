@@ -32,7 +32,7 @@ export default function ComponentEditor({
   // Parse components when HTML changes
   useEffect(() => {
     try {
-      const parsed = parseComponentsFromHTML(editedHtml, editedCss, js)
+      const parsed = parseComponentsFromHTML(editedHtml, editedCss)
       setComponents(parsed)
     } catch (error) {
       console.error('Error parsing components:', error)
