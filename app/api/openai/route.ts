@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     console.log('API Key length:', process.env.ANTHROPIC_API_KEY?.length || 0);
     
     // Parse de request body
-    const { message, model = 'claude-sonnet-4-5-20250929' } = await request.json();
+    const { message, systemPrompt, model = 'claude-sonnet-4-5-20250929', max_tokens = 32768 } = await request.json();
 
     // Valideer dat er een message is
     if (!message) {
@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: model,
-        max_tokens: 1024,
+        max_tokens: max_tokens,
+        system: systemPrompt || 'You are a helpful assistant.',
         messages: [
           {
             role: 'user',

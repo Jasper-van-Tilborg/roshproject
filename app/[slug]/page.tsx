@@ -19,6 +19,12 @@ interface Tournament {
   secondaryColor: string;
   status: 'draft' | 'published';
   createdAt: string;
+  generatedCode?: {
+    html: string;
+    css: string;
+    js: string;
+    full: string;
+  };
 }
 
 export default function TournamentPage() {
@@ -28,40 +34,84 @@ export default function TournamentPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    // Functie om URL slug te genereren (moet hetzelfde zijn als in dashboard)
-    const generateSlug = (name: string) => {
-      return name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '') // Verwijder speciale karakters
-        .replace(/\s+/g, '-') // Vervang spaties met streepjes
-        .replace(/-+/g, '-') // Vervang meerdere streepjes met één
-        .trim();
+    const fetchTournament = async () => {
+      try {
+        const slug = params.slug as string;
+        
+        // Probeer eerst vanuit Supabase
+        const response = await fetch(`/api/tournaments/${slug}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          const dbTournament = data.tournament;
+          
+          // Transform Supabase format naar lokale format
+          const tournament: Tournament = {
+            id: dbTournament.id,
+            name: dbTournament.name,
+            description: dbTournament.description || '',
+            location: dbTournament.location || '',
+            startDate: dbTournament.start_date || '',
+            endDate: dbTournament.end_date || '',
+            maxParticipants: dbTournament.max_participants || '8',
+            entryFee: dbTournament.entry_fee || '',
+            prizePool: dbTournament.prize_pool || '',
+            primaryColor: dbTournament.primary_color || '#3B82F6',
+            secondaryColor: dbTournament.secondary_color || '#10B981',
+            status: dbTournament.status,
+            createdAt: dbTournament.created_at,
+            generatedCode: {
+              html: dbTournament.generated_code_html || '',
+              css: dbTournament.generated_code_css || '',
+              js: dbTournament.generated_code_js || '',
+              full: dbTournament.generated_code_full || ''
+            }
+          };
+          
+          setTournament(tournament);
+          setLoading(false);
+          return;
+        }
+        
+        // Fallback naar localStorage als Supabase niet beschikbaar is
+        const savedTournaments = localStorage.getItem('tournaments');
+        let tournaments: Tournament[] = [];
+        
+        if (savedTournaments) {
+          try {
+            tournaments = JSON.parse(savedTournaments);
+          } catch (error) {
+            console.error('Error parsing tournaments from localStorage:', error);
+          }
+        }
+
+        const generateSlug = (name: string) => {
+          return name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+        };
+
+        const foundTournament = tournaments.find(t => 
+          generateSlug(t.name) === slug && t.status === 'published'
+        );
+
+        if (foundTournament) {
+          setTournament(foundTournament);
+        } else {
+          setNotFound(true);
+        }
+      } catch (error) {
+        console.error('Error fetching tournament:', error);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Haal toernooien op uit localStorage (waar dashboard ze opslaat)
-    const savedTournaments = localStorage.getItem('tournaments');
-    let tournaments: Tournament[] = [];
-    
-    if (savedTournaments) {
-      try {
-        tournaments = JSON.parse(savedTournaments);
-      } catch (error) {
-        console.error('Error parsing tournaments from localStorage:', error);
-      }
-    }
-
-    const slug = params.slug as string;
-    const foundTournament = tournaments.find(t => 
-      generateSlug(t.name) === slug && t.status === 'published'
-    );
-
-    if (foundTournament) {
-      setTournament(foundTournament);
-    } else {
-      setNotFound(true);
-    }
-    
-    setLoading(false);
+    fetchTournament();
   }, [params.slug]);
 
   if (loading) {
@@ -119,6 +169,36 @@ export default function TournamentPage() {
     );
   }
 
+  // If tournament has generatedCode, render that in iframe
+  if (tournament.generatedCode?.full || tournament.generatedCode) {
+    const htmlToRender = tournament.generatedCode?.full || 
+      `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${tournament.name}</title>
+    <style>${tournament.generatedCode?.css || ''}</style>
+</head>
+<body>
+    ${tournament.generatedCode?.html || ''}
+    <script>${tournament.generatedCode?.js || ''}</script>
+</body>
+</html>`
+    
+    return (
+      <div className="w-full h-screen">
+        <iframe
+          srcDoc={htmlToRender}
+          className="w-full h-full border-0"
+          title={tournament.name}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      </div>
+    )
+  }
+
+  // Fallback to default template
   return (
     <div 
       className="min-h-screen relative"

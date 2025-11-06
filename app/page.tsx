@@ -37,14 +37,16 @@ export default function Home() {
             Geen code nodig.
           </p>
           
-          <Link href="/dashboard">
-            <button className="text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl" style={{
-              background: 'linear-gradient(45deg, #8B5CF6, #3B82F6)',
-              boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
-            }}>
-              START CREATING
-            </button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/dashboard">
+              <button className="text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl" style={{
+                background: 'linear-gradient(45deg, #8B5CF6, #3B82F6)',
+                boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
+              }}>
+                START CREATING
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

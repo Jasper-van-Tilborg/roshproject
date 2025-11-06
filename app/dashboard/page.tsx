@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Header from '../components/header';
 import DarkVeil from '../components/DarkVeil';
@@ -100,6 +101,7 @@ function SortableItem({
 }
 
 export default function Dashboard() {
+  const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -811,34 +813,34 @@ export default function Dashboard() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                  Gebruikersnaam
-                </label>
+              <div className="relative floating-label-input">
                 <input
                   type="text"
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                  className={`w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-700 text-white placeholder-gray-400 ${username ? 'has-value' : ''}`}
                   placeholder="Voer gebruikersnaam in"
                   required
                 />
+                <label htmlFor="username" className="floating-label">
+                  Voer gebruikersnaam in
+                </label>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Wachtwoord
-                </label>
+              <div className="relative floating-label-input">
                 <input
                   type="password"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-gray-700 text-white placeholder-gray-400"
+                  className={`w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-700 text-white placeholder-gray-400 ${password ? 'has-value' : ''}`}
                   placeholder="Voer wachtwoord in"
                   required
                 />
+                <label htmlFor="password" className="floating-label">
+                  Voer wachtwoord in
+                </label>
               </div>
 
               {loginError && (
@@ -1115,7 +1117,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Wizard Card */}
-            <WizardCard onSelect={() => setCurrentView('template-wizard')} />
+            <WizardCard onSelect={() => router.push('/editor/wizard')} />
 
             {/* Custom Card */}
             <CustomCard onSelect={() => handleTemplateSelect('custom')} />
@@ -1797,319 +1799,30 @@ export default function Dashboard() {
     };
   };
 
-  // Template wizard view
+  // Template wizard view - Redirect naar nieuwe AI wizard
   if (currentView === 'template-wizard') {
-    // Wizard steps gegroepeerd per categorie
-    const WIZARD_STEPS = [
-      {
-        title: 'Algemene Informatie',
-        description: 'Vertel ons over je toernooi',
-        icon: '📝',
-        questions: [
-          {
-            id: 'tournament_name',
-            question: 'Wat is de titel van het toernooi?',
-            type: 'text',
-            placeholder: 'Bijv. ROSH Winter Championship 2025',
-            required: true
-          },
-          {
-            id: 'tournament_date',
-            question: 'Wat is de datum van het toernooi?',
-            type: 'text',
-            placeholder: 'Bijv. 15 maart 2025 of 10-12 april 2025',
-            required: true
-          },
-          {
-            id: 'tournament_location',
-            question: 'Wat is de locatie?',
-            type: 'text',
-            placeholder: 'Bijv. Amsterdam, Nederland of Online',
-            required: true
-          },
-          {
-            id: 'tournament_description',
-            question: 'Geef een korte beschrijving',
-            type: 'textarea',
-            placeholder: 'Beschrijf wat het toernooi uniek maakt...',
-            required: true
-          }
-        ]
-      },
-      {
-        title: 'Design & Branding',
-        description: 'Kies de visuele stijl',
-        icon: '🎨',
-        questions: [
-          {
-            id: 'primary_color',
-            question: 'Primaire kleur (Hex-code)',
-            type: 'text',
-            placeholder: '#3B82F6',
-            required: true
-          },
-          {
-            id: 'secondary_color',
-            question: 'Secundaire kleur (Hex-code)',
-            type: 'text',
-            placeholder: '#10B981',
-            required: true
-          },
-          {
-            id: 'brand_style',
-            question: 'Gewenste stijl',
-            type: 'radio',
-            required: true,
-            options: [
-              { value: 'modern', label: 'Modern & Strak', description: 'Clean en professioneel' },
-              { value: 'sportief', label: 'Sportief & Energiek', description: 'Dynamisch en actief' },
-              { value: 'elegant', label: 'Elegant & Professioneel', description: 'Luxe uitstraling' },
-              { value: 'playful', label: 'Speels & Kleurrijk', description: 'Fun en toegankelijk' }
-            ]
-          },
-          {
-            id: 'font_family',
-            question: 'Lettertype',
-            type: 'radio',
-            required: true,
-            options: [
-              { value: 'Inter', label: 'Inter', description: 'Modern' },
-              { value: 'Roboto', label: 'Roboto', description: 'Professioneel' },
-              { value: 'Montserrat', label: 'Montserrat', description: 'Elegant' },
-              { value: 'Poppins', label: 'Poppins', description: 'Vriendelijk' }
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Toernooi Details',
-        description: 'Format en deelnemers',
-        icon: '🏆',
-        questions: [
-          {
-            id: 'bracket_type',
-            question: 'Bracket/Format type',
-            type: 'radio',
-            required: true,
-            options: [
-              { value: 'single_elimination', label: 'Single Elimination', description: 'Eliminatie na één verlies' },
-              { value: 'double_elimination', label: 'Double Elimination', description: 'Twee levens' },
-              { value: 'group_stage', label: 'Group Stage', description: 'Groepsfase + knockout' },
-              { value: 'round_robin', label: 'Round Robin', description: 'Iedereen tegen iedereen' }
-            ]
-          },
-          {
-            id: 'participants',
-            question: 'Aantal deelnemers/teams',
-            type: 'radio',
-            required: true,
-            options: [
-              { value: '8', label: '8', description: 'Klein' },
-              { value: '16', label: '16', description: 'Medium' },
-              { value: '32', label: '32', description: 'Groot' },
-              { value: '64', label: '64+', description: 'Major' }
-            ]
-          },
-          {
-            id: 'game_type',
-            question: 'Welk spel?',
-            type: 'radio',
-            required: true,
-            options: [
-              { value: 'cs2', label: 'Counter-Strike 2', description: 'FPS' },
-              { value: 'valorant', label: 'Valorant', description: 'Tactical Shooter' },
-              { value: 'lol', label: 'League of Legends', description: 'MOBA' },
-              { value: 'fifa', label: 'FIFA', description: 'Voetbal' },
-              { value: 'rocket_league', label: 'Rocket League', description: 'Auto-voetbal' },
-              { value: 'other', label: 'Anders', description: 'Specificeer zelf' }
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Extra Componenten',
-        description: 'Welke onderdelen wil je toevoegen?',
-        icon: '🧩',
-        questions: [
-          {
-            id: 'include_schedule',
-            question: '🗓️ Programma/Schema sectie',
-            type: 'boolean',
-            description: 'Dagindeling of tijdschema'
-          },
-          {
-            id: 'schedule_details',
-            question: 'Programma details',
-            type: 'text',
-            placeholder: '10:00 Opening, 11:00 Kwartfinales, 14:00 Finale',
-            dependsOn: 'include_schedule'
-          },
-          {
-            id: 'include_teams',
-            question: '🧑‍🤝‍🧑 Teams sectie',
-            type: 'boolean',
-            description: 'Teams met bracket visualisatie'
-          },
-          {
-            id: 'include_sponsors',
-            question: '💼 Sponsoren sectie',
-            type: 'boolean',
-            description: 'Sponsor logo\'s'
-          },
-          {
-            id: 'sponsors_list',
-            question: 'Welke sponsoren?',
-            type: 'text',
-            placeholder: 'Lenovo Legion, HyperX, Red Bull',
-            dependsOn: 'include_sponsors'
-          },
-          {
-            id: 'include_registration',
-            question: '📬 Inschrijfformulier',
-            type: 'boolean',
-            description: 'Voor aanmeldingen'
-          },
-          {
-            id: 'form_fields',
-            question: 'Formulier velden',
-            type: 'text',
-            placeholder: 'naam, email, teamnaam, aantal spelers',
-            dependsOn: 'include_registration'
-          },
-          {
-            id: 'include_social',
-            question: '🔗 Social Media links',
-            type: 'boolean',
-            description: 'Links naar sociale platformen'
-          },
-          {
-            id: 'social_links',
-            question: 'Welke platformen?',
-            type: 'text',
-            placeholder: 'Facebook, Instagram, Twitter, Discord',
-            dependsOn: 'include_social'
-          },
-          {
-            id: 'include_twitch',
-            question: '📺 Twitch integratie',
-            type: 'boolean',
-            description: 'Embed livestream'
-          },
-          {
-            id: 'twitch_channel',
-            question: 'Twitch kanaal',
-            type: 'text',
-            placeholder: 'jouw_twitch_kanaal',
-            dependsOn: 'include_twitch'
-          }
-        ]
-      }
-    ];
-
-
-    const handleWizardAnswer = (questionId: string, answer: string) => {
-      setWizardAnswers(prev => ({
-        ...prev,
-        [questionId]: answer
-      }));
-    };
-
-    const handleNextStep = () => {
-      if (wizardStep < WIZARD_STEPS.length - 1) {
-        setWizardStep(prev => prev + 1);
-      } else {
-        // Wizard voltooid - Genereer template
-        handleGenerate();
-      }
-    };
-
-    const handleGenerate = async () => {
-      setIsGenerating(true);
-      
-      try {
-        // Genereer complete website met Claude
-        const { generateTournamentTemplate } = await import('../utils/claude-template-generator');
-        const result = await generateTournamentTemplate(wizardAnswers);
-        
-        if (result.success && result.code) {
-          // Sla de gegenereerde code op
-          setGeneratedCode(result.code);
-        } else {
-          alert(`Fout bij genereren: ${result.error}`);
-        }
-        
-        // Fallback: gebruik bestaande template generator
-        const template = generateTemplateFromAnswers(wizardAnswers);
-        
-        // Stel componenten in
-        const enabledComponents: Record<string, boolean> = {};
-        const allComponents = ['header', 'description', 'tournamentDetails', 'registration', 'stats', 'schedule', 'rules', 'prizes', 'sponsors', 'social', 'contact', 'livestream'];
-        
-        allComponents.forEach(component => {
-          enabledComponents[component] = template.components.includes(component);
-        });
-        
-        setEnabledComponents(enabledComponents);
-        setComponentOrder(template.components);
-        
-        // Voeg custom componenten toe aan allComponents en enabledComponents
-        if (template.customComponents && template.customComponents.length > 0) {
-          template.customComponents.forEach((customComp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (allComponents as any)[customComp.id] = customComp;
-            enabledComponents[customComp.id] = true;
-          });
-          setEnabledComponents(enabledComponents);
-          setComponentOrder(prev => [...prev, ...template.customComponents.map((comp: {id: string, name: string, type: string, description: string, icon: string, category?: string}) => comp.id)]);
-        }
-        
-        // Kleuren en basis info toepassen
-        setTournamentConfig(prev => ({
-          ...prev,
-          name: String(wizardAnswers.tournament_name || ''),
-          description: `Toernooi op ${wizardAnswers.tournament_date || 'datum nog in te vullen'}`,
-          primaryColor: template.primaryColor,
-          secondaryColor: template.secondaryColor,
-          backgroundColor: template.backgroundColor,
-          customComponents: template.customComponents || []
-        }));
-
-        // Reset wizard state
-        setWizardStep(0);
-        setWizardAnswers({});
-        
-        // Ga naar wizard resultaat view
-        setCurrentView('wizard-result');
-      } catch (error) {
-        console.error('Error generating template:', error);
-        alert('Er is een fout opgetreden bij het genereren van de template.');
-      } finally {
-        setIsGenerating(false);
-      }
-    };
-
-    const handlePrevStep = () => {
-      if (wizardStep > 0) {
-        setWizardStep(prev => prev - 1);
-      }
-    };
-
-    const currentStep = WIZARD_STEPS[wizardStep];
-    const isLastStep = wizardStep === WIZARD_STEPS.length - 1;
+    // Redirect effect
+    useEffect(() => {
+      router.push('/editor/wizard')
+    }, [router])
     
-    // Check if all required questions in current step are answered
-    const canProceed = currentStep.questions.every(q => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((q as any).dependsOn && !wizardAnswers[(q as any).dependsOn]) {
-        return true; // Skip dependent questions if dependency not met
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((q as any).required) {
-        return !!wizardAnswers[q.id];
-      }
-      return true;
-    });
-
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-300">Doorsturen naar AI Wizard...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Oude wizard code is verwijderd - alle wizard functionaliteit is nu in /editor/wizard
+  
+  // Wizard resultaat view (voor oude flows die hier nog naartoe redirecten)
+  if (currentView === 'wizard-result') {
+    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
+    const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
         {/* Header */}
@@ -2117,229 +1830,101 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setCurrentView('template-selection')}
-                  className="flex items-center text-gray-300 hover:text-white transition-colors"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Terug naar templates
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Template Wizard Voltooid!</h1>
+                  <p className="text-gray-300">Je gepersonaliseerde template is klaar</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => router.push('/editor/wizard')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span>Nieuwe Wizard Starten</span>
                 </button>
-                <div className="h-6 w-px bg-gray-600"></div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <h1 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">Template Wizard</h1>
-                </div>
-              </div>
-              
-              {/* Progress indicator */}
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-300">
-                  Stap {wizardStep + 1} van {WIZARD_STEPS.length}
-                    </span>
-                <div className="w-32 bg-gray-700 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${((wizardStep + 1) / WIZARD_STEPS.length) * 100}%` }}
-                  ></div>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Wizard Content */}
+        {/* Resultaat Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar met overzicht antwoorden */}
-            <div className="lg:col-span-1">
-              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-6 sticky top-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <span>📋</span> Jouw Antwoorden
-                </h3>
-                
-                <div className="space-y-4">
-                  {WIZARD_STEPS.map((step, index) => (
-                    <div key={index} className={`${
-                      index === wizardStep ? 'bg-purple-900/30 border-purple-500' : 
-                      index < wizardStep ? 'bg-green-900/20 border-green-700' : 
-                      'bg-gray-700/30 border-gray-600'
-                    } border rounded-lg p-3`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">{step.icon}</span>
-                        <span className="text-sm font-medium text-white">{step.title}</span>
-                      </div>
-                      {index < wizardStep && (
-                        <div className="text-xs text-gray-400 space-y-1">
-                          {step.questions.map(q => wizardAnswers[q.id] && (
-                            <div key={q.id} className="truncate">
-                              {String(wizardAnswers[q.id]).substring(0, 30)}
-                              {String(wizardAnswers[q.id]).length > 30 && '...'}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Main Wizard Form */}
-            <div className="lg:col-span-3">
-              <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8">
-                <div className="mb-8">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-2xl">
-                      {currentStep.icon}
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-white">{currentStep.title}</h2>
-                      <p className="text-gray-400 mt-1">{currentStep.description}</p>
-                    </div>
-                  </div>
-                </div>
-
-            {/* Questions for this step */}
-            <div className="space-y-8 mb-8">
-              {currentStep.questions.map((question) => {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const shouldShow = !(question as any).dependsOn || wizardAnswers[(question as any).dependsOn];
-                if (!shouldShow) return null;
-                
-                return (
-                  <div key={question.id} className="space-y-3">
-                    <label className="block text-white font-medium text-lg">
-                      {question.question}
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {(question as any).required && <span className="text-red-400 ml-1">*</span>}
-                    </label>
-                    
-                    {question.type === 'text' ? (
-                      <input
-                        type="text"
-                        placeholder={question.placeholder}
-                        value={String(wizardAnswers[question.id] || '')}
-                        onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-400"
-                      />
-                    ) : question.type === 'textarea' ? (
-                      <textarea
-                        placeholder={question.placeholder}
-                        value={String(wizardAnswers[question.id] || '')}
-                        onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
-                        rows={4}
-                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-400"
-                      />
-                    ) : question.type === 'boolean' ? (
-                      <div className="flex items-center space-x-3 p-4 bg-gray-700/50 border border-gray-600 rounded-lg hover:border-gray-500 transition-all">
-                        <input
-                          type="checkbox"
-                          id={question.id}
-                          checked={Boolean(wizardAnswers[question.id])}
-                          onChange={(e) => handleWizardAnswer(question.id, e.target.checked ? 'true' : '')}
-                          className="w-5 h-5 rounded border-gray-400 text-purple-600 focus:ring-2 focus:ring-purple-500"
-                        />
-                        <label htmlFor={question.id} className="text-gray-300 cursor-pointer flex-1">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                          {(question as any).description || 'Ja, voeg dit toe'}
-                        </label>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        {(question as any).options?.map((option: {value: string, label: string, description?: string}) => (
-                          <label
-                            key={option.value}
-                            className={`block p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                              wizardAnswers[question.id] === option.value
-                                ? 'border-purple-500 bg-purple-900/30'
-                                : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={question.id}
-                              value={option.value}
-                              checked={wizardAnswers[question.id] === option.value}
-                              onChange={(e) => handleWizardAnswer(question.id, e.target.value)}
-                              className="sr-only"
-                            />
-                            <div className="flex items-start space-x-3">
-                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                                wizardAnswers[question.id] === option.value
-                                  ? 'border-purple-500 bg-purple-500'
-                                  : 'border-gray-500'
-                              }`}>
-                                {wizardAnswers[question.id] === option.value && (
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-white mb-1">{option.label}</h4>
-                                {option.description && (
-                                  <p className="text-sm text-gray-400">{option.description}</p>
-                                )}
-                              </div>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between">
-              <button
-                onClick={handlePrevStep}
-                disabled={wizardStep === 0}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  wizardStep === 0
-                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                    : 'bg-gray-600 text-gray-200 hover:bg-gray-500'
-                }`}
-              >
-                Vorige
-              </button>
-              
-              <button
-                onClick={handleNextStep}
-                disabled={!canProceed || isGenerating}
-                className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
-                  canProceed && !isGenerating
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {isLastStep ? (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    <span>{isGenerating ? 'Genereren...' : 'Template Genereren'}</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Volgende</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
+          <div className="text-center">
+            <p className="text-gray-300 text-lg mb-4">Template gegenereerd met de oude wizard.</p>
+            <p className="text-gray-400 mb-8">Gebruik de nieuwe AI Wizard voor betere resultaten!</p>
+            <button
+              onClick={() => router.push('/editor/wizard')}
+              className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors"
+            >
+              Ga naar Nieuwe AI Wizard
+            </button>
           </div>
         </div>
       </div>
-      </div>
+    );
+  }
+  
+  // Oude wizard code hier verwijderd - alle functionaliteit is nu in /editor/wizard
+  
+  // Wizard resultaat view
+  if (currentView === 'wizard-result') {
+    const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
+    const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
+        {/* Header */}
+        <div className="bg-gray-800 shadow-lg border-b border-gray-700">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Template Wizard Voltooid!</h1>
+                  <p className="text-gray-300">Je gepersonaliseerde template is klaar</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => router.push('/editor/wizard')}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span>Ga naar AI Wizard</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Resultaat Content */}
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 p-8 text-center">
+            <p className="text-gray-300 mb-4">De oude wizard is vervangen door de nieuwe AI-powered wizard.</p>
+            <button
+              onClick={() => router.push('/editor/wizard')}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+            >
+              Open AI Website Maker
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2643,7 +2228,7 @@ export default function Dashboard() {
           {/* Actie Knoppen */}
           <div className="mt-8 flex justify-center space-x-4">
             <button
-              onClick={() => setCurrentView('template-wizard')}
+              onClick={() => router.push('/editor/wizard')}
               className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
             >
               Opnieuw Starten
