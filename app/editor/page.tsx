@@ -45,22 +45,36 @@ export default function EditorPage() {
 
   const generateTemplate = useCallback(async () => {
     setIsGenerating(true)
+    // Convert config to flat format expected by generateTournamentTemplate
+    const flatConfig: Record<string, string | number | boolean> = {
+      title: config.title,
+      date: config.date,
+      location: config.location,
+      description: config.description,
+      participants: config.participants,
+      bracketType: config.bracketType,
+      game: config.game,
+      primaryColor: config.theme.primaryColor,
+      secondaryColor: config.theme.secondaryColor,
+      fontFamily: config.theme.fontFamily,
+      components: config.components.join(',')
+    }
     try {
       // Generate with Claude API
-      const result = await generateTournamentTemplate(config)
+      const result = await generateTournamentTemplate(flatConfig)
       if (result.success && result.code) {
         setGeneratedCode(result.code)
         setActiveTab('preview')
       } else {
         // Fallback to mock generator if Claude fails
-        const mockCode = generateMockTemplate(config)
+        const mockCode = generateMockTemplate(flatConfig)
         setGeneratedCode(mockCode)
         setActiveTab('preview')
       }
     } catch (error) {
       console.error('Error generating template:', error)
       // Fallback to mock generator on error
-      const mockCode = generateMockTemplate(config)
+      const mockCode = generateMockTemplate(flatConfig)
       setGeneratedCode(mockCode)
       setActiveTab('preview')
     } finally {
@@ -98,7 +112,21 @@ export default function EditorPage() {
   // Auto-generate preview when config changes
   useEffect(() => {
     if (autoGenerate) {
-      const mockCode = generateMockTemplate(config)
+      // Convert config to flat format expected by generateMockTemplate
+      const flatConfig: Record<string, string | number | boolean> = {
+        title: config.title,
+        date: config.date,
+        location: config.location,
+        description: config.description,
+        participants: config.participants,
+        bracketType: config.bracketType,
+        game: config.game,
+        primaryColor: config.theme.primaryColor,
+        secondaryColor: config.theme.secondaryColor,
+        fontFamily: config.theme.fontFamily,
+        components: config.components.join(',')
+      }
+      const mockCode = generateMockTemplate(flatConfig)
       setGeneratedCode(mockCode)
     }
   }, [config, autoGenerate])
