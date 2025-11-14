@@ -177,6 +177,7 @@ const wizardSteps: WizardStep[] = [
 function WizardPageContent() {
   const searchParams = useSearchParams()
   const isEditMode = searchParams?.get('edit') === 'true'
+  const tournamentId = searchParams?.get('id') || null
   
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | number | boolean>>({})
@@ -194,6 +195,7 @@ function WizardPageContent() {
   const [tournamentName, setTournamentName] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
   const [editingTournamentId, setEditingTournamentId] = useState<string | null>(null)
+  const [isLoadingTournament, setIsLoadingTournament] = useState(false)
 
   // Memoize onCodeChange callback to prevent infinite loops
   const handleCodeChange = useCallback((html: string, css: string, js: string) => {
@@ -211,52 +213,133 @@ function WizardPageContent() {
 
   // Load existing tournament data when in edit mode
   useEffect(() => {
-    if (isEditMode) {
-      // Load tournament ID
-      const editingId = localStorage.getItem('editingTournamentId')
-      if (editingId) {
-        setEditingTournamentId(editingId)
-        localStorage.removeItem('editingTournamentId')
-      }
-
-      // Load tournament name
-      const editingName = localStorage.getItem('editingTournamentName')
-      if (editingName) {
-        setTournamentName(editingName)
-        localStorage.removeItem('editingTournamentName')
-      }
-
-      // Load generated code
-      const editingCode = localStorage.getItem('editingTournamentCode')
-      if (editingCode) {
-        try {
-          const codeData = JSON.parse(editingCode)
-          setGeneratedCode({
-            html: codeData.html || '',
-            css: codeData.css || '',
-            js: codeData.js || '',
-            full: codeData.full || ''
-          })
-          setShowEditor(true) // Open editor directly
-          localStorage.removeItem('editingTournamentCode')
-        } catch (error) {
-          console.error('Error parsing editing tournament code:', error)
-        }
-      }
-
-      // Load wizard answers if available
-      const editingAnswers = localStorage.getItem('editingTournamentAnswers')
-      if (editingAnswers) {
-        try {
-          const answersData = JSON.parse(editingAnswers)
-          setAnswers(answersData)
-          localStorage.removeItem('editingTournamentAnswers')
-        } catch (error) {
-          console.error('Error parsing editing tournament answers:', error)
-        }
+    if (isEditMode && tournamentId) {
+      console.log('Edit mode detected, loading tournament data from API...', tournamentId)
+      setIsLoadingTournament(true)
+      setEditingTournamentId(tournamentId)
+      setError(null) // Reset error
+      
+      // Haal tournament data op uit database
+      console.log('Fetching tournament with ID:', tournamentId)
+      const apiUrl = `/api/tournaments/${tournamentId}`
+      console.log('API URL:', apiUrl)
+      
+      // Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('Fetch timeout - taking too long')
+        setIsLoadingTournament(false)
+        setError('Het laden duurt te lang. Controleer je internetverbinding.')
+        setShowEditor(false)
+      }, 10000) // 10 second timeout
+      
+      fetch(apiUrl)
+        .then(async response => {
+          console.log('Response status:', response.status, response.statusText)
+          
+          let data
+          try {
+            data = await response.json()
+            console.log('Response data:', data)
+          } catch (parseError) {
+            console.error('Failed to parse JSON response:', parseError)
+            const text = await response.text().catch(() => 'Could not read response')
+            console.error('Response text:', text)
+            throw new Error(`Server error: ${response.status} ${response.statusText}`)
+          }
+          
+          if (!response.ok) {
+            const errorMessage = data?.error || data?.message || `Failed to fetch tournament: ${response.status}`
+            const errorHint = data?.hint || ''
+            console.error('API error response:', {
+              status: response.status,
+              error: errorMessage,
+              code: data?.code,
+              details: data?.details,
+              hint: errorHint
+            })
+            const fullError = errorHint ? `${errorMessage}\n\n${errorHint}` : errorMessage
+            throw new Error(fullError)
+          }
+          return data
+        })
+        .then(data => {
+          if (data.tournament) {
+            const dbTournament = data.tournament
+            console.log('Loaded tournament from API:', {
+              name: dbTournament.name,
+              hasHtml: !!dbTournament.generated_code_html,
+              hasCss: !!dbTournament.generated_code_css,
+              hasJs: !!dbTournament.generated_code_js,
+              htmlLength: dbTournament.generated_code_html?.length || 0,
+              cssLength: dbTournament.generated_code_css?.length || 0,
+              jsLength: dbTournament.generated_code_js?.length || 0
+            })
+            
+            // Set tournament name
+            setTournamentName(dbTournament.name || '')
+            
+            // Set generated code
+            const codeToSet = {
+              html: dbTournament.generated_code_html || '',
+              css: dbTournament.generated_code_css || '',
+              js: dbTournament.generated_code_js || '',
+              full: dbTournament.generated_code_full || ''
+            }
+            
+            setGeneratedCode(codeToSet)
+            
+            // Load wizard answers if available
+            if (dbTournament.wizard_answers && typeof dbTournament.wizard_answers === 'object') {
+              setAnswers(dbTournament.wizard_answers as Record<string, string | number | boolean>)
+            } else {
+              // Maak basis wizard answers van tournament data
+              const basicAnswers = {
+                tournament_name: dbTournament.name,
+                tournament_date: dbTournament.start_date,
+                tournament_location: dbTournament.location,
+                tournament_description: dbTournament.description,
+                participants: parseInt(dbTournament.max_participants || '8', 10),
+                game: 'CS2',
+                primary_color: dbTournament.primary_color || '#C8247F',
+                secondary_color: dbTournament.secondary_color || '#8E8E8E',
+                components: dbTournament.custom_components?.map((c: {type?: string}) => c.type).filter(Boolean) || ['bracket', 'twitch', 'sponsors']
+              }
+              setAnswers(basicAnswers)
+            }
+            
+            // Check if there's actually any code
+            const hasCode = !!(codeToSet.html || codeToSet.css || codeToSet.js || codeToSet.full)
+            
+            // Open editor immediately
+            if (hasCode) {
+              console.log('Opening editor directly - has code')
+            } else {
+              console.log('Opening editor - no code yet, user can generate')
+            }
+            setIsLoadingTournament(false) // CRITICAL: Reset loading state
+            setShowEditor(true)
+            setCurrentStep(wizardSteps.length - 1)
+            clearTimeout(timeoutId) // Clear timeout on success
+          } else {
+            clearTimeout(timeoutId)
+            throw new Error('Tournament data not found in response')
+          }
+        })
+        .catch(error => {
+          console.error('Error loading tournament:', error)
+          clearTimeout(timeoutId) // Clear timeout on error
+          setError(`Fout bij laden van toernooi: ${error.message}`)
+          setIsLoadingTournament(false)
+          // Don't set showEditor if there's an error
+          setShowEditor(false)
+        })
+      
+      // Cleanup timeout on unmount
+      return () => {
+        clearTimeout(timeoutId)
       }
     }
-  }, [isEditMode])
+  }, [isEditMode, tournamentId])
 
   // Generate slug from tournament name
   const generateSlug = (name: string): string => {
@@ -724,7 +807,90 @@ function WizardPageContent() {
     }
   }
 
-  if (showEditor && generatedCode) {
+  // Show editor if:
+  // 1. showEditor is true AND generatedCode exists, OR
+  // 2. We're in edit mode AND have editingTournamentId (always show editor in edit mode)
+  const shouldShowEditor = (showEditor && generatedCode) || (isEditMode && editingTournamentId)
+  
+  // Debug log
+  if (isEditMode) {
+    console.log('Render check - shouldShowEditor:', shouldShowEditor, {
+      showEditor,
+      hasGeneratedCode: !!generatedCode,
+      isEditMode,
+      editingTournamentId,
+      generatedCodeHtml: generatedCode?.html?.substring(0, 50) || 'none'
+    })
+  }
+  
+  // In edit mode, always show editor (even if no code yet - user can generate)
+  // Otherwise, show editor only if we have code
+  if (shouldShowEditor) {
+    // If we're loading tournament data, show loading screen
+    if (isLoadingTournament) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+          <div className="text-white">Toernooi laden...</div>
+        </div>
+      )
+    }
+    
+    // If there's an error in edit mode, show error and allow user to continue
+    if (error && isEditMode) {
+      const isApiKeyError = error.includes('API key') || error.includes('Supabase API key')
+      const isRLSError = error.includes('Toegang geweigerd') || error.includes('RLS') || error.includes('permission')
+      
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+          <div className="text-center max-w-md p-6">
+            <div className="text-red-500 text-xl mb-4">⚠️ Fout</div>
+            <div className="text-white mb-4">{error}</div>
+            {isApiKeyError && (
+              <div className="text-yellow-400 text-sm mb-6 p-4 bg-yellow-900/20 rounded-lg">
+                <p className="font-semibold mb-2">Oplossing:</p>
+                <p className="mb-2">1. Controleer je .env.local bestand in de project root</p>
+                <p className="mb-2">2. Zorg dat NEXT_PUBLIC_SUPABASE_URL en NEXT_PUBLIC_SUPABASE_ANON_KEY correct zijn</p>
+                <p className="mb-2">3. <strong>Herstart je development server</strong> (stop met Ctrl+C en start opnieuw met npm run dev)</p>
+                <p className="text-xs text-gray-400 mt-2">Check de terminal waar npm run dev draait voor debug informatie</p>
+              </div>
+            )}
+            {isRLSError && (
+              <div className="text-yellow-400 text-sm mb-6 p-4 bg-yellow-900/20 rounded-lg">
+                <p className="font-semibold mb-2">Oplossing:</p>
+                <p>Controleer je Supabase RLS policies in het Supabase Dashboard</p>
+              </div>
+            )}
+            <button
+              onClick={() => {
+                setError(null)
+                setShowEditor(false)
+              }}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Terug naar Wizard
+            </button>
+          </div>
+        </div>
+      )
+    }
+    
+    // If we don't have code yet but we're in edit mode, wait a bit for data to load
+    // But don't wait forever - if we've been waiting and there's no error, show editor anyway
+    if (!generatedCode && isEditMode && editingTournamentId && !error) {
+      // Wait a moment for the fetch to complete
+      // If still no code after a short delay, show editor anyway (user can generate)
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+          <div className="text-white">Laden...</div>
+        </div>
+      )
+    }
+    
+    // Only render editor if we have code OR we're not in edit mode
+    if (!generatedCode && !isEditMode) {
+      return null
+    }
+    
     // Set tournament name from answers if not set
     if (!tournamentName && answers.tournament_name) {
       setTournamentName(String(answers.tournament_name))
@@ -779,12 +945,27 @@ function WizardPageContent() {
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <ComponentEditor
-            html={generatedCode.html}
-            css={generatedCode.css}
-            js={generatedCode.js}
-            onCodeChange={handleCodeChange}
-          />
+          {generatedCode ? (
+            <ComponentEditor
+              html={generatedCode.html}
+              css={generatedCode.css}
+              js={generatedCode.js}
+              onCodeChange={handleCodeChange}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-white">
+              <div className="text-center">
+                <p className="text-xl mb-4">Geen code gevonden</p>
+                <p className="text-gray-400 mb-6">Genereer nieuwe code via de wizard of gebruik de knop hieronder</p>
+                <button
+                  onClick={() => setShowEditor(false)}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Ga naar Wizard
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )

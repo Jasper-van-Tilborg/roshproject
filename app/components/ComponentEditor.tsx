@@ -20,7 +20,8 @@ export default function ComponentEditor({
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null)
   const [previewHtml, setPreviewHtml] = useState('')
   const [editedHtml, setEditedHtml] = useState(html)
-  const [editedCss] = useState(css)
+  const [editedCss, setEditedCss] = useState(css)
+  const [editedJs, setEditedJs] = useState(js)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const onCodeChangeRef = useRef(onCodeChange)
 
@@ -28,6 +29,28 @@ export default function ComponentEditor({
   useEffect(() => {
     onCodeChangeRef.current = onCodeChange
   }, [onCodeChange])
+
+  // Update local state when props change (important for loading existing code)
+  useEffect(() => {
+    if (html !== editedHtml) {
+      console.log('Updating editedHtml from props, length:', html.length)
+      setEditedHtml(html)
+    }
+  }, [html])
+
+  useEffect(() => {
+    if (css !== editedCss) {
+      console.log('Updating editedCss from props, length:', css.length)
+      setEditedCss(css)
+    }
+  }, [css])
+
+  useEffect(() => {
+    if (js !== editedJs) {
+      console.log('Updating editedJs from props, length:', js.length)
+      setEditedJs(js)
+    }
+  }, [js])
 
   // Parse components when HTML changes
   useEffect(() => {
@@ -37,7 +60,7 @@ export default function ComponentEditor({
     } catch (error) {
       console.error('Error parsing components:', error)
     }
-  }, [editedHtml, editedCss, js])
+  }, [editedHtml, editedCss, editedJs])
 
   // Generate preview HTML
   useEffect(() => {
@@ -76,7 +99,7 @@ export default function ComponentEditor({
 <body>
     ${editedHtml}
     <script>
-        ${js}
+        ${editedJs}
         
         // Add component selection highlighting
         document.addEventListener('DOMContentLoaded', function() {
@@ -95,7 +118,7 @@ export default function ComponentEditor({
 </html>`
     
     setPreviewHtml(combinedHtml)
-  }, [editedHtml, editedCss, js, selectedComponent])
+  }, [editedHtml, editedCss, editedJs, selectedComponent])
 
   // Update iframe when preview changes
   useEffect(() => {
@@ -135,9 +158,9 @@ export default function ComponentEditor({
 
     // Notify parent
     if (onCodeChangeRef.current) {
-      onCodeChangeRef.current(newHtml, editedCss, js)
+      onCodeChangeRef.current(newHtml, editedCss, editedJs)
     }
-  }, [editedHtml, editedCss, js, selectedComponent])
+  }, [editedHtml, editedCss, editedJs, selectedComponent])
 
   const handleIframeClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement

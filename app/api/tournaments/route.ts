@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase, Tournament } from '../../../lib/supabase'
+import { getSupabase, Tournament, isSupabaseConfigured } from '../../../lib/supabase'
 
 // GET - Haal alle tournaments op (met optionele status filter)
 export async function GET(request: NextRequest) {
   try {
+    // Check if Supabase is properly configured
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase not configured')
+      return NextResponse.json(
+        { 
+          error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.',
+          tournaments: [] 
+        },
+        { status: 503 }
+      )
+    }
+
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status') // 'draft' of 'published' of null voor alle
+    
+    // Get fresh Supabase client with current env vars
+    const supabase = getSupabase()
     
     let query = supabase
       .from('tournaments')
@@ -19,9 +34,25 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
     
     if (error) {
-      console.error('Supabase error:', error)
+      console.error('Supabase query error:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
+      
+      // Return empty array instead of error if it's a permission/RLS issue
+      if (error.code === 'PGRST301' || error.message?.includes('permission') || error.message?.includes('policy')) {
+        console.warn('RLS policy issue - returning empty array. Check Supabase RLS policies.')
+        return NextResponse.json({ tournaments: [] })
+      }
+      
       return NextResponse.json(
-        { error: error.message },
+        { 
+          error: error.message || 'Database error',
+          code: error.code,
+          tournaments: [] 
+        },
         { status: 500 }
       )
     }
@@ -31,7 +62,10 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching tournaments:', error)
     const message = error instanceof Error ? error.message : 'Failed to fetch tournaments'
     return NextResponse.json(
-      { error: message },
+      { 
+        error: message,
+        tournaments: [] 
+      },
       { status: 500 }
     )
   }
@@ -106,6 +140,9 @@ export async function POST(request: NextRequest) {
       jsLength: tournamentData.generated_code_js.length,
       fullLength: tournamentData.generated_code_full.length
     });
+    
+    // Get fresh Supabase client with current env vars
+    const supabase = getSupabase()
     
     const { data, error } = await supabase
       .from('tournaments')
@@ -220,6 +257,9 @@ export async function PUT(request: NextRequest) {
       updateData.custom_components = customComponents
     }
     
+    // Get fresh Supabase client with current env vars
+    const supabase = getSupabase()
+    
     const { data, error } = await supabase
       .from('tournaments')
       .update(updateData)
@@ -258,6 +298,9 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       )
     }
+    
+    // Get fresh Supabase client with current env vars
+    const supabase = getSupabase()
     
     const { error } = await supabase
       .from('tournaments')

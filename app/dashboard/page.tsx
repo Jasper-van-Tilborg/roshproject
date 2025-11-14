@@ -1026,89 +1026,10 @@ export default function Dashboard() {
     setEditingTournamentStatus(null);
   };
 
-  const handleEditTournament = async (tournamentId: string) => {
-    try {
-      // Haal volledige tournament data op uit database (inclusief generated code)
-      const response = await fetch('/api/tournaments')
-      if (!response.ok) {
-        alert('Fout bij ophalen van toernooi data')
-        return
-      }
-
-      const data = await response.json()
-      const dbTournament = data.tournaments?.find((t: DatabaseTournament) => t.id === tournamentId)
-      
-      if (!dbTournament) {
-        alert('Toernooi niet gevonden')
-        return
-      }
-
-      // Converteer database format naar AI editor format
-      const editorConfig = {
-        title: dbTournament.name || '',
-        date: dbTournament.start_date || '',
-        location: dbTournament.location || '',
-        description: dbTournament.description || '',
-        participants: parseInt(dbTournament.max_participants || '8', 10),
-        bracketType: 'group_stage', // Default, kan later uit wizard_answers komen
-        game: 'CS2', // Default, kan later uit wizard_answers komen
-        theme: {
-          primaryColor: dbTournament.primary_color || '#C8247F',
-          secondaryColor: dbTournament.secondary_color || '#8E8E8E',
-          fontFamily: 'Inter'
-        },
-        components: (dbTournament.custom_components as Array<{type?: string}> || [])
-          .map(c => c.type || '')
-          .filter(Boolean)
-          .length > 0 
-          ? (dbTournament.custom_components as Array<{type?: string}>).map(c => c.type || '').filter(Boolean)
-          : ['bracket', 'twitch', 'sponsors'] // Default components
-      }
-
-      // Als er wizard answers zijn, gebruik die voor betere data
-      if (dbTournament.wizard_answers && typeof dbTournament.wizard_answers === 'object') {
-        const answers = dbTournament.wizard_answers as Record<string, unknown>
-        if (answers.tournament_name) editorConfig.title = String(answers.tournament_name)
-        if (answers.tournament_date) editorConfig.date = String(answers.tournament_date)
-        if (answers.tournament_location) editorConfig.location = String(answers.tournament_location)
-        if (answers.tournament_description) editorConfig.description = String(answers.tournament_description)
-        if (answers.participants) editorConfig.participants = Number(answers.participants) || 8
-        if (answers.game) editorConfig.game = String(answers.game)
-        if (answers.primary_color) editorConfig.theme.primaryColor = String(answers.primary_color)
-        if (answers.secondary_color) editorConfig.theme.secondaryColor = String(answers.secondary_color)
-        if (answers.components && Array.isArray(answers.components)) {
-          editorConfig.components = answers.components as string[]
-        }
-      }
-
-      // Sla tournament data op voor wizard editor
-      localStorage.setItem('editingTournamentId', tournamentId)
-      
-      // Sla generated code op in het format dat de wizard verwacht
-      if (dbTournament.generated_code_html || dbTournament.generated_code_css || dbTournament.generated_code_js) {
-        const generatedCodeData = {
-          html: dbTournament.generated_code_html || '',
-          css: dbTournament.generated_code_css || '',
-          js: dbTournament.generated_code_js || '',
-          full: dbTournament.generated_code_full || ''
-        }
-        localStorage.setItem('editingTournamentCode', JSON.stringify(generatedCodeData))
-      }
-      
-      // Sla wizard answers op (als die er zijn)
-      if (dbTournament.wizard_answers && typeof dbTournament.wizard_answers === 'object') {
-        localStorage.setItem('editingTournamentAnswers', JSON.stringify(dbTournament.wizard_answers))
-      }
-      
-      // Sla tournament naam op
-      localStorage.setItem('editingTournamentName', dbTournament.name || '')
-
-      // Navigeer naar wizard editor pagina (die toont de Live Editor)
-      router.push('/editor/wizard?edit=true')
-    } catch (error) {
-      console.error('Error loading tournament for editing:', error)
-      alert('Fout bij laden van toernooi. Probeer het opnieuw.')
-    }
+  const handleEditTournament = (tournamentId: string) => {
+    // Navigeer naar wizard editor pagina met tournament ID in URL
+    // De wizard pagina haalt de data direct uit de database
+    router.push(`/editor/wizard?edit=true&id=${tournamentId}`)
   };
 
   // Template wizard view - Redirect naar nieuwe AI wizard (moet voor alle conditional returns)
@@ -1161,15 +1082,91 @@ export default function Dashboard() {
           // Ook opslaan in localStorage als backup
           localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
         } else {
-          console.error('Failed to load tournaments:', response.statusText)
+          // Probeer error details te krijgen
+          let errorMessage = 'Unknown error'
+          let errorCode: string | undefined
+          
+          // Check of response bestaat
+          if (!response) {
+            console.error('Failed to load tournaments: No response object')
+            setTournaments([])
+            return
+          }
+          
+          // Eerst status-based message als fallback
+          const status = response.status || 0
+          if (status === 503) {
+            errorMessage = 'Supabase is not configured. Please check your environment variables.'
+          } else if (status === 500) {
+            errorMessage = 'Internal server error. Please check the server logs.'
+          } else if (status === 401) {
+            errorMessage = 'Unauthorized. Please check your Supabase API key.'
+          } else if (status === 403) {
+            errorMessage = 'Forbidden. You may not have permission to access this resource.'
+          } else if (status === 404) {
+            errorMessage = 'API endpoint not found.'
+          } else if (status > 0) {
+            errorMessage = `HTTP ${status}: ${response.statusText || 'Unknown error'}`
+          } else {
+            errorMessage = 'Failed to connect to server'
+          }
+          
+          try {
+            // Probeer error response te parsen
+            const responseText = await response.text()
+            
+            if (responseText && responseText.trim()) {
+              try {
+                const errorData = JSON.parse(responseText)
+                if (errorData.error) {
+                  errorMessage = errorData.error
+                } else if (errorData.message) {
+                  errorMessage = errorData.message
+                }
+                if (errorData.code) {
+                  errorCode = errorData.code
+                }
+              } catch {
+                // Response is geen JSON, gebruik als plain text als het niet leeg is
+                if (responseText.trim().length > 0) {
+                  errorMessage = responseText.trim()
+                }
+              }
+            }
+          } catch (parseError) {
+            // Als parsing faalt, gebruik de status-based message die we al hebben
+            console.warn('Could not parse error response:', parseError)
+          }
+          
+          // Log error - altijd met betekenisvolle informatie
+          // Zorg dat alle velden altijd een waarde hebben
+          const errorLogData: Record<string, string | number> = {
+            status: status,
+            statusText: response?.statusText ?? 'No status text',
+            error: errorMessage
+          }
+          
+          // Voeg code alleen toe als het bestaat
+          if (errorCode) {
+            errorLogData.code = errorCode
+          }
+          
+          // Log altijd met duidelijke informatie
+          console.error('Failed to load tournaments:', errorLogData)
+          
           // Fallback naar localStorage als API faalt
           const localTournaments = localStorage.getItem('tournaments')
           if (localTournaments) {
             try {
               setTournaments(JSON.parse(localTournaments))
+              console.log('Loaded tournaments from localStorage as fallback')
             } catch (e) {
               console.error('Failed to parse localStorage tournaments:', e)
+              setTournaments([])
             }
+          } else {
+            // Geen tournaments in localStorage, toon lege lijst
+            setTournaments([])
           }
         }
       } catch (error) {
@@ -1179,9 +1176,13 @@ export default function Dashboard() {
         if (localTournaments) {
           try {
             setTournaments(JSON.parse(localTournaments))
+            console.log('Loaded tournaments from localStorage as fallback')
           } catch (e) {
             console.error('Failed to parse localStorage tournaments:', e)
+            setTournaments([])
           }
+        } else {
+          setTournaments([])
         }
       }
     }
