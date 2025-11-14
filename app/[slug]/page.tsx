@@ -171,20 +171,53 @@ export default function TournamentPage() {
 
   // If tournament has generatedCode, render that in iframe
   if (tournament.generatedCode?.full || tournament.generatedCode) {
-    const htmlToRender = tournament.generatedCode?.full || 
-      `<!DOCTYPE html>
+    // Always use separate HTML, CSS, and JS if available (more reliable)
+    // This ensures CSS and JS are always included
+    const html = tournament.generatedCode?.html || ''
+    const css = tournament.generatedCode?.css || ''
+    const js = tournament.generatedCode?.js || ''
+    
+    // If we have separate HTML/CSS/JS, always use those
+    // Only fall back to 'full' if separate parts are completely missing
+    let htmlToRender: string
+    
+    if (html || css || js) {
+      // We have at least one separate part, combine them
+      htmlToRender = `<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${tournament.name}</title>
-    <style>${tournament.generatedCode?.css || ''}</style>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        ${css}
+    </style>
 </head>
 <body>
-    ${tournament.generatedCode?.html || ''}
-    <script>${tournament.generatedCode?.js || ''}</script>
+    ${html}
+    <script>
+        ${js}
+    </script>
 </body>
 </html>`
+    } else if (tournament.generatedCode?.full) {
+      // Fallback to 'full' if separate parts don't exist
+      htmlToRender = tournament.generatedCode.full
+    } else {
+      // Last resort: empty page
+      htmlToRender = `<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${tournament.name}</title>
+</head>
+<body>
+    <h1>Geen code beschikbaar</h1>
+</body>
+</html>`
+    }
     
     return (
       <div className="w-full h-screen">
