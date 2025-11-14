@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Header from '../components/header';
+import { useNotification } from '../hooks/useNotification';
 
 // Type definities
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -102,6 +103,7 @@ function SortableItem({
 
 export default function Dashboard() {
   const router = useRouter()
+  const { showNotification, NotificationContainer } = useNotification()
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -277,6 +279,12 @@ export default function Dashboard() {
     customComponents?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>;
     status: 'draft' | 'published';
     createdAt: string;
+    generatedCode?: {
+      html: string;
+      css: string;
+      js: string;
+      full: string;
+    };
   }>>([]);
 
   // Laad toernooien uit localStorage bij component mount - wordt later gedefinieerd na addCustomComponentsToLibrary
@@ -310,7 +318,7 @@ export default function Dashboard() {
 
   const handleSaveDraft = async () => {
     if (!tournamentConfig.name.trim()) {
-      alert('Voer eerst een toernooi naam in!');
+      showNotification('Voer eerst een toernooi naam in!', 'warning');
       return;
     }
 
@@ -338,7 +346,7 @@ export default function Dashboard() {
         })
 
         if (response.ok) {
-          alert('Toernooi bijgewerkt!');
+          showNotification('Toernooi bijgewerkt!', 'success');
           // Herlaad toernooien uit database
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
@@ -357,14 +365,20 @@ export default function Dashboard() {
               secondaryColor: t.secondary_color || '#ff6600',
               customComponents: t.custom_components || [],
               status: t.status,
-              createdAt: t.created_at || new Date().toISOString()
+              createdAt: t.created_at || new Date().toISOString(),
+              generatedCode: {
+                html: t.generated_code_html || '',
+                css: t.generated_code_css || '',
+                js: t.generated_code_js || '',
+                full: t.generated_code_full || ''
+              }
             }))
             setTournaments(mappedTournaments)
             localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
           }
         } else {
           const error = await response.json()
-          alert(`Fout bij bijwerken: ${error.error || 'Onbekende fout'}`)
+          showNotification(`Fout bij bijwerken: ${error.error || 'Onbekende fout'}`, 'error')
           return
         }
       } else {
@@ -391,7 +405,7 @@ export default function Dashboard() {
         })
 
         if (response.ok) {
-          alert('Draft opgeslagen!');
+          showNotification('Draft opgeslagen!', 'success');
           // Herlaad toernooien uit database
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
@@ -410,14 +424,20 @@ export default function Dashboard() {
               secondaryColor: t.secondary_color || '#ff6600',
               customComponents: t.custom_components || [],
               status: t.status,
-              createdAt: t.created_at || new Date().toISOString()
+              createdAt: t.created_at || new Date().toISOString(),
+              generatedCode: {
+                html: t.generated_code_html || '',
+                css: t.generated_code_css || '',
+                js: t.generated_code_js || '',
+                full: t.generated_code_full || ''
+              }
             }))
             setTournaments(mappedTournaments)
             localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
           }
         } else {
           const error = await response.json()
-          alert(`Fout bij opslaan: ${error.error || 'Onbekende fout'}`)
+          showNotification(`Fout bij opslaan: ${error.error || 'Onbekende fout'}`, 'error')
           return
         }
       }
@@ -426,13 +446,13 @@ export default function Dashboard() {
       setEditingTournament(null);
     } catch (error) {
       console.error('Error saving tournament:', error)
-      alert('Fout bij opslaan van toernooi. Probeer het opnieuw.')
+      showNotification('Fout bij opslaan van toernooi. Probeer het opnieuw.', 'error')
     }
   };
 
   const handlePublish = async () => {
     if (!tournamentConfig.name.trim()) {
-      alert('Voer eerst een toernooi naam in!');
+      showNotification('Voer eerst een toernooi naam in!', 'warning');
       return;
     }
 
@@ -460,7 +480,7 @@ export default function Dashboard() {
         })
 
         if (response.ok) {
-          alert('Toernooi gepubliceerd!');
+          showNotification('Toernooi gepubliceerd!', 'success');
           // Herlaad toernooien uit database
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
@@ -479,14 +499,20 @@ export default function Dashboard() {
               secondaryColor: t.secondary_color || '#ff6600',
               customComponents: t.custom_components || [],
               status: t.status,
-              createdAt: t.created_at || new Date().toISOString()
+              createdAt: t.created_at || new Date().toISOString(),
+              generatedCode: {
+                html: t.generated_code_html || '',
+                css: t.generated_code_css || '',
+                js: t.generated_code_js || '',
+                full: t.generated_code_full || ''
+              }
             }))
             setTournaments(mappedTournaments)
             localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
           }
         } else {
           const error = await response.json()
-          alert(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`)
+          showNotification(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`, 'error')
           return
         }
       } else {
@@ -513,7 +539,7 @@ export default function Dashboard() {
         })
 
         if (response.ok) {
-          alert('Toernooi gepubliceerd!');
+          showNotification('Toernooi gepubliceerd!', 'success');
           // Herlaad toernooien uit database
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
@@ -532,14 +558,20 @@ export default function Dashboard() {
               secondaryColor: t.secondary_color || '#ff6600',
               customComponents: t.custom_components || [],
               status: t.status,
-              createdAt: t.created_at || new Date().toISOString()
+              createdAt: t.created_at || new Date().toISOString(),
+              generatedCode: {
+                html: t.generated_code_html || '',
+                css: t.generated_code_css || '',
+                js: t.generated_code_js || '',
+                full: t.generated_code_full || ''
+              }
             }))
             setTournaments(mappedTournaments)
             localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
           }
         } else {
           const error = await response.json()
-          alert(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`)
+          showNotification(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`, 'error')
           return
         }
       }
@@ -548,7 +580,7 @@ export default function Dashboard() {
       setEditingTournament(null);
     } catch (error) {
       console.error('Error publishing tournament:', error)
-      alert('Fout bij publiceren van toernooi. Probeer het opnieuw.')
+      showNotification('Fout bij publiceren van toernooi. Probeer het opnieuw.', 'error')
     }
   };
 
@@ -560,7 +592,7 @@ export default function Dashboard() {
         })
 
         if (response.ok) {
-          alert('Toernooi verwijderd!');
+          showNotification('Toernooi verwijderd!', 'success');
           // Herlaad toernooien uit database
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
@@ -579,7 +611,13 @@ export default function Dashboard() {
               secondaryColor: t.secondary_color || '#ff6600',
               customComponents: t.custom_components || [],
               status: t.status,
-              createdAt: t.created_at || new Date().toISOString()
+              createdAt: t.created_at || new Date().toISOString(),
+              generatedCode: {
+                html: t.generated_code_html || '',
+                css: t.generated_code_css || '',
+                js: t.generated_code_js || '',
+                full: t.generated_code_full || ''
+              }
             }))
             setTournaments(mappedTournaments)
             localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
@@ -590,7 +628,7 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error('Error deleting tournament:', error)
-        alert('Fout bij verwijderen van toernooi. Probeer het opnieuw.')
+        showNotification('Fout bij verwijderen van toernooi. Probeer het opnieuw.', 'error')
       }
     }
   };
@@ -651,7 +689,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error publishing tournament:', error)
-      alert('Fout bij publiceren van toernooi. Probeer het opnieuw.')
+      showNotification('Fout bij publiceren van toernooi. Probeer het opnieuw.', 'error')
     }
   };
 
@@ -659,6 +697,14 @@ export default function Dashboard() {
     try {
       const tournament = tournaments.find(t => t.id === tournamentId)
       if (!tournament) return
+
+      // Haal het volledige toernooi op inclusief generatedCode
+      const fullTournamentResponse = await fetch(`/api/tournaments/${tournamentId}`)
+      if (!fullTournamentResponse.ok) {
+        throw new Error('Kon toernooi niet ophalen')
+      }
+      const fullTournamentData = await fullTournamentResponse.json()
+      const fullTournament = fullTournamentData.tournament
 
       const response = await fetch('/api/tournaments', {
         method: 'PUT',
@@ -675,13 +721,19 @@ export default function Dashboard() {
           prizePool: tournament.prizePool,
           primaryColor: tournament.primaryColor,
           secondaryColor: tournament.secondaryColor,
-          status: 'draft',
+          status: 'draft', // Zet status naar draft
+          generatedCode: fullTournament.generated_code_html || fullTournament.generated_code_full ? {
+            html: fullTournament.generated_code_html || '',
+            css: fullTournament.generated_code_css || '',
+            js: fullTournament.generated_code_js || '',
+            full: fullTournament.generated_code_full || ''
+          } : undefined,
           customComponents: tournament.customComponents || []
         })
       })
 
       if (response.ok) {
-        alert('Toernooi unpublished!');
+        showNotification('Toernooi unpublished en opgeslagen als draft!', 'success');
         // Herlaad toernooien uit database
         const loadResponse = await fetch('/api/tournaments')
         if (loadResponse.ok) {
@@ -707,11 +759,11 @@ export default function Dashboard() {
         }
       } else {
         const error = await response.json()
-        alert(`Fout bij unpubliceren: ${error.error || 'Onbekende fout'}`)
+        showNotification(`Fout bij unpubliceren: ${error.error || 'Onbekende fout'}`, 'error')
       }
     } catch (error) {
       console.error('Error unpublishing tournament:', error)
-      alert('Fout bij unpubliceren van toernooi. Probeer het opnieuw.')
+      showNotification('Fout bij unpubliceren van toernooi. Probeer het opnieuw.', 'error')
     }
   };
 
@@ -1061,6 +1113,10 @@ export default function Dashboard() {
             status: 'draft' | 'published'
             created_at: string
             custom_components?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
+            generated_code_html?: string
+            generated_code_css?: string
+            generated_code_js?: string
+            generated_code_full?: string
           }) => ({
             id: t.id,
             name: t.name,
@@ -1075,7 +1131,13 @@ export default function Dashboard() {
             secondaryColor: t.secondary_color || '#ff6600',
             customComponents: t.custom_components || [],
             status: t.status,
-            createdAt: t.created_at || new Date().toISOString()
+            createdAt: t.created_at || new Date().toISOString(),
+            generatedCode: {
+              html: t.generated_code_html || '',
+              css: t.generated_code_css || '',
+              js: t.generated_code_js || '',
+              full: t.generated_code_full || ''
+            }
           }))
           setTournaments(mappedTournaments)
           // Ook opslaan in localStorage als backup
@@ -1271,6 +1333,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      <NotificationContainer />
+      </>
     );
   }
 
@@ -1483,9 +1547,11 @@ export default function Dashboard() {
     };
 
     return (
-      <div className="min-h-screen relative radial-gradient">
-        {/* Header */}
-        <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20">
+      <>
+        <NotificationContainer />
+        <div className="min-h-screen relative radial-gradient">
+          {/* Header */}
+          <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold text-white mb-3">
@@ -1517,6 +1583,7 @@ export default function Dashboard() {
 
         </div>
       </div>
+      </>
     );
   }
 
@@ -3884,62 +3951,160 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {draftTournaments.map((tournament) => (
-                    <div key={tournament.id} className="glass-card rounded-xl p-6 hover:shadow-xl transition-all duration-300">
-                      <div className="flex items-start justify-between mb-4">
-                        <div 
-                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                          style={{ backgroundColor: tournament.primaryColor }}
-                        >
-                          {tournament.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-white text-xs font-medium px-2.5 py-0.5 rounded-full" style={{ backgroundColor: '#2D3E5A' }}>
-                          Draft
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-lg font-semibold text-white mb-2">{tournament.name}</h3>
-                      <p className="text-white text-sm mb-4 line-clamp-2 opacity-80">{tournament.description}</p>
-                      
-                      <div className="space-y-2 text-sm text-white opacity-70">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {tournament.location || 'Geen locatie'}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('nl-NL') : 'Geen datum'}
+                    <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
+                      {/* Preview Header */}
+                      <div 
+                        className="relative w-full h-40 overflow-hidden"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
+                          borderBottom: `2px solid ${tournament.primaryColor}40`
+                        }}
+                      >
+                        <div className="absolute inset-0" style={{
+                          backgroundImage: `radial-gradient(circle at 30% 30%, ${tournament.primaryColor}30 0%, transparent 50%)`
+                        }}></div>
+                        
+                        <div className="relative h-full flex items-center justify-between p-5">
+                          <div className="flex items-center gap-4">
+                            <div 
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              style={{ 
+                                backgroundColor: tournament.primaryColor,
+                                boxShadow: `0 4px 20px ${tournament.primaryColor}50`
+                              }}
+                            >
+                              {tournament.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
+                              <span className="text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
+                                Draft
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mt-4 flex gap-2">
-                        <button 
-                          onClick={() => handleEditTournament(tournament.id)}
-                          className="flex-1 text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#482CFF' }}
-                        >
-                          Bewerken
-                        </button>
-                        <button 
-                          onClick={() => handlePublishFromManage(tournament.id)}
-                          className="flex-1 text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#482CFF' }}
-                        >
-                          Publiceren
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTournament(tournament.id)}
-                          className="text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#420AB2' }}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                      {/* Preview Section */}
+                      <div className="px-6 pb-6 flex-1 flex flex-col min-h-0">
+                        <div className="relative w-full h-80 rounded-xl overflow-hidden border border-white/10 bg-black/30 shadow-inner group/preview" style={{ borderRadius: '0.75rem' }}>
+                          {(() => {
+                            const html = tournament.generatedCode?.html || ''
+                            const css = tournament.generatedCode?.css || ''
+                            const js = tournament.generatedCode?.js || ''
+                            const full = tournament.generatedCode?.full || ''
+                            const hasCode = html.trim().length > 0 || css.trim().length > 0 || js.trim().length > 0 || full.trim().length > 0
+                            
+                            if (hasCode) {
+                              const htmlToRender = html || css || js ? `
+                                <!DOCTYPE html>
+                                <html lang="nl">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>${tournament.name}</title>
+                                    <style>
+                                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                                        html, body { 
+                                          width: 100%; 
+                                          height: 100%; 
+                                          overflow: hidden;
+                                        }
+                                        body { 
+                                          transform: scale(0.5); 
+                                          transform-origin: top left; 
+                                          width: 200%; 
+                                          height: 200%; 
+                                          position: relative;
+                                        }
+                                        ${css}
+                                    </style>
+                                </head>
+                                <body>
+                                    ${html}
+                                    <script>
+                                        ${js}
+                                    </script>
+                                </body>
+                                </html>
+                              ` : full
+                              
+                              return (
+                                <>
+                                  <iframe
+                                    srcDoc={htmlToRender}
+                                    className="w-full h-full border-0"
+                                    title={`Preview ${tournament.name}`}
+                                    sandbox="allow-scripts allow-same-origin"
+                                    style={{ 
+                                      pointerEvents: 'none',
+                                      transform: 'scale(1)',
+                                      imageRendering: 'crisp-edges',
+                                      borderRadius: '0.75rem'
+                                    }}
+                                  />
+                                  {tournament.status === 'published' && (
+                                    <a
+                                      href={`/${generateSlug(tournament.name)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 z-10 cursor-pointer rounded-xl"
+                                    >
+                                      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-3 flex items-center gap-3 hover:bg-white/20 transition-all duration-200">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <span className="text-white font-semibold">Bekijk Pagina</span>
+                                      </div>
+                                    </a>
+                                  )}
+                                </>
+                              )
+                            }
+                            
+                            return (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
+                                <div className="text-center">
+                                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
+                                    <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-white/60 text-sm">Geen preview beschikbaar</p>
+                                </div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      </div>
+
+                      <div className="px-6 pb-6 pt-0">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditTournament(tournament.id)}
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#482CFF' }}
+                          >
+                            Bewerken
+                          </button>
+                          <button 
+                            onClick={() => handlePublishFromManage(tournament.id)}
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#22C55E' }}
+                          >
+                            Publiceren
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTournament(tournament.id)}
+                            className="text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#EF4444' }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -3971,71 +4136,160 @@ export default function Dashboard() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {publishedTournaments.map((tournament) => (
-                    <div key={tournament.id} className="glass-card rounded-xl p-6 hover:shadow-xl transition-all duration-300">
-                      <div className="flex items-start justify-between mb-4">
-                        <div 
-                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                          style={{ backgroundColor: tournament.primaryColor }}
-                        >
-                          {tournament.name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-white text-xs font-medium px-2.5 py-0.5 rounded-full" style={{ backgroundColor: '#482CFF' }}>
-                          Published
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-lg font-semibold text-white mb-2">{tournament.name}</h3>
-                      <p className="text-white text-sm mb-4 line-clamp-2 opacity-80">{tournament.description}</p>
-                      
-                      <div className="space-y-2 text-sm text-white opacity-70">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {tournament.location || 'Geen locatie'}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('nl-NL') : 'Geen datum'}
+                    <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
+                      {/* Preview Header */}
+                      <div 
+                        className="relative w-full h-40 overflow-hidden"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
+                          borderBottom: `2px solid ${tournament.primaryColor}40`
+                        }}
+                      >
+                        <div className="absolute inset-0" style={{
+                          backgroundImage: `radial-gradient(circle at 30% 30%, ${tournament.primaryColor}30 0%, transparent 50%)`
+                        }}></div>
+                        
+                        <div className="relative h-full flex items-center justify-between p-5">
+                          <div className="flex items-center gap-4">
+                            <div 
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              style={{ 
+                                backgroundColor: tournament.primaryColor,
+                                boxShadow: `0 4px 20px ${tournament.primaryColor}50`
+                              }}
+                            >
+                              {tournament.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
+                              <span className="text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: '#482CFF40' }}>
+                                Published
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mt-4 flex gap-2">
-                        <a
-                          href={`/${generateSlug(tournament.name)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity text-center"
-                          style={{ backgroundColor: '#482CFF' }}
-                        >
-                          Bekijk Pagina
-                        </a>
-                        <button 
-                          onClick={() => handleEditTournament(tournament.id)}
-                          className="flex-1 text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#482CFF' }}
-                        >
-                          Bewerken
-                        </button>
-                        <button 
-                          onClick={() => handleUnpublish(tournament.id)}
-                          className="flex-1 text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#2D3E5A' }}
-                        >
-                          Unpublish
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTournament(tournament.id)}
-                          className="text-white py-2 px-3 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: '#420AB2' }}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                      {/* Preview Section */}
+                      <div className="px-6 pb-6 flex-1 flex flex-col min-h-0">
+                        <div className="relative w-full h-80 rounded-xl overflow-hidden border border-white/10 bg-black/30 shadow-inner group/preview" style={{ borderRadius: '0.75rem' }}>
+                          {(() => {
+                            const html = tournament.generatedCode?.html || ''
+                            const css = tournament.generatedCode?.css || ''
+                            const js = tournament.generatedCode?.js || ''
+                            const full = tournament.generatedCode?.full || ''
+                            const hasCode = html.trim().length > 0 || css.trim().length > 0 || js.trim().length > 0 || full.trim().length > 0
+                            
+                            if (hasCode) {
+                              const htmlToRender = html || css || js ? `
+                                <!DOCTYPE html>
+                                <html lang="nl">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>${tournament.name}</title>
+                                    <style>
+                                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                                        html, body { 
+                                          width: 100%; 
+                                          height: 100%; 
+                                          overflow: hidden;
+                                        }
+                                        body { 
+                                          transform: scale(0.5); 
+                                          transform-origin: top left; 
+                                          width: 200%; 
+                                          height: 200%; 
+                                          position: relative;
+                                        }
+                                        ${css}
+                                    </style>
+                                </head>
+                                <body>
+                                    ${html}
+                                    <script>
+                                        ${js}
+                                    </script>
+                                </body>
+                                </html>
+                              ` : full
+                              
+                              return (
+                                <>
+                                  <iframe
+                                    srcDoc={htmlToRender}
+                                    className="w-full h-full border-0"
+                                    title={`Preview ${tournament.name}`}
+                                    sandbox="allow-scripts allow-same-origin"
+                                    style={{ 
+                                      pointerEvents: 'none',
+                                      transform: 'scale(1)',
+                                      imageRendering: 'crisp-edges',
+                                      borderRadius: '0.75rem'
+                                    }}
+                                  />
+                                  {tournament.status === 'published' && (
+                                    <a
+                                      href={`/${generateSlug(tournament.name)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 z-10 cursor-pointer rounded-xl"
+                                    >
+                                      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-6 py-3 flex items-center gap-3 hover:bg-white/20 transition-all duration-200">
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        <span className="text-white font-semibold">Bekijk Pagina</span>
+                                      </div>
+                                    </a>
+                                  )}
+                                </>
+                              )
+                            }
+                            
+                            return (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
+                                <div className="text-center">
+                                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
+                                    <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
+                                  <p className="text-white/60 text-sm">Geen preview beschikbaar</p>
+                                </div>
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      </div>
+
+                      <div className="px-6 pb-6 pt-0">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditTournament(tournament.id)}
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#482CFF' }}
+                          >
+                            Bewerken
+                          </button>
+                          <button 
+                            onClick={() => handleUnpublish(tournament.id)}
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#F59E0B' }}
+                          >
+                            Unpublish
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteTournament(tournament.id)}
+                            className="text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
+                            style={{ backgroundColor: '#EF4444' }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -4066,7 +4320,7 @@ export default function Dashboard() {
           {/* Create Tournament */}
           <div className="glass-card rounded-xl p-10">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#482CFF' }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#420AB2' }}>
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
                 </svg>
@@ -4127,7 +4381,7 @@ export default function Dashboard() {
                    setCurrentView('template-selection');
                  }}
                  className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
-                 style={{ backgroundColor: '#482CFF' }}
+                 style={{ backgroundColor: '#420AB2' }}
                >
                  Create New Tournament
                </button>
@@ -4137,7 +4391,7 @@ export default function Dashboard() {
           {/* Manage Tournament */}
           <div className="glass-card rounded-xl p-10">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#482CFF' }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#9127E6' }}>
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                   <circle cx="6" cy="6" r="1.5" fill="currentColor" />
@@ -4154,7 +4408,7 @@ export default function Dashboard() {
               <button 
                 onClick={() => setCurrentView('manage-tournament')}
                 className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
-                style={{ backgroundColor: '#482CFF' }}
+                style={{ backgroundColor: '#9127E6' }}
               >
                 Manage Tournament
               </button>
@@ -4163,5 +4417,8 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    <>
+      <NotificationContainer />
+    </>
   );
 }
