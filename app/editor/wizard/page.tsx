@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
 import DarkVeil from '../../components/DarkVeil'
@@ -173,7 +174,10 @@ const wizardSteps: WizardStep[] = [
   }
 ]
 
-export default function WizardPage() {
+function WizardPageContent() {
+  const searchParams = useSearchParams()
+  const isEditMode = searchParams?.get('edit') === 'true'
+  
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | number | boolean>>({})
   const [isGenerating, setIsGenerating] = useState(false)
@@ -189,6 +193,7 @@ export default function WizardPage() {
   const [error, setError] = useState<string | null>(null)
   const [tournamentName, setTournamentName] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
+  const [editingTournamentId, setEditingTournamentId] = useState<string | null>(null)
 
   // Memoize onCodeChange callback to prevent infinite loops
   const handleCodeChange = useCallback((html: string, css: string, js: string) => {
@@ -203,6 +208,55 @@ export default function WizardPage() {
       }
     })
   }, [])
+
+  // Load existing tournament data when in edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      // Load tournament ID
+      const editingId = localStorage.getItem('editingTournamentId')
+      if (editingId) {
+        setEditingTournamentId(editingId)
+        localStorage.removeItem('editingTournamentId')
+      }
+
+      // Load tournament name
+      const editingName = localStorage.getItem('editingTournamentName')
+      if (editingName) {
+        setTournamentName(editingName)
+        localStorage.removeItem('editingTournamentName')
+      }
+
+      // Load generated code
+      const editingCode = localStorage.getItem('editingTournamentCode')
+      if (editingCode) {
+        try {
+          const codeData = JSON.parse(editingCode)
+          setGeneratedCode({
+            html: codeData.html || '',
+            css: codeData.css || '',
+            js: codeData.js || '',
+            full: codeData.full || ''
+          })
+          setShowEditor(true) // Open editor directly
+          localStorage.removeItem('editingTournamentCode')
+        } catch (error) {
+          console.error('Error parsing editing tournament code:', error)
+        }
+      }
+
+      // Load wizard answers if available
+      const editingAnswers = localStorage.getItem('editingTournamentAnswers')
+      if (editingAnswers) {
+        try {
+          const answersData = JSON.parse(editingAnswers)
+          setAnswers(answersData)
+          localStorage.removeItem('editingTournamentAnswers')
+        } catch (error) {
+          console.error('Error parsing editing tournament answers:', error)
+        }
+      }
+    }
+  }, [isEditMode])
 
   // Generate slug from tournament name
   const generateSlug = (name: string): string => {
@@ -283,13 +337,19 @@ export default function WizardPage() {
         fullLength: tournamentData.generatedCode.full.length
       });
 
-      // Check if tournament with same name already exists
-      const existingResponse = await fetch(`/api/tournaments?status=draft`)
+      // Check if we're editing an existing tournament
       let existingTournament: { id: string; name: string } | null = null
       
-      if (existingResponse.ok) {
-        const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string }> }
-        existingTournament = existingData.tournaments?.find((t) => t.name === name) || null
+      if (editingTournamentId) {
+        // We're editing an existing tournament, use the ID
+        existingTournament = { id: editingTournamentId, name }
+      } else {
+        // Check if tournament with same name already exists
+        const existingResponse = await fetch(`/api/tournaments?status=draft`)
+        if (existingResponse.ok) {
+          const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string }> }
+          existingTournament = existingData.tournaments?.find((t) => t.name === name) || null
+        }
       }
 
       // Save to Supabase (POST for new, PUT for update)
@@ -339,7 +399,7 @@ export default function WizardPage() {
       alert(`❌ Fout bij opslaan: ${message}`)
       setIsSaving(false)
     }
-  }, [tournamentName, generatedCode, answers])
+  }, [tournamentName, generatedCode, answers, editingTournamentId])
 
   // Publish tournament
   const handlePublish = useCallback(async () => {
@@ -412,15 +472,21 @@ export default function WizardPage() {
           fullLength: tournamentData.generatedCode.full.length
         });
 
-      // Check if tournament with same name already exists
-      const existingResponse = await fetch('/api/tournaments')
+      // Check if we're editing an existing tournament
       let existingTournament: { id: string; name: string; status: string } | null = null
       
-      if (existingResponse.ok) {
-        const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string; status: string }> }
-        existingTournament = existingData.tournaments?.find((t) => 
-          t.name === name && (t.status === 'published' || t.status === 'draft')
-        ) || null
+      if (editingTournamentId) {
+        // We're editing an existing tournament, use the ID
+        existingTournament = { id: editingTournamentId, name, status: 'published' }
+      } else {
+        // Check if tournament with same name already exists
+        const existingResponse = await fetch('/api/tournaments')
+        if (existingResponse.ok) {
+          const existingData = await existingResponse.json() as { tournaments?: Array<{ id: string; name: string; status: string }> }
+          existingTournament = existingData.tournaments?.find((t) => 
+            t.name === name && (t.status === 'published' || t.status === 'draft')
+          ) || null
+        }
       }
 
       // Save to Supabase (POST for new, PUT for update)
@@ -474,7 +540,7 @@ export default function WizardPage() {
       alert(`❌ Fout bij publiceren: ${message}`)
       setIsSaving(false)
     }
-  }, [tournamentName, generatedCode, answers])
+  }, [tournamentName, generatedCode, answers, editingTournamentId])
 
   const handleAnswer = (questionId: string, value: string | number | boolean) => {
     setAnswers(prev => ({
@@ -958,5 +1024,17 @@ export default function WizardPage() {
         progress={generationProgress}
       />
     </div>
+  )
+}
+
+export default function WizardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-white">Laden...</div>
+      </div>
+    }>
+      <WizardPageContent />
+    </Suspense>
   )
 }

@@ -239,6 +239,29 @@ export default function Dashboard() {
     })
   );
 
+  // Database tournament type
+  interface DatabaseTournament {
+    id: string
+    name: string
+    description: string
+    location: string
+    start_date: string
+    end_date: string | null
+    max_participants: string
+    entry_fee: string
+    prize_pool: string
+    primary_color: string
+    secondary_color: string
+    status: 'draft' | 'published'
+    created_at: string
+    custom_components?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
+    wizard_answers?: Record<string, unknown>
+    generated_code_html?: string
+    generated_code_css?: string
+    generated_code_js?: string
+    generated_code_full?: string
+  }
+
   // Toernooien state
   const [tournaments, setTournaments] = useState<Array<{
     id: string;
@@ -321,7 +344,7 @@ export default function Dashboard() {
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
             const data = await loadResponse.json()
-            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
               id: t.id,
               name: t.name,
               description: t.description || '',
@@ -374,7 +397,7 @@ export default function Dashboard() {
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
             const data = await loadResponse.json()
-            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
               id: t.id,
               name: t.name,
               description: t.description || '',
@@ -443,7 +466,7 @@ export default function Dashboard() {
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
             const data = await loadResponse.json()
-            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
               id: t.id,
               name: t.name,
               description: t.description || '',
@@ -496,7 +519,7 @@ export default function Dashboard() {
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
             const data = await loadResponse.json()
-            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
               id: t.id,
               name: t.name,
               description: t.description || '',
@@ -543,7 +566,7 @@ export default function Dashboard() {
           const loadResponse = await fetch('/api/tournaments')
           if (loadResponse.ok) {
             const data = await loadResponse.json()
-            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
               id: t.id,
               name: t.name,
               description: t.description || '',
@@ -604,7 +627,7 @@ export default function Dashboard() {
         const loadResponse = await fetch('/api/tournaments')
         if (loadResponse.ok) {
           const data = await loadResponse.json()
-          const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+          const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
             id: t.id,
             name: t.name,
             description: t.description || '',
@@ -664,7 +687,7 @@ export default function Dashboard() {
         const loadResponse = await fetch('/api/tournaments')
         if (loadResponse.ok) {
           const data = await loadResponse.json()
-          const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+          const mappedTournaments = (data.tournaments || []).map((t: DatabaseTournament) => ({
             id: t.id,
             name: t.name,
             description: t.description || '',
@@ -1003,33 +1026,88 @@ export default function Dashboard() {
     setEditingTournamentStatus(null);
   };
 
-  const handleEditTournament = (tournamentId: string) => {
-    const tournament = tournaments.find(t => t.id === tournamentId);
-    if (tournament) {
-      setTournamentConfig({
-        name: tournament.name,
-        description: tournament.description,
-        logo: '',
-        image: '',
-        primaryColor: tournament.primaryColor,
-        secondaryColor: tournament.secondaryColor,
-        backgroundColor: '#ffffff',
-        textColor: '#000000',
-        startDate: tournament.startDate,
-        endDate: tournament.endDate,
-        location: tournament.location,
-        maxParticipants: tournament.maxParticipants,
-        entryFee: tournament.entryFee,
-        prizePool: tournament.prizePool,
-        twitchUrl: '',
-        chatEnabled: 'false',
-        headerBackgroundColor: '#ffffff',
-        headerTextColor: '#000000',
-        customComponents: tournament.customComponents || []
-      });
-      setEditingTournament(tournamentId);
-      setEditingTournamentStatus(tournament.status);
-      setCurrentView('create-tournament');
+  const handleEditTournament = async (tournamentId: string) => {
+    try {
+      // Haal volledige tournament data op uit database (inclusief generated code)
+      const response = await fetch('/api/tournaments')
+      if (!response.ok) {
+        alert('Fout bij ophalen van toernooi data')
+        return
+      }
+
+      const data = await response.json()
+      const dbTournament = data.tournaments?.find((t: DatabaseTournament) => t.id === tournamentId)
+      
+      if (!dbTournament) {
+        alert('Toernooi niet gevonden')
+        return
+      }
+
+      // Converteer database format naar AI editor format
+      const editorConfig = {
+        title: dbTournament.name || '',
+        date: dbTournament.start_date || '',
+        location: dbTournament.location || '',
+        description: dbTournament.description || '',
+        participants: parseInt(dbTournament.max_participants || '8', 10),
+        bracketType: 'group_stage', // Default, kan later uit wizard_answers komen
+        game: 'CS2', // Default, kan later uit wizard_answers komen
+        theme: {
+          primaryColor: dbTournament.primary_color || '#C8247F',
+          secondaryColor: dbTournament.secondary_color || '#8E8E8E',
+          fontFamily: 'Inter'
+        },
+        components: (dbTournament.custom_components as Array<{type?: string}> || [])
+          .map(c => c.type || '')
+          .filter(Boolean)
+          .length > 0 
+          ? (dbTournament.custom_components as Array<{type?: string}>).map(c => c.type || '').filter(Boolean)
+          : ['bracket', 'twitch', 'sponsors'] // Default components
+      }
+
+      // Als er wizard answers zijn, gebruik die voor betere data
+      if (dbTournament.wizard_answers && typeof dbTournament.wizard_answers === 'object') {
+        const answers = dbTournament.wizard_answers as Record<string, unknown>
+        if (answers.tournament_name) editorConfig.title = String(answers.tournament_name)
+        if (answers.tournament_date) editorConfig.date = String(answers.tournament_date)
+        if (answers.tournament_location) editorConfig.location = String(answers.tournament_location)
+        if (answers.tournament_description) editorConfig.description = String(answers.tournament_description)
+        if (answers.participants) editorConfig.participants = Number(answers.participants) || 8
+        if (answers.game) editorConfig.game = String(answers.game)
+        if (answers.primary_color) editorConfig.theme.primaryColor = String(answers.primary_color)
+        if (answers.secondary_color) editorConfig.theme.secondaryColor = String(answers.secondary_color)
+        if (answers.components && Array.isArray(answers.components)) {
+          editorConfig.components = answers.components as string[]
+        }
+      }
+
+      // Sla tournament data op voor wizard editor
+      localStorage.setItem('editingTournamentId', tournamentId)
+      
+      // Sla generated code op in het format dat de wizard verwacht
+      if (dbTournament.generated_code_html || dbTournament.generated_code_css || dbTournament.generated_code_js) {
+        const generatedCodeData = {
+          html: dbTournament.generated_code_html || '',
+          css: dbTournament.generated_code_css || '',
+          js: dbTournament.generated_code_js || '',
+          full: dbTournament.generated_code_full || ''
+        }
+        localStorage.setItem('editingTournamentCode', JSON.stringify(generatedCodeData))
+      }
+      
+      // Sla wizard answers op (als die er zijn)
+      if (dbTournament.wizard_answers && typeof dbTournament.wizard_answers === 'object') {
+        localStorage.setItem('editingTournamentAnswers', JSON.stringify(dbTournament.wizard_answers))
+      }
+      
+      // Sla tournament naam op
+      localStorage.setItem('editingTournamentName', dbTournament.name || '')
+
+      // Navigeer naar wizard editor pagina (die toont de Live Editor)
+      router.push('/editor/wizard?edit=true')
+    } catch (error) {
+      console.error('Error loading tournament for editing:', error)
+      alert('Fout bij laden van toernooi. Probeer het opnieuw.')
     }
   };
 

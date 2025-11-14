@@ -114,9 +114,12 @@ export default function AutoEditorPage() {
     }))
   }
 
+  // State voor editing tournament
+  const [editingTournamentId, setEditingTournamentId] = useState<string | null>(null)
+
   // Auto-generate on page load
   useEffect(() => {
-    // Load config from localStorage if available (from wizard)
+    // Load config from localStorage if available (from wizard or dashboard)
     const savedConfig = localStorage.getItem('wizardConfig')
     if (savedConfig) {
       try {
@@ -127,16 +130,119 @@ export default function AutoEditorPage() {
         console.error('Error parsing saved config:', error)
       }
     }
+
+    // Check if we're editing an existing tournament
+    const editingId = localStorage.getItem('editingTournamentId')
+    if (editingId) {
+      setEditingTournamentId(editingId)
+      localStorage.removeItem('editingTournamentId') // Clear after loading
+      
+      // Load existing generated code if available
+      const existingCode = localStorage.getItem('editingTournamentCode')
+      if (existingCode) {
+        setGeneratedCode(existingCode)
+        setIsGenerating(false)
+        localStorage.removeItem('editingTournamentCode') // Clear after loading
+        // Don't auto-generate when editing existing tournament
+        return
+      }
+    }
     
+    // Only generate if not editing or no existing code found
     generateTemplate()
   }, [generateTemplate])
 
   // Auto-generate preview when config changes
   useEffect(() => {
-    if (generatedCode) {
+    if (generatedCode && !editingTournamentId) {
+      // Only auto-regenerate if not editing existing tournament
       generateTemplate()
     }
-  }, [config, generateTemplate, generatedCode])
+  }, [config, generateTemplate, generatedCode, editingTournamentId])
+
+  // Functie om wijzigingen op te slaan in database
+  const handleSaveChanges = async () => {
+    if (!editingTournamentId) {
+      alert('Geen toernooi om op te slaan')
+      return
+    }
+
+    try {
+      // Parse generated code om HTML, CSS, JS te extraheren
+      let htmlCode = ''
+      let cssCode = ''
+      let jsCode = ''
+      const fullCode = generatedCode
+
+      // Probeer HTML, CSS en JS uit generated code te extraheren
+      const htmlMatch = generatedCode.match(/```html\s*\n([\s\S]*?)\n```/i) || 
+                        generatedCode.match(/<html[\s\S]*?<\/html>/i)
+      if (htmlMatch) {
+        htmlCode = htmlMatch[1] || htmlMatch[0]
+      }
+
+      const cssMatch = generatedCode.match(/```css\s*\n([\s\S]*?)\n```/i) || 
+                       generatedCode.match(/<style[\s\S]*?<\/style>/i)
+      if (cssMatch) {
+        cssCode = cssMatch[1] || cssMatch[0]
+      }
+
+      const jsMatch = generatedCode.match(/```javascript\s*\n([\s\S]*?)\n```/i) || 
+                      generatedCode.match(/```js\s*\n([\s\S]*?)\n```/i) ||
+                      generatedCode.match(/<script[\s\S]*?<\/script>/i)
+      if (jsMatch) {
+        jsCode = jsMatch[1] || jsMatch[0]
+      }
+
+      // Update tournament in database
+      const response = await fetch('/api/tournaments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingTournamentId,
+          name: config.title,
+          description: config.description,
+          location: config.location,
+          startDate: config.date,
+          endDate: '',
+          maxParticipants: String(config.participants),
+          entryFee: '',
+          prizePool: '',
+          primaryColor: config.theme.primaryColor,
+          secondaryColor: config.theme.secondaryColor,
+          status: 'draft', // Keep as draft, user can publish later
+          generatedCode: {
+            html: htmlCode,
+            css: cssCode,
+            js: jsCode,
+            full: fullCode
+          },
+          wizardAnswers: {
+            tournament_name: config.title,
+            tournament_date: config.date,
+            tournament_location: config.location,
+            tournament_description: config.description,
+            participants: config.participants,
+            game: config.game,
+            primary_color: config.theme.primaryColor,
+            secondary_color: config.theme.secondaryColor,
+            components: config.components
+          },
+          customComponents: config.components.map(type => ({ type }))
+        })
+      })
+
+      if (response.ok) {
+        alert('✅ Wijzigingen opgeslagen!')
+      } else {
+        const error = await response.json()
+        alert(`❌ Fout bij opslaan: ${error.error || 'Onbekende fout'}`)
+      }
+    } catch (error) {
+      console.error('Error saving changes:', error)
+      alert('❌ Fout bij opslaan van wijzigingen. Probeer het opnieuw.')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -151,6 +257,14 @@ export default function AutoEditorPage() {
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                   <span className="text-sm">AI genereert template...</span>
                 </div>
+              )}
+              {editingTournamentId && (
+                <button
+                  onClick={handleSaveChanges}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Wijzigingen Opslaan
+                </button>
               )}
               <button
                 onClick={generateTemplate}
