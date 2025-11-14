@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
-import DarkVeil from '../../components/DarkVeil'
 import Link from 'next/link'
 import LoadingOverlay from '../../components/LoadingOverlay'
 
@@ -975,19 +974,7 @@ function WizardPageContent() {
   const progress = ((currentStep + 1) / wizardSteps.length) * 100
 
   return (
-    <div className="min-h-screen w-full overflow-hidden relative">
-      {/* DarkVeil achtergrond */}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0 }}>
-        <DarkVeil 
-          hueShift={0}
-          noiseIntensity={0.03}
-          scanlineIntensity={0}
-          speed={0.2}
-          scanlineFrequency={0.3}
-          warpAmount={0.1}
-          resolutionScale={1}
-        />
-      </div>
+    <div className="min-h-screen w-full overflow-hidden relative radial-gradient">
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-12 max-w-4xl">

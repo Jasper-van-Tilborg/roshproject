@@ -13,6 +13,14 @@
   --legion-box-border: 0 0 20px rgba(255, 255, 255, 0.3);
   --legion-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
   --legion-header-bg: #10173c;
+
+  /* New Dashboard Color Palette */
+  --dashboard-dark: #111827;      /* Donker grijs-blauw */
+  --dashboard-navy: #1A2335;      /* Diep marineblauw */
+  --dashboard-medium: #2D3E5A;     /* Medium marineblauw */
+  --dashboard-white: #FFFFFF;      /* Wit */
+  --dashboard-blue: #482CFF;       /* Vibrant blauw */
+  --dashboard-purple: #420AB2;     /* Diep paars */
 }
 
 @theme inline {
@@ -102,6 +110,86 @@ body {
   animation: pulse-dark ease-in-out infinite;
 }
 
+/* Radial Gradient Background - Light shining from center */
+.radial-gradient {
+  background: #111827;
+  position: relative;
+  overflow: hidden;
+}
+
+.radial-gradient::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150vw;
+  height: 150vh;
+  background: 
+    radial-gradient(
+      circle at center,
+      rgba(45, 62, 90, 0.5) 0%,
+      rgba(45, 62, 90, 0.3) 20%,
+      rgba(45, 62, 90, 0.15) 40%,
+      rgba(45, 62, 90, 0.05) 60%,
+      transparent 100%
+    );
+  pointer-events: none;
+}
+
+/* Glass Card Effect */
+.glass-card {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 80%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0.8;
+  z-index: 0;
+}
+
+
 /* Shimmer animation for loading bars */
 @keyframes shimmer {
   0% {
@@ -116,116 +204,54 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* Floating Label in Border Effect - Login Page */
+/* Floating Label Effect - Login Page */
 .floating-label-input {
   position: relative;
 }
 
 .floating-label-input input,
 .floating-label-input textarea {
-  border: 1px solid rgb(75 85 99);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   outline: none;
-  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-/* Cover the top border with a pseudo-element that matches background to hide it where label is */
-.floating-label-input input::before,
-.floating-label-input textarea::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  height: 1px;
-  background: rgb(55 65 81);
-  pointer-events: none;
-  z-index: 2;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0;
-  /* Full width initially - hidden */
-  mask-image: linear-gradient(to right, transparent 0%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 100%);
+  position: relative;
+  background: rgba(45, 62, 90, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  padding-top: 1.5rem;
+  padding-bottom: 0.75rem;
 }
 
-/* Show the cover and create gap where label is */
-.floating-label-input:has(input:focus) input::before,
-.floating-label-input:has(input:not(:placeholder-shown)) input::before,
-.floating-label-input:has(input.has-value) input::before,
-.floating-label-input:has(textarea:focus) textarea::before,
-.floating-label-input:has(textarea:not(:placeholder-shown)) textarea::before {
-  opacity: 1;
-  /* Cover only the middle section where label is */
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12px,
-    black 12px,
-    black calc(12px + 150px),
-    transparent calc(12px + 150px),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    transparent 12px,
-    black 12px,
-    black calc(12px + 150px),
-    transparent calc(12px + 150px),
-    transparent 100%
-  );
-}
-
-/* Focus state - change border color */
-.floating-label-input:has(input:focus) input,
-.floating-label-input:has(textarea:focus) textarea {
-  border-color: rgb(139 92 246);
-}
-
-.floating-label-input:has(input:focus) input::before,
-.floating-label-input:has(textarea:focus) textarea::before {
-  background: rgb(55 65 81);
-  height: 2px;
+.floating-label-input input:focus,
+.floating-label-input textarea:focus {
+  border-color: #482CFF;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(72, 44, 255, 0.2);
 }
 
 .floating-label-input .floating-label {
   position: absolute;
   left: 12px;
-  top: 0;
-  transform: translateY(-50%) scale(0.85);
-  color: #a78bfa;
-  font-size: 0.875rem;
-  font-weight: 500;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 1.125rem;
+  font-weight: 400;
   pointer-events: none;
-  opacity: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
-  padding: 0 8px;
-  white-space: nowrap;
   background: transparent;
 }
 
-/* Show label when focused or has value */
+/* Animate label to top when focused OR when has value */
 .floating-label-input input:focus ~ .floating-label,
-.floating-label-input input:not(:placeholder-shown) ~ .floating-label,
-.floating-label-input input.has-value ~ .floating-label,
-.floating-label-input textarea:focus ~ .floating-label,
-.floating-label-input textarea:not(:placeholder-shown) ~ .floating-label {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
+.floating-label-input .floating-label.floating-label-active,
+.floating-label-input textarea:focus ~ .floating-label {
+  top: 0.5rem;
+  transform: translateY(0);
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 
-/* Animate placeholder to fade out when label appears */
-.floating-label-input input::placeholder,
-.floating-label-input textarea::placeholder {
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-label-input input:focus::placeholder,
-.floating-label-input input:not(:placeholder-shown)::placeholder,
-.floating-label-input input.has-value::placeholder,
-.floating-label-input textarea:focus::placeholder,
-.floating-label-input textarea:not(:placeholder-shown)::placeholder {
-  opacity: 0;
-  transform: translateY(-8px);
-}

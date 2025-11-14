@@ -1,20 +1,8 @@
-import DarkVeil from "./components/DarkVeil";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center">
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -1 }}>
-        <DarkVeil 
-          hueShift={0}
-          noiseIntensity={0.03}
-          scanlineIntensity={0}
-          speed={0.2}
-          scanlineFrequency={0.3}
-          warpAmount={0.1}
-          resolutionScale={1}
-        />
-      </div>
+    <div className="min-h-screen w-full overflow-hidden relative flex items-center justify-center radial-gradient">
       
       {/* Minimalistische content */}
       <div className="text-center z-10 max-w-2xl mx-auto px-6">
