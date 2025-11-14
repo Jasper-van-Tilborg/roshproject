@@ -32,24 +32,15 @@ export default function ComponentEditor({
 
   // Update local state when props change (important for loading existing code)
   useEffect(() => {
-    if (html !== editedHtml) {
-      console.log('Updating editedHtml from props, length:', html.length)
-      setEditedHtml(html)
-    }
+    setEditedHtml(html)
   }, [html])
 
   useEffect(() => {
-    if (css !== editedCss) {
-      console.log('Updating editedCss from props, length:', css.length)
-      setEditedCss(css)
-    }
+    setEditedCss(css)
   }, [css])
 
   useEffect(() => {
-    if (js !== editedJs) {
-      console.log('Updating editedJs from props, length:', js.length)
-      setEditedJs(js)
-    }
+    setEditedJs(js)
   }, [js])
 
   // Parse components when HTML changes
