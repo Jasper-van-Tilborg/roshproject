@@ -31,22 +31,23 @@ export function parseComponentsFromHTML(html: string, css: string): Component[] 
   const sections = doc.querySelectorAll('section[data-component], section[id*="section"], section[id*="-section"], [data-editable="true"], header, footer, main > section, .hero-section, .bracket-section')
   
   sections.forEach((section, index) => {
-    const componentId = section.getAttribute('id') || section.getAttribute('data-component') || `component-${index}`
-    const componentType = section.getAttribute('data-component') || extractComponentType(section, componentId)
-    const componentName = getComponentName(componentType, section)
+    const htmlSection = section as HTMLElement
+    const componentId = htmlSection.getAttribute('id') || htmlSection.getAttribute('data-component') || `component-${index}`
+    const componentType = htmlSection.getAttribute('data-component') || extractComponentType(htmlSection, componentId)
+    const componentName = getComponentName(componentType, htmlSection)
 
     // Extract content properties
-    const properties = extractProperties(section)
+    const properties = extractProperties(htmlSection)
     
     // Extract inline styles and computed styles
-    const styles = extractStyles(section, css)
+    const styles = extractStyles(htmlSection, css)
 
     components.push({
       id: componentId,
       type: componentType,
       name: componentName,
-      html: section.outerHTML,
-      section: section as HTMLElement,
+      html: htmlSection.outerHTML,
+      section: htmlSection,
       properties,
       styles
     })
@@ -56,17 +57,18 @@ export function parseComponentsFromHTML(html: string, css: string): Component[] 
   if (components.length === 0) {
     const mainElements = doc.querySelectorAll('header, main section, .hero, .bracket, .sponsors, .twitch')
     mainElements.forEach((el, index) => {
-      const componentId = el.id || `component-${index}`
-      const componentType = extractComponentType(el as HTMLElement, componentId)
+      const htmlEl = el as HTMLElement
+      const componentId = htmlEl.id || `component-${index}`
+      const componentType = extractComponentType(htmlEl, componentId)
       
       components.push({
         id: componentId,
         type: componentType,
-        name: getComponentName(componentType, el),
-        html: el.outerHTML,
-        section: el as HTMLElement,
-        properties: extractProperties(el as HTMLElement),
-        styles: extractStyles(el as HTMLElement, css)
+        name: getComponentName(componentType, htmlEl),
+        html: htmlEl.outerHTML,
+        section: htmlEl,
+        properties: extractProperties(htmlEl),
+        styles: extractStyles(htmlEl, css)
       })
     })
   }

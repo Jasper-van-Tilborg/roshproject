@@ -85,13 +85,19 @@ export default function EditorPage() {
   const updateConfig = (key: string, value: unknown) => {
     if (key.includes('.')) {
       const [parent, child] = key.split('.')
-      setConfig(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof TournamentConfig],
-          [child]: value
+      setConfig(prev => {
+        const parentValue = prev[parent as keyof TournamentConfig]
+        if (typeof parentValue === 'object' && parentValue !== null && !Array.isArray(parentValue)) {
+          return {
+            ...prev,
+            [parent]: {
+              ...parentValue,
+              [child]: value
+            }
+          }
         }
-      }))
+        return prev
+      })
     } else {
       setConfig(prev => ({
         ...prev,
@@ -414,7 +420,7 @@ export default function EditorPage() {
                 {activeTab === 'preview' && (
                   <div>
                     <h3 className="text-lg font-semibold mb-4">Live Preview</h3>
-                    <LivePreview generatedCode={generatedCode} config={config} />
+                    <LivePreview generatedCode={generatedCode} config={config as unknown as Record<string, unknown>} />
                   </div>
                 )}
 

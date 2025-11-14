@@ -235,7 +235,7 @@ export async function generateTournamentTemplate(
     
     // CSS match - probeer css code block, dan standalone CSS
     const cssMatch = code.match(/```css\s*\n([\s\S]*?)\n```/i) || 
-                      code.match(/```\s*\n(\/\*[\s\S]*?\*\/[\s\S]*?)\n```/s) ||
+                      code.match(/```\s*\n(\/\*[\s\S]*?\*\/[\s\S]*?)\n```/) ||
                       code.match(/```\s*\n(:root\s*\{[\s\S]*?)\n```/i) ||
                       code.match(/```\s*\n(\.[\w-]+\s*\{[\s\S]*?)\n```/i);
     

@@ -1,6 +1,13 @@
 // Mock template generator voor testing van de editor
 export function generateMockTemplate(config: Record<string, unknown>): string {
   const { title, date, location, description, participants, game, components } = config
+  const participantsNum = typeof participants === 'number' ? participants : Number(participants) || 8
+  const titleStr = String(title || 'Tournament')
+  const dateStr = String(date || 'TBD')
+  const locationStr = String(location || 'TBD')
+  const descriptionStr = String(description || '')
+  const gameStr = String(game || 'CS2')
+  const componentsArr = Array.isArray(components) ? components : []
 
   return `'use client'
 
@@ -9,11 +16,11 @@ import { useState } from 'react'
 export default function TournamentPage() {
   const [activeTab, setActiveTab] = useState('bracket')
 
-  const teams = Array.from({ length: ${participants} }, (_, i) => ({
+  const teams = Array.from({ length: ${participantsNum} }, (_, i) => ({
     id: i + 1,
     name: \`Team \${String.fromCharCode(65 + i)}\`,
     logo: ['🦁', '🐺', '🦅', '🐉', '🦈', '🐯', '🦂', '🐆'][i % 8],
-    group: i < ${Math.ceil(participants / 2)} ? 'A' : 'B'
+    group: i < ${Math.ceil(participantsNum / 2)} ? 'A' : 'B'
   }))
 
   const groupA = teams.filter(t => t.group === 'A')
@@ -29,7 +36,7 @@ export default function TournamentPage() {
         <nav className="relative z-10 container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div className="text-white font-bold text-2xl tracking-tight">
-              ${title.toUpperCase()}
+              ${titleStr.toUpperCase()}
             </div>
             <div className="hidden md:flex space-x-8 text-white">
               <a href="#about" className="hover:text-[#C8247F] transition-colors duration-300">Over</a>
@@ -46,7 +53,7 @@ export default function TournamentPage() {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight tracking-tight">
-              ${title.toUpperCase()}
+              ${titleStr.toUpperCase()}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#C8247F] to-purple-400">
                 EVENT
               </span>
@@ -55,12 +62,12 @@ export default function TournamentPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 text-white text-lg">
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📅</span>
-                <span className="font-semibold">${date}</span>
+                <span className="font-semibold">${dateStr}</span>
               </div>
               <div className="hidden sm:block w-2 h-2 bg-[#C8247F] rounded-full"></div>
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📍</span>
-                <span className="font-semibold">${location}</span>
+                <span className="font-semibold">${locationStr}</span>
               </div>
             </div>
 
@@ -84,7 +91,7 @@ export default function TournamentPage() {
               Over Het Toernooi
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              ${description}
+              ${descriptionStr}
             </p>
           </div>
 
@@ -99,21 +106,21 @@ export default function TournamentPage() {
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
               <div className="text-5xl mb-4">👥</div>
               <h3 className="text-2xl font-bold text-white mb-4">Teams</h3>
-              <p className="text-3xl font-black text-[#C8247F] mb-2">${participants}</p>
+              <p className="text-3xl font-black text-[#C8247F] mb-2">${participantsNum}</p>
               <p className="text-gray-300">Deelnemende teams</p>
             </div>
             
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
               <div className="text-5xl mb-4">🎮</div>
               <h3 className="text-2xl font-bold text-white mb-4">Game</h3>
-              <p className="text-3xl font-black text-[#C8247F] mb-2">${game}</p>
+              <p className="text-3xl font-black text-[#C8247F] mb-2">${gameStr}</p>
               <p className="text-gray-300">Counter-Strike 2</p>
             </div>
           </div>
         </div>
       </section>
 
-      ${components.includes('bracket') ? `
+      ${componentsArr.includes('bracket') ? `
       {/* Teams Section */}
       <section id="teams" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
@@ -168,7 +175,7 @@ export default function TournamentPage() {
       </section>
       ` : ''}
 
-      ${components.includes('twitch') ? `
+      ${componentsArr.includes('twitch') ? `
       {/* Twitch Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
@@ -194,7 +201,7 @@ export default function TournamentPage() {
       </section>
       ` : ''}
 
-      ${components.includes('sponsors') ? `
+      ${componentsArr.includes('sponsors') ? `
       {/* Sponsors Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
@@ -243,8 +250,8 @@ export default function TournamentPage() {
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-white border-opacity-20">
         <div className="container mx-auto max-w-6xl text-center">
-          <div className="text-white font-bold text-2xl mb-4">${title.toUpperCase()} EVENT</div>
-          <p className="text-gray-300 mb-6">Het ultieme ${game} toernooi</p>
+          <div className="text-white font-bold text-2xl mb-4">${titleStr.toUpperCase()} EVENT</div>
+          <p className="text-gray-300 mb-6">Het ultieme ${gameStr} toernooi</p>
           <div className="flex justify-center space-x-6 mb-6">
             <a href="#" className="text-gray-400 hover:text-[#C8247F] transition-colors duration-200">
               Instagram
@@ -256,7 +263,7 @@ export default function TournamentPage() {
               Discord
             </a>
           </div>
-          <p className="text-gray-400">&copy; 2025 ${title} Event. Alle rechten voorbehouden.</p>
+          <p className="text-gray-400">&copy; 2025 ${titleStr} Event. Alle rechten voorbehouden.</p>
         </div>
       </footer>
     </div>
