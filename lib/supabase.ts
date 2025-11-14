@@ -3,11 +3,18 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Use dummy values during build time if env vars are not set
+// This prevents build failures on Vercel when env vars are not configured yet
+const buildTimeUrl = supabaseUrl || 'https://placeholder.supabase.co'
+const buildTimeKey = supabaseAnonKey || 'placeholder-key'
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase environment variables are not set. Please add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file')
+  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+    console.warn('Supabase environment variables are not set. Please add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file')
+  }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(buildTimeUrl, buildTimeKey)
 
 // Database types
 export interface Tournament {

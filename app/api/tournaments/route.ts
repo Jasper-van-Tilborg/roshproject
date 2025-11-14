@@ -246,3 +246,40 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// DELETE - Verwijder tournament
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Tournament ID is required' },
+        { status: 400 }
+      )
+    }
+    
+    const { error } = await supabase
+      .from('tournaments')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
+    }
+    
+    return NextResponse.json({ success: true })
+  } catch (error: unknown) {
+    console.error('Error deleting tournament:', error)
+    const message = error instanceof Error ? error.message : 'Failed to delete tournament'
+    return NextResponse.json(
+      { error: message },
+      { status: 500 }
+    )
+  }
+}
+

@@ -286,153 +286,411 @@ export default function Dashboard() {
     }));
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!tournamentConfig.name.trim()) {
       alert('Voer eerst een toernooi naam in!');
       return;
     }
 
-    let updatedTournaments;
+    try {
+      if (editingTournament) {
+        // Bewerken van bestaand toernooi - update in Supabase
+        const response = await fetch('/api/tournaments', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingTournament,
+            name: tournamentConfig.name,
+            description: tournamentConfig.description,
+            location: tournamentConfig.location,
+            startDate: tournamentConfig.startDate,
+            endDate: tournamentConfig.endDate,
+            maxParticipants: tournamentConfig.maxParticipants,
+            entryFee: tournamentConfig.entryFee,
+            prizePool: tournamentConfig.prizePool,
+            primaryColor: tournamentConfig.primaryColor,
+            secondaryColor: tournamentConfig.secondaryColor,
+            status: 'draft',
+            customComponents: tournamentConfig.customComponents || []
+          })
+        })
 
-    if (editingTournament) {
-      // Bewerken van bestaand toernooi
-      updatedTournaments = tournaments.map(t => 
-        t.id === editingTournament 
-          ? {
-              ...t,
-              name: tournamentConfig.name,
-              description: tournamentConfig.description,
-              location: tournamentConfig.location,
-              startDate: tournamentConfig.startDate,
-              endDate: tournamentConfig.endDate,
-              maxParticipants: tournamentConfig.maxParticipants,
-              entryFee: tournamentConfig.entryFee,
-              prizePool: tournamentConfig.prizePool,
-              primaryColor: tournamentConfig.primaryColor,
-              secondaryColor: tournamentConfig.secondaryColor,
-              customComponents: tournamentConfig.customComponents || [],
-              status: 'draft' as const
-            }
-          : t
-      );
-      alert('Toernooi bijgewerkt!');
-    } else {
-      // Nieuw toernooi aanmaken
-      const newTournament = {
-        id: Date.now().toString(),
-        name: tournamentConfig.name,
-        description: tournamentConfig.description,
-        location: tournamentConfig.location,
-        startDate: tournamentConfig.startDate,
-        endDate: tournamentConfig.endDate,
-        maxParticipants: tournamentConfig.maxParticipants,
-        entryFee: tournamentConfig.entryFee,
-        prizePool: tournamentConfig.prizePool,
-        primaryColor: tournamentConfig.primaryColor,
-        secondaryColor: tournamentConfig.secondaryColor,
-        customComponents: tournamentConfig.customComponents || [],
-        status: 'draft' as const,
-        createdAt: new Date().toISOString()
-      };
+        if (response.ok) {
+          alert('Toernooi bijgewerkt!');
+          // Herlaad toernooien uit database
+          const loadResponse = await fetch('/api/tournaments')
+          if (loadResponse.ok) {
+            const data = await loadResponse.json()
+            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description || '',
+              location: t.location || '',
+              startDate: t.start_date || '',
+              endDate: t.end_date || '',
+              maxParticipants: t.max_participants || '8',
+              entryFee: t.entry_fee || '',
+              prizePool: t.prize_pool || '',
+              primaryColor: t.primary_color || '#0044cc',
+              secondaryColor: t.secondary_color || '#ff6600',
+              customComponents: t.custom_components || [],
+              status: t.status,
+              createdAt: t.created_at || new Date().toISOString()
+            }))
+            setTournaments(mappedTournaments)
+            localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+          }
+        } else {
+          const error = await response.json()
+          alert(`Fout bij bijwerken: ${error.error || 'Onbekende fout'}`)
+          return
+        }
+      } else {
+        // Nieuw toernooi aanmaken - save in Supabase
+        const response = await fetch('/api/tournaments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: tournamentConfig.name,
+            description: tournamentConfig.description,
+            location: tournamentConfig.location,
+            startDate: tournamentConfig.startDate,
+            endDate: tournamentConfig.endDate,
+            maxParticipants: tournamentConfig.maxParticipants,
+            entryFee: tournamentConfig.entryFee,
+            prizePool: tournamentConfig.prizePool,
+            primaryColor: tournamentConfig.primaryColor,
+            secondaryColor: tournamentConfig.secondaryColor,
+            status: 'draft',
+            generatedCode: {},
+            wizardAnswers: {},
+            customComponents: tournamentConfig.customComponents || []
+          })
+        })
 
-      updatedTournaments = [...tournaments, newTournament];
-      alert('Draft opgeslagen!');
+        if (response.ok) {
+          alert('Draft opgeslagen!');
+          // Herlaad toernooien uit database
+          const loadResponse = await fetch('/api/tournaments')
+          if (loadResponse.ok) {
+            const data = await loadResponse.json()
+            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description || '',
+              location: t.location || '',
+              startDate: t.start_date || '',
+              endDate: t.end_date || '',
+              maxParticipants: t.max_participants || '8',
+              entryFee: t.entry_fee || '',
+              prizePool: t.prize_pool || '',
+              primaryColor: t.primary_color || '#0044cc',
+              secondaryColor: t.secondary_color || '#ff6600',
+              customComponents: t.custom_components || [],
+              status: t.status,
+              createdAt: t.created_at || new Date().toISOString()
+            }))
+            setTournaments(mappedTournaments)
+            localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+          }
+        } else {
+          const error = await response.json()
+          alert(`Fout bij opslaan: ${error.error || 'Onbekende fout'}`)
+          return
+        }
+      }
+      
+      setCurrentView('manage-tournament');
+      setEditingTournament(null);
+    } catch (error) {
+      console.error('Error saving tournament:', error)
+      alert('Fout bij opslaan van toernooi. Probeer het opnieuw.')
     }
-    
-    setTournaments(updatedTournaments);
-    localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
-    setCurrentView('manage-tournament');
-    setEditingTournament(null);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!tournamentConfig.name.trim()) {
       alert('Voer eerst een toernooi naam in!');
       return;
     }
 
-    let updatedTournaments;
+    try {
+      if (editingTournament) {
+        // Bewerken van bestaand toernooi en publiceren - update in Supabase
+        const response = await fetch('/api/tournaments', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingTournament,
+            name: tournamentConfig.name,
+            description: tournamentConfig.description,
+            location: tournamentConfig.location,
+            startDate: tournamentConfig.startDate,
+            endDate: tournamentConfig.endDate,
+            maxParticipants: tournamentConfig.maxParticipants,
+            entryFee: tournamentConfig.entryFee,
+            prizePool: tournamentConfig.prizePool,
+            primaryColor: tournamentConfig.primaryColor,
+            secondaryColor: tournamentConfig.secondaryColor,
+            status: 'published',
+            customComponents: tournamentConfig.customComponents || []
+          })
+        })
 
-    if (editingTournament) {
-      // Bewerken van bestaand toernooi en publiceren
-      updatedTournaments = tournaments.map(t => 
-        t.id === editingTournament 
-          ? {
-              ...t,
-              name: tournamentConfig.name,
-              description: tournamentConfig.description,
-              location: tournamentConfig.location,
-              startDate: tournamentConfig.startDate,
-              endDate: tournamentConfig.endDate,
-              maxParticipants: tournamentConfig.maxParticipants,
-              entryFee: tournamentConfig.entryFee,
-              prizePool: tournamentConfig.prizePool,
-              primaryColor: tournamentConfig.primaryColor,
-              secondaryColor: tournamentConfig.secondaryColor,
-              customComponents: tournamentConfig.customComponents || [],
-              status: 'published' as const
-            }
-          : t
-      );
-      alert('Toernooi gepubliceerd!');
-    } else {
-      // Nieuw toernooi aanmaken en publiceren
-      const newTournament = {
-        id: Date.now().toString(),
-        name: tournamentConfig.name,
-        description: tournamentConfig.description,
-        location: tournamentConfig.location,
-        startDate: tournamentConfig.startDate,
-        endDate: tournamentConfig.endDate,
-        maxParticipants: tournamentConfig.maxParticipants,
-        entryFee: tournamentConfig.entryFee,
-        prizePool: tournamentConfig.prizePool,
-        primaryColor: tournamentConfig.primaryColor,
-        secondaryColor: tournamentConfig.secondaryColor,
-        customComponents: tournamentConfig.customComponents || [],
-        status: 'published' as const,
-        createdAt: new Date().toISOString()
-      };
+        if (response.ok) {
+          alert('Toernooi gepubliceerd!');
+          // Herlaad toernooien uit database
+          const loadResponse = await fetch('/api/tournaments')
+          if (loadResponse.ok) {
+            const data = await loadResponse.json()
+            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description || '',
+              location: t.location || '',
+              startDate: t.start_date || '',
+              endDate: t.end_date || '',
+              maxParticipants: t.max_participants || '8',
+              entryFee: t.entry_fee || '',
+              prizePool: t.prize_pool || '',
+              primaryColor: t.primary_color || '#0044cc',
+              secondaryColor: t.secondary_color || '#ff6600',
+              customComponents: t.custom_components || [],
+              status: t.status,
+              createdAt: t.created_at || new Date().toISOString()
+            }))
+            setTournaments(mappedTournaments)
+            localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+          }
+        } else {
+          const error = await response.json()
+          alert(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`)
+          return
+        }
+      } else {
+        // Nieuw toernooi aanmaken en publiceren - save in Supabase
+        const response = await fetch('/api/tournaments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: tournamentConfig.name,
+            description: tournamentConfig.description,
+            location: tournamentConfig.location,
+            startDate: tournamentConfig.startDate,
+            endDate: tournamentConfig.endDate,
+            maxParticipants: tournamentConfig.maxParticipants,
+            entryFee: tournamentConfig.entryFee,
+            prizePool: tournamentConfig.prizePool,
+            primaryColor: tournamentConfig.primaryColor,
+            secondaryColor: tournamentConfig.secondaryColor,
+            status: 'published',
+            generatedCode: {},
+            wizardAnswers: {},
+            customComponents: tournamentConfig.customComponents || []
+          })
+        })
 
-      updatedTournaments = [...tournaments, newTournament];
-      alert('Toernooi gepubliceerd!');
+        if (response.ok) {
+          alert('Toernooi gepubliceerd!');
+          // Herlaad toernooien uit database
+          const loadResponse = await fetch('/api/tournaments')
+          if (loadResponse.ok) {
+            const data = await loadResponse.json()
+            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description || '',
+              location: t.location || '',
+              startDate: t.start_date || '',
+              endDate: t.end_date || '',
+              maxParticipants: t.max_participants || '8',
+              entryFee: t.entry_fee || '',
+              prizePool: t.prize_pool || '',
+              primaryColor: t.primary_color || '#0044cc',
+              secondaryColor: t.secondary_color || '#ff6600',
+              customComponents: t.custom_components || [],
+              status: t.status,
+              createdAt: t.created_at || new Date().toISOString()
+            }))
+            setTournaments(mappedTournaments)
+            localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+          }
+        } else {
+          const error = await response.json()
+          alert(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`)
+          return
+        }
+      }
+      
+      setCurrentView('manage-tournament');
+      setEditingTournament(null);
+    } catch (error) {
+      console.error('Error publishing tournament:', error)
+      alert('Fout bij publiceren van toernooi. Probeer het opnieuw.')
     }
-    
-    setTournaments(updatedTournaments);
-    localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
-    setCurrentView('manage-tournament');
-    setEditingTournament(null);
   };
 
-  const handleDeleteTournament = (tournamentId: string) => {
+  const handleDeleteTournament = async (tournamentId: string) => {
     if (confirm('Weet je zeker dat je dit toernooi wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.')) {
-      const updatedTournaments = tournaments.filter(t => t.id !== tournamentId);
-      setTournaments(updatedTournaments);
-      localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
-      alert('Toernooi verwijderd!');
+      try {
+        const response = await fetch(`/api/tournaments?id=${tournamentId}`, {
+          method: 'DELETE'
+        })
+
+        if (response.ok) {
+          alert('Toernooi verwijderd!');
+          // Herlaad toernooien uit database
+          const loadResponse = await fetch('/api/tournaments')
+          if (loadResponse.ok) {
+            const data = await loadResponse.json()
+            const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description || '',
+              location: t.location || '',
+              startDate: t.start_date || '',
+              endDate: t.end_date || '',
+              maxParticipants: t.max_participants || '8',
+              entryFee: t.entry_fee || '',
+              prizePool: t.prize_pool || '',
+              primaryColor: t.primary_color || '#0044cc',
+              secondaryColor: t.secondary_color || '#ff6600',
+              customComponents: t.custom_components || [],
+              status: t.status,
+              createdAt: t.created_at || new Date().toISOString()
+            }))
+            setTournaments(mappedTournaments)
+            localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+          }
+        } else {
+          const error = await response.json()
+          alert(`Fout bij verwijderen: ${error.error || 'Onbekende fout'}`)
+        }
+      } catch (error) {
+        console.error('Error deleting tournament:', error)
+        alert('Fout bij verwijderen van toernooi. Probeer het opnieuw.')
+      }
     }
   };
 
-  const handlePublishFromManage = (tournamentId: string) => {
-    const updatedTournaments = tournaments.map(t => 
-      t.id === tournamentId 
-        ? { ...t, status: 'published' as const }
-        : t
-    );
-    setTournaments(updatedTournaments);
-    localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
-    alert('Toernooi gepubliceerd!');
+  const handlePublishFromManage = async (tournamentId: string) => {
+    try {
+      const tournament = tournaments.find(t => t.id === tournamentId)
+      if (!tournament) return
+
+      const response = await fetch('/api/tournaments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: tournamentId,
+          name: tournament.name,
+          description: tournament.description,
+          location: tournament.location,
+          startDate: tournament.startDate,
+          endDate: tournament.endDate,
+          maxParticipants: tournament.maxParticipants,
+          entryFee: tournament.entryFee,
+          prizePool: tournament.prizePool,
+          primaryColor: tournament.primaryColor,
+          secondaryColor: tournament.secondaryColor,
+          status: 'published',
+          customComponents: tournament.customComponents || []
+        })
+      })
+
+      if (response.ok) {
+        alert('Toernooi gepubliceerd!');
+        // Herlaad toernooien uit database
+        const loadResponse = await fetch('/api/tournaments')
+        if (loadResponse.ok) {
+          const data = await loadResponse.json()
+          const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description || '',
+            location: t.location || '',
+            startDate: t.start_date || '',
+            endDate: t.end_date || '',
+            maxParticipants: t.max_participants || '8',
+            entryFee: t.entry_fee || '',
+            prizePool: t.prize_pool || '',
+            primaryColor: t.primary_color || '#0044cc',
+            secondaryColor: t.secondary_color || '#ff6600',
+            customComponents: t.custom_components || [],
+            status: t.status,
+            createdAt: t.created_at || new Date().toISOString()
+          }))
+          setTournaments(mappedTournaments)
+          localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+        }
+      } else {
+        const error = await response.json()
+        alert(`Fout bij publiceren: ${error.error || 'Onbekende fout'}`)
+      }
+    } catch (error) {
+      console.error('Error publishing tournament:', error)
+      alert('Fout bij publiceren van toernooi. Probeer het opnieuw.')
+    }
   };
 
-  const handleUnpublish = (tournamentId: string) => {
-    const updatedTournaments = tournaments.map(t => 
-      t.id === tournamentId 
-        ? { ...t, status: 'draft' as const }
-        : t
-    );
-    setTournaments(updatedTournaments);
-    localStorage.setItem('tournaments', JSON.stringify(updatedTournaments));
-    alert('Toernooi unpublished!');
+  const handleUnpublish = async (tournamentId: string) => {
+    try {
+      const tournament = tournaments.find(t => t.id === tournamentId)
+      if (!tournament) return
+
+      const response = await fetch('/api/tournaments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: tournamentId,
+          name: tournament.name,
+          description: tournament.description,
+          location: tournament.location,
+          startDate: tournament.startDate,
+          endDate: tournament.endDate,
+          maxParticipants: tournament.maxParticipants,
+          entryFee: tournament.entryFee,
+          prizePool: tournament.prizePool,
+          primaryColor: tournament.primaryColor,
+          secondaryColor: tournament.secondaryColor,
+          status: 'draft',
+          customComponents: tournament.customComponents || []
+        })
+      })
+
+      if (response.ok) {
+        alert('Toernooi unpublished!');
+        // Herlaad toernooien uit database
+        const loadResponse = await fetch('/api/tournaments')
+        if (loadResponse.ok) {
+          const data = await loadResponse.json()
+          const mappedTournaments = (data.tournaments || []).map((t: any) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description || '',
+            location: t.location || '',
+            startDate: t.start_date || '',
+            endDate: t.end_date || '',
+            maxParticipants: t.max_participants || '8',
+            entryFee: t.entry_fee || '',
+            prizePool: t.prize_pool || '',
+            primaryColor: t.primary_color || '#0044cc',
+            secondaryColor: t.secondary_color || '#ff6600',
+            customComponents: t.custom_components || [],
+            status: t.status,
+            createdAt: t.created_at || new Date().toISOString()
+          }))
+          setTournaments(mappedTournaments)
+          localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+        }
+      } else {
+        const error = await response.json()
+        alert(`Fout bij unpubliceren: ${error.error || 'Onbekende fout'}`)
+      }
+    } catch (error) {
+      console.error('Error unpublishing tournament:', error)
+      alert('Fout bij unpubliceren van toernooi. Probeer het opnieuw.')
+    }
   };
 
   // Functie om URL slug te genereren van toernooi naam
@@ -781,6 +1039,79 @@ export default function Dashboard() {
       router.push('/editor/wizard')
     }
   }, [currentView, router])
+
+  // Laad toernooien uit Supabase database
+  useEffect(() => {
+    const loadTournaments = async () => {
+      try {
+        const response = await fetch('/api/tournaments')
+        if (response.ok) {
+          const data = await response.json()
+          // Map database format naar frontend format
+          const mappedTournaments = (data.tournaments || []).map((t: {
+            id: string
+            name: string
+            description: string
+            location: string
+            start_date: string
+            end_date: string | null
+            max_participants: string
+            entry_fee: string
+            prize_pool: string
+            primary_color: string
+            secondary_color: string
+            status: 'draft' | 'published'
+            created_at: string
+            custom_components?: Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
+          }) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description || '',
+            location: t.location || '',
+            startDate: t.start_date || '',
+            endDate: t.end_date || '',
+            maxParticipants: t.max_participants || '8',
+            entryFee: t.entry_fee || '',
+            prizePool: t.prize_pool || '',
+            primaryColor: t.primary_color || '#0044cc',
+            secondaryColor: t.secondary_color || '#ff6600',
+            customComponents: t.custom_components || [],
+            status: t.status,
+            createdAt: t.created_at || new Date().toISOString()
+          }))
+          setTournaments(mappedTournaments)
+          // Ook opslaan in localStorage als backup
+          localStorage.setItem('tournaments', JSON.stringify(mappedTournaments))
+        } else {
+          console.error('Failed to load tournaments:', response.statusText)
+          // Fallback naar localStorage als API faalt
+          const localTournaments = localStorage.getItem('tournaments')
+          if (localTournaments) {
+            try {
+              setTournaments(JSON.parse(localTournaments))
+            } catch (e) {
+              console.error('Failed to parse localStorage tournaments:', e)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading tournaments:', error)
+        // Fallback naar localStorage als API faalt
+        const localTournaments = localStorage.getItem('tournaments')
+        if (localTournaments) {
+          try {
+            setTournaments(JSON.parse(localTournaments))
+          } catch (e) {
+            console.error('Failed to parse localStorage tournaments:', e)
+          }
+        }
+      }
+    }
+
+    if (isLoggedIn) {
+      loadTournaments()
+    }
+  }, [isLoggedIn])
 
   // Login form
   if (!isLoggedIn) {
