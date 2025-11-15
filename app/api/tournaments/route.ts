@@ -41,8 +41,21 @@ export async function GET(request: NextRequest) {
         hint: error.hint
       })
       
+      // Handle invalid API key error
+      if (error.message?.includes('Invalid API key') || error.message?.includes('JWT') || error.code === 'PGRST301') {
+        console.error('Invalid Supabase API key. Please check your NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable.')
+        return NextResponse.json(
+          { 
+            error: 'Invalid API key. Please check your Supabase configuration in your environment variables.',
+            code: error.code,
+            tournaments: [] 
+          },
+          { status: 401 }
+        )
+      }
+      
       // Return empty array instead of error if it's a permission/RLS issue
-      if (error.code === 'PGRST301' || error.message?.includes('permission') || error.message?.includes('policy')) {
+      if (error.message?.includes('permission') || error.message?.includes('policy')) {
         console.warn('RLS policy issue - returning empty array. Check Supabase RLS policies.')
         return NextResponse.json({ tournaments: [] })
       }

@@ -193,6 +193,153 @@ body {
   z-index: 0;
 }
 
+/* Glass Button Effect - Behoudt achtergrondkleur maar voegt glassmorphism toe */
+.glass-button {
+  position: relative;
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 16px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5) 20%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.5) 80%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.glass-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 0;
+}
+
+.glass-button:hover::after {
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: glass-light-reflection 1.2s ease-in-out infinite;
+  opacity: 0.7;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+}
+
+@keyframes glass-light-reflection {
+  0% {
+    transform: translateX(-50%) translateY(-50%) rotate(45deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(0%) translateY(0%) rotate(45deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(50%) translateY(50%) rotate(45deg);
+    opacity: 0.5;
+  }
+}
+
+/* Glass Icon Effect - Behoudt achtergrondkleur maar voegt glassmorphism toe */
+.glass-icon {
+  position: relative;
+  backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 16px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.glass-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5) 20%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.5) 80%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.glass-icon::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 50%
+  );
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 0;
+}
+
+.glass-icon:hover::after {
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: glass-light-reflection 1.2s ease-in-out infinite;
+  opacity: 0.7;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+}
 
 /* Notification slide-in animation */
 @keyframes slide-in {
