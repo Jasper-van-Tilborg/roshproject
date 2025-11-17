@@ -195,6 +195,7 @@ function WizardPageContent() {
   const [isSaving, setIsSaving] = useState(false)
   const [editingTournamentId, setEditingTournamentId] = useState<string | null>(null)
   const [isLoadingTournament, setIsLoadingTournament] = useState(false)
+  const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
 
   // Memoize onCodeChange callback to prevent infinite loops
   const handleCodeChange = useCallback((html: string, css: string, js: string) => {
@@ -842,7 +843,12 @@ function WizardPageContent() {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-900">
           <div className="text-center max-w-md p-6">
-            <div className="text-red-500 text-xl mb-4">⚠️ Fout</div>
+            <div className="flex items-center space-x-2 text-red-500 text-xl mb-4">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Fout</span>
+            </div>
             <div className="text-white mb-4">{error}</div>
             {isApiKeyError && (
               <div className="text-yellow-400 text-sm mb-6 p-4 bg-yellow-900/20 rounded-lg">
@@ -896,69 +902,122 @@ function WizardPageContent() {
     }
 
     return (
-      <div className="h-screen flex flex-col bg-gray-900">
-        <div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-4">
-              <div>
-                <h1 className="text-xl font-bold text-white">Live Editor</h1>
-                <p className="text-sm text-gray-400">Bewerk je website in real-time</p>
-              </div>
-              <div className="flex items-center space-x-2">
+      <div className="h-screen flex flex-col radial-gradient relative overflow-hidden">
+        {/* Header met glassmorphism effect - fixed position */}
+        <div className="glass-card border-b border-white/20 px-6 py-4 flex items-center relative z-20 flex-shrink-0">
+          {/* Left Section */}
+          <div className="flex-1 flex items-center space-x-4">
+            <div>
+              <h1 className="text-xl font-bold text-white">LIVE EDITOR</h1>
+              <p className="text-sm text-gray-300">Edit your page in real-time</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative floating-label-input">
                 <input
                   type="text"
                   value={tournamentName}
                   onChange={(e) => setTournamentName(e.target.value)}
                   placeholder="Toernooi naam..."
-                  className="px-3 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-purple-500 w-48"
+                  className={`px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all w-48 ${tournamentName ? 'has-value' : ''}`}
                 />
+                <label className={`floating-label ${tournamentName ? 'floating-label-active' : ''}`}>
+                  Toernooi naam
+                </label>
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          
+          {/* Viewport Selector - Absolute Center */}
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <div className="flex items-center space-x-2 bg-gray-800/60 backdrop-blur-sm rounded-lg px-2 py-1.5 border border-gray-700">
+              {(['desktop', 'tablet', 'mobile'] as const).map((vp) => (
+                <button
+                  key={vp}
+                  onClick={() => setViewport(vp)}
+                  className={`p-2 rounded transition-all ${
+                    viewport === vp
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title={vp.charAt(0).toUpperCase() + vp.slice(1)}
+                >
+                  {vp === 'desktop' && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                  {vp === 'tablet' && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                  {vp === 'mobile' && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Right Section */}
+          <div className="flex-1 flex items-center justify-end space-x-3">
             <button
               onClick={handleSaveDraft}
               disabled={isSaving}
-              className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="glass-button px-4 py-2 text-white rounded-lg hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
-              <span>💾</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
               <span>{isSaving ? 'Opslaan...' : 'Opslaan als Draft'}</span>
             </button>
             <button
               onClick={handlePublish}
               disabled={isSaving}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded hover:from-purple-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-semibold"
+              className="px-4 py-2 bg-[#482CFF] text-white rounded-lg hover:bg-[#420AB2] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-semibold shadow-lg"
               style={{
-                boxShadow: !isSaving ? '0 0 20px rgba(139, 92, 246, 0.4)' : 'none'
+                boxShadow: !isSaving ? '0 0 20px rgba(72, 44, 255, 0.4)' : 'none'
               }}
             >
-              <span>🚀</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
               <span>{isSaving ? 'Publiceert...' : 'Publiceren'}</span>
             </button>
             <button
               onClick={() => setShowEditor(false)}
-              className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+              className="glass-button px-4 py-2 text-white rounded-lg hover:bg-white/10 transition-all flex items-center space-x-2"
             >
-              ← Terug
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back to wizard</span>
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative z-10" style={{ minHeight: 0 }}>
           {generatedCode ? (
             <ComponentEditor
               html={generatedCode.html}
               css={generatedCode.css}
               js={generatedCode.js}
               onCodeChange={handleCodeChange}
+              viewport={viewport}
+              onViewportChange={setViewport}
             />
           ) : (
-            <div className="h-full flex items-center justify-center text-white">
-              <div className="text-center">
-                <p className="text-xl mb-4">Geen code gevonden</p>
-                <p className="text-gray-400 mb-6">Genereer nieuwe code via de wizard of gebruik de knop hieronder</p>
+            <div className="h-full flex items-center justify-center text-white relative z-10">
+              <div className="text-center glass-card p-8 rounded-xl">
+                <p className="text-xl mb-4 font-semibold">Geen code gevonden</p>
+                <p className="text-gray-300 mb-6">Genereer nieuwe code via de wizard of gebruik de knop hieronder</p>
                 <button
                   onClick={() => setShowEditor(false)}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="px-6 py-3 bg-[#482CFF] text-white rounded-lg hover:bg-[#420AB2] transition-all font-semibold shadow-lg"
+                  style={{
+                    boxShadow: '0 0 20px rgba(72, 44, 255, 0.4)'
+                  }}
                 >
                   Ga naar Wizard
                 </button>
@@ -998,10 +1057,10 @@ function WizardPageContent() {
           </div>
           <div className="w-full bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-full h-3 border border-gray-700">
             <div
-              className="bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300 shadow-lg"
+              className="bg-[#482CFF] h-3 rounded-full transition-all duration-300 shadow-lg"
               style={{ 
                 width: `${progress}%`,
-                boxShadow: '0 0 20px rgba(139, 92, 246, 0.5)'
+                boxShadow: '0 0 20px rgba(72, 44, 255, 0.5)'
               }}
             />
           </div>
@@ -1010,9 +1069,7 @@ function WizardPageContent() {
         {/* Wizard Content */}
         <div className="bg-gray-800 bg-opacity-80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-700">
           <h1 className="text-4xl font-bold text-white mb-2 text-center" style={{
-            background: 'linear-gradient(45deg, #8B5CF6, #3B82F6)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
+            color: '#482CFF'
           }}>
             Maak Je Toernooi Website
           </h1>
@@ -1146,9 +1203,9 @@ function WizardPageContent() {
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-lg hover:shadow-purple-500/50 transform hover:scale-105"
+                className="px-6 py-3 bg-[#482CFF] text-white rounded-lg hover:bg-[#420AB2] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold shadow-lg transform hover:scale-105"
                 style={{
-                  boxShadow: canProceed() ? '0 0 20px rgba(139, 92, 246, 0.4)' : 'none'
+                  boxShadow: canProceed() ? '0 0 20px rgba(72, 44, 255, 0.4)' : 'none'
                 }}
               >
                 Volgende →
@@ -1157,9 +1214,9 @@ function WizardPageContent() {
               <button
                 onClick={generateWebsite}
                 disabled={!canProceed() || isGenerating}
-                className="px-8 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white rounded-lg hover:from-purple-600 hover:via-pink-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-lg shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105"
+                className="px-8 py-4 bg-[#482CFF] text-white rounded-lg hover:bg-[#420AB2] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-lg shadow-2xl transform hover:scale-105"
                 style={{
-                  boxShadow: (!isGenerating && canProceed()) ? '0 0 30px rgba(139, 92, 246, 0.5)' : 'none'
+                  boxShadow: (!isGenerating && canProceed()) ? '0 0 30px rgba(72, 44, 255, 0.5)' : 'none'
                 }}
               >
                 {isGenerating ? (

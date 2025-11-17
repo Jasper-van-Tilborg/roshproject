@@ -1161,7 +1161,7 @@ export default function Dashboard() {
           } else if (status === 500) {
             errorMessage = 'Internal server error. Please check the server logs.'
           } else if (status === 401) {
-            errorMessage = 'Invalid Supabase API key. Please check your NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable in your .env.local file.'
+            errorMessage = 'Unauthorized. Please check your Supabase API key.'
           } else if (status === 403) {
             errorMessage = 'Forbidden. You may not have permission to access this resource.'
           } else if (status === 404) {
@@ -1213,7 +1213,7 @@ export default function Dashboard() {
           }
           
           // Log altijd met duidelijke informatie
-          console.error('Failed to load tournaments:', JSON.stringify(errorLogData, null, 2))
+          console.error('Failed to load tournaments:', errorLogData)
           
           // Fallback naar localStorage als API faalt
           const localTournaments = localStorage.getItem('tournaments')
@@ -1231,11 +1231,7 @@ export default function Dashboard() {
           }
         }
       } catch (error) {
-        // Verbeterde error logging
-        const errorInfo = error instanceof Error 
-          ? { message: error.message, name: error.name, stack: error.stack }
-          : { error: String(error) }
-        console.error('Error loading tournaments:', JSON.stringify(errorInfo, null, 2))
+        console.error('Error loading tournaments:', error)
         // Fallback naar localStorage als API faalt
         const localTournaments = localStorage.getItem('tournaments')
         if (localTournaments) {
@@ -1265,8 +1261,8 @@ export default function Dashboard() {
         <div className="max-w-md w-full relative z-10">
           <div className="glass-card rounded-xl p-8">
             <div className="text-center mb-8">
-              <div className="glass-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative z-10" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
-                <svg className="w-8 h-8 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
@@ -2381,6 +2377,7 @@ export default function Dashboard() {
   // Toernooi aanmaken view
   if (currentView === 'create-tournament') {
     return (
+      <>
       <div className="h-screen overflow-hidden relative radial-gradient">
         {/* Top Navigation */}
         <div className="bg-gray-800/40 backdrop-blur-md shadow-lg border-b border-white/20 px-6 py-4 relative z-20">
@@ -2897,6 +2894,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
 
             {/* Rechter paneel - Live Preview */}
             <div className="lg:col-span-2">
@@ -2959,7 +2957,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -3664,7 +3661,6 @@ export default function Dashboard() {
                             )}
                           </div>
                       </SortableContext>
-                      
                       {/* Drag Overlay */}
                       <DragOverlay>
                         {activeId && draggedComponent ? (
@@ -3835,12 +3831,13 @@ export default function Dashboard() {
                             </div>
                           ) : null}
                       </DragOverlay>
-                    </DndContext>
-                  </div>
-                </div>
+                </DndContext>
               </div>
             </div>
-    );
+          </div>
+      <NotificationContainer />
+    </>
+  );
   }
 
   // Toernooi beheren view
@@ -3881,8 +3878,8 @@ export default function Dashboard() {
             {/* Drafts Sectie */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="glass-icon w-8 h-8 rounded-full flex items-center justify-center relative z-10" style={{ backgroundColor: '#2D3E5A' }}>
-                  <svg className="w-5 h-5 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#2D3E5A' }}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
@@ -3891,8 +3888,8 @@ export default function Dashboard() {
 
               {draftTournaments.length === 0 ? (
                 <div className="glass-card rounded-xl p-8 text-center">
-                  <div className="glass-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative z-10" style={{ backgroundColor: '#2D3E5A' }}>
-                    <svg className="w-8 h-8 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#2D3E5A' }}>
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
@@ -4071,8 +4068,8 @@ export default function Dashboard() {
                             return (
                               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
                                 <div className="text-center">
-                                  <div className="glass-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 relative z-10" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
-                                    <svg className="w-8 h-8 text-white/50 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
+                                    <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </div>
@@ -4088,21 +4085,21 @@ export default function Dashboard() {
                         <div className="flex gap-2">
                           <button 
                             onClick={() => handleEditTournament(tournament.id)}
-                            className="glass-button flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#482CFF' }}
                           >
                             Bewerken
                           </button>
                           <button 
                             onClick={() => handlePublishFromManage(tournament.id)}
-                            className="glass-button flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#22C55E' }}
                           >
                             Publiceren
                           </button>
                           <button 
                             onClick={() => handleDeleteTournament(tournament.id)}
-                            className="glass-button text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#EF4444' }}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -4120,8 +4117,8 @@ export default function Dashboard() {
             {/* Published Sectie */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="glass-icon w-8 h-8 rounded-full flex items-center justify-center relative z-10" style={{ backgroundColor: '#482CFF' }}>
-                  <svg className="w-5 h-5 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#482CFF' }}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -4130,8 +4127,8 @@ export default function Dashboard() {
 
               {publishedTournaments.length === 0 ? (
                 <div className="glass-card rounded-xl p-8 text-center">
-                  <div className="glass-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 relative z-10" style={{ backgroundColor: '#2D3E5A' }}>
-                    <svg className="w-8 h-8 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#2D3E5A' }}>
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
@@ -4256,8 +4253,8 @@ export default function Dashboard() {
                             return (
                               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
                                 <div className="text-center">
-                                  <div className="glass-icon w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 relative z-10" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
-                                    <svg className="w-8 h-8 text-white/50 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-3">
+                                    <svg className="w-8 h-8 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </div>
@@ -4273,21 +4270,21 @@ export default function Dashboard() {
                         <div className="flex gap-2">
                           <button 
                             onClick={() => handleEditTournament(tournament.id)}
-                            className="glass-button flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#482CFF' }}
                           >
                             Bewerken
                           </button>
                           <button 
                             onClick={() => handleUnpublish(tournament.id)}
-                            className="glass-button flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#F59E0B' }}
                           >
                             Unpublish
                           </button>
                           <button 
                             onClick={() => handleDeleteTournament(tournament.id)}
-                            className="glass-button text-white py-2.5 px-4 rounded-xl text-sm font-semibold active:scale-95 transition-all duration-200 shadow-lg relative z-10"
+                            className="text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#EF4444' }}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -4326,8 +4323,8 @@ export default function Dashboard() {
           {/* Create Tournament */}
           <div className="glass-card rounded-xl p-10">
             <div className="text-center">
-              <div className="glass-icon w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 relative z-10" style={{ backgroundColor: '#420AB2' }}>
-                <svg className="w-10 h-10 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#420AB2' }}>
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
                 </svg>
               </div>
@@ -4386,7 +4383,7 @@ export default function Dashboard() {
                    setEditingTournamentStatus(null);
                    setCurrentView('template-selection');
                  }}
-                 className="glass-button w-full text-white py-4 px-6 rounded-lg font-medium text-lg relative z-10"
+                 className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
                  style={{ backgroundColor: '#420AB2' }}
                >
                  Create New Tournament
@@ -4397,8 +4394,8 @@ export default function Dashboard() {
           {/* Manage Tournament */}
           <div className="glass-card rounded-xl p-10">
             <div className="text-center">
-              <div className="glass-icon w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 relative z-10" style={{ backgroundColor: '#9127E6' }}>
-                <svg className="w-10 h-10 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#9127E6' }}>
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                   <circle cx="6" cy="6" r="1.5" fill="currentColor" />
                   <circle cx="6" cy="12" r="1.5" fill="currentColor" />
@@ -4413,7 +4410,7 @@ export default function Dashboard() {
               </p>
               <button 
                 onClick={() => setCurrentView('manage-tournament')}
-                className="glass-button w-full text-white py-4 px-6 rounded-lg font-medium text-lg relative z-10"
+                className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
                 style={{ backgroundColor: '#9127E6' }}
               >
                 Manage Tournament
