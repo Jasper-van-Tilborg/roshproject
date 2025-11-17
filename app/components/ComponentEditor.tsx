@@ -10,6 +10,10 @@ interface ComponentEditorProps {
   onCodeChange?: (html: string, css: string, js: string) => void
   viewport?: 'desktop' | 'tablet' | 'mobile'
   onViewportChange?: (viewport: 'desktop' | 'tablet' | 'mobile') => void
+  onSaveDraft?: () => Promise<void>
+  onPublish?: () => Promise<void>
+  isSaving?: boolean
+  tournamentName?: string
 }
 
 interface PageSettings {
@@ -20,13 +24,26 @@ interface PageSettings {
   textColor: string
 }
 
+interface FontSettings {
+  titleFamily: string
+  titleWeight: string
+  titleSize: string
+  textFamily: string
+  textWeight: string
+  textSize: string
+}
+
 export default function ComponentEditor({ 
   html, 
   css, 
   js, 
   onCodeChange,
   viewport: externalViewport,
-  onViewportChange
+  onViewportChange,
+  onSaveDraft,
+  onPublish,
+  isSaving = false,
+  tournamentName = ''
 }: ComponentEditorProps) {
   const [components, setComponents] = useState<Component[]>([])
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null)
@@ -34,6 +51,7 @@ export default function ComponentEditor({
   const [editedHtml, setEditedHtml] = useState(html)
   const [editedCss, setEditedCss] = useState(css)
   const [editedJs, setEditedJs] = useState(js)
+  const [activeLeftTab, setActiveLeftTab] = useState<'components' | 'colors' | 'fonts' | 'publish'>('components')
   const [pageSettings, setPageSettings] = useState<PageSettings>({
     viewport: externalViewport || 'desktop',
     primaryColor: '#482CFF',
@@ -41,6 +59,240 @@ export default function ComponentEditor({
     backgroundColor: '#ffffff',
     textColor: '#000000'
   })
+  // Extract font settings from CSS
+  const extractFontSettings = useCallback((css: string): FontSettings => {
+    // Default values
+    let titleFamily = 'Inter'
+    let titleWeight = '700'
+    let titleSize = '16'
+    let textFamily = 'Inter'
+    let textWeight = '400'
+    let textSize = '11'
+
+    if (!css || css.trim().length === 0) {
+      return { titleFamily, titleWeight, titleSize, textFamily, textWeight, textSize }
+    }
+
+    // First, extract CSS variable definitions from :root
+    const cssVariables: { [key: string]: string } = {}
+    const rootMatch = css.match(/:root\s*\{([^}]+)\}/i)
+    if (rootMatch) {
+      const rootContent = rootMatch[1]
+      // Match --font-primary: 'Playfair Display', serif;
+      const fontPrimaryMatch = rootContent.match(/--font-primary:\s*['"]?([^'";,}]+)['"]?/i)
+      if (fontPrimaryMatch && fontPrimaryMatch[1]) {
+        cssVariables['--font-primary'] = fontPrimaryMatch[1].trim().replace(/['"]/g, '').split(',')[0].trim()
+      }
+      const fontSecondaryMatch = rootContent.match(/--font-secondary:\s*['"]?([^'";,}]+)['"]?/i)
+      if (fontSecondaryMatch && fontSecondaryMatch[1]) {
+        cssVariables['--font-secondary'] = fontSecondaryMatch[1].trim().replace(/['"]/g, '').split(',')[0].trim()
+      }
+    }
+
+    // Helper function to resolve CSS variable or return direct value
+    const resolveFontFamily = (value: string): string => {
+      const varMatch = value.match(/var\(--font-(primary|secondary)\)/i)
+      if (varMatch) {
+        const varName = `--font-${varMatch[1]}`
+        return cssVariables[varName] || value
+      }
+      return value.trim().replace(/['"]/g, '').split(',')[0].trim()
+    }
+
+    // Try to extract title font settings - look for h1, h2, h3, or .title
+    const titleFamilyMatches = [
+      css.match(/h1[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/h2[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/h3[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/h1,\s*h2,\s*h3[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/\.title[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/\[class\*="title"\][^{]*\{[^}]*font-family:\s*([^;]+);/i)
+    ]
+    for (const match of titleFamilyMatches) {
+      if (match && match[1]) {
+        const resolved = resolveFontFamily(match[1])
+        if (resolved && resolved !== 'sans-serif' && resolved !== 'serif' && resolved !== 'monospace' && !resolved.startsWith('var(')) {
+          titleFamily = resolved
+          break
+        }
+      }
+    }
+
+    // If we found a CSS variable for font-primary, use it for titles
+    if (cssVariables['--font-primary']) {
+      titleFamily = cssVariables['--font-primary']
+    }
+
+    // Try to extract title font-weight - check multiple selectors
+    const titleWeightMatches = [
+      css.match(/\.hero-title[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/\.section-title[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/h1[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/h2[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/h3[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/h1,\s*h2,\s*h3[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/\.title[^{]*\{[^}]*font-weight:\s*(\d+)/i)
+    ]
+    for (const match of titleWeightMatches) {
+      if (match && match[1]) {
+        titleWeight = match[1]
+        break
+      }
+    }
+
+    // Try to extract title font-size - check multiple selectors
+    // Priority: hero-title > section-title > h1 > h2 > h3 > general title
+    const titleSizeMatches = [
+      { selector: /\.hero-title[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 1 },
+      { selector: /\.section-title[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 2 },
+      { selector: /h1[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 3 },
+      { selector: /h2[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 4 },
+      { selector: /h3[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 5 },
+      { selector: /h1,\s*h2,\s*h3[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 6 },
+      { selector: /\.title[^{]*\{[^}]*font-size:\s*([^;]+);/i, priority: 7 }
+    ]
+    
+    // Sort by priority and try each match
+    titleSizeMatches.sort((a, b) => a.priority - b.priority)
+    
+    for (const { selector } of titleSizeMatches) {
+      const match = css.match(selector)
+      if (match && match[1]) {
+        const sizeValue = match[1].trim()
+        let extractedSize: string | null = null
+        
+        // Try to extract from clamp() - prioritize max value (most representative of actual size)
+        const clampMatch = sizeValue.match(/clamp\(([^,]+),\s*([^,]+),\s*([^)]+)\)/)
+        if (clampMatch) {
+          // For clamp(), use the max value as it's the most representative of the actual rendered size
+          const maxValue = clampMatch[3].trim()
+          const maxPx = maxValue.match(/(\d+)px/)
+          if (maxPx && maxPx[1]) {
+            extractedSize = maxPx[1]
+          } else {
+            // Try max value in rem (convert to px)
+            const maxRem = maxValue.match(/(\d+\.?\d*)rem/)
+            if (maxRem && maxRem[1]) {
+              extractedSize = Math.round(parseFloat(maxRem[1]) * 16).toString()
+            } else {
+              // Fallback to middle value if it has px
+              const middleValue = clampMatch[2].trim()
+              const middlePx = middleValue.match(/(\d+)px/)
+              if (middlePx && middlePx[1]) {
+                extractedSize = middlePx[1]
+              }
+            }
+          }
+        } else {
+          // Try direct px value
+          const pxMatch = sizeValue.match(/(\d+)px/)
+          if (pxMatch && pxMatch[1]) {
+            extractedSize = pxMatch[1]
+          } else {
+            // Try rem value (convert to px, assuming 16px base)
+            const remMatch = sizeValue.match(/(\d+\.?\d*)rem/)
+            if (remMatch && remMatch[1]) {
+              extractedSize = Math.round(parseFloat(remMatch[1]) * 16).toString()
+            }
+          }
+        }
+        
+        if (extractedSize) {
+          titleSize = extractedSize
+          break
+        }
+      }
+    }
+
+    // Try to extract text font settings - look for body or p
+    const textFamilyMatches = [
+      css.match(/body[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/p[^{]*\{[^}]*font-family:\s*([^;]+);/i),
+      css.match(/\*\s*\{[^}]*font-family:\s*([^;]+);/i)
+    ]
+    for (const match of textFamilyMatches) {
+      if (match && match[1]) {
+        const resolved = resolveFontFamily(match[1])
+        if (resolved && resolved !== 'sans-serif' && resolved !== 'serif' && resolved !== 'monospace' && !resolved.startsWith('var(')) {
+          textFamily = resolved
+          break
+        }
+      }
+    }
+
+    // If we found a CSS variable for font-secondary, use it for text
+    if (cssVariables['--font-secondary']) {
+      textFamily = cssVariables['--font-secondary']
+    }
+
+    // Try to extract text font-weight - check body, p, and other text selectors
+    const textWeightMatches = [
+      css.match(/body[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/p[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/\*\s*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/\.hero-subtitle[^{]*\{[^}]*font-weight:\s*(\d+)/i),
+      css.match(/\.section-description[^{]*\{[^}]*font-weight:\s*(\d+)/i)
+    ]
+    for (const match of textWeightMatches) {
+      if (match && match[1]) {
+        textWeight = match[1]
+        break
+      }
+    }
+
+    // Try to extract text font-size - check body, p, and other text selectors
+    const textSizeMatches = [
+      css.match(/body[^{]*\{[^}]*font-size:\s*([^;]+);/i),
+      css.match(/p[^{]*\{[^}]*font-size:\s*([^;]+);/i),
+      css.match(/\*\s*\{[^}]*font-size:\s*([^;]+);/i),
+      css.match(/\.hero-subtitle[^{]*\{[^}]*font-size:\s*([^;]+);/i),
+      css.match(/\.section-description[^{]*\{[^}]*font-size:\s*([^;]+);/i)
+    ]
+    for (const match of textSizeMatches) {
+      if (match && match[1]) {
+        const sizeValue = match[1].trim()
+        // Try direct px value
+        const pxMatch = sizeValue.match(/(\d+)px/)
+        if (pxMatch && pxMatch[1]) {
+          textSize = pxMatch[1]
+          break
+        }
+        // Try rem value (convert to px, assuming 16px base)
+        const remMatch = sizeValue.match(/(\d+\.?\d*)rem/)
+        if (remMatch && remMatch[1]) {
+          textSize = Math.round(parseFloat(remMatch[1]) * 16).toString()
+          break
+        }
+        // Try clamp() for text
+        const clampMatch = sizeValue.match(/clamp\(([^,]+),\s*([^,]+),\s*([^)]+)\)/)
+        if (clampMatch) {
+          const middleValue = clampMatch[2].trim()
+          const middlePx = middleValue.match(/(\d+)px/)
+          if (middlePx && middlePx[1]) {
+            textSize = middlePx[1]
+            break
+          }
+        }
+      }
+    }
+
+    return {
+      titleFamily,
+      titleWeight,
+      titleSize,
+      textFamily,
+      textWeight,
+      textSize
+    }
+  }, [])
+
+  const [fontSettings, setFontSettings] = useState<FontSettings>(() => {
+    return extractFontSettings(css)
+  })
+  const [originalFontSettings, setOriginalFontSettings] = useState<FontSettings>(() => {
+    return extractFontSettings(css)
+  })
+  const [fontSettingsModified, setFontSettingsModified] = useState(false)
 
   // Sync external viewport prop
   useEffect(() => {
@@ -57,6 +309,9 @@ export default function ComponentEditor({
   }
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const onCodeChangeRef = useRef(onCodeChange)
+  const lastParsedRef = useRef<{ html: string; css: string }>({ html: '', css: '' })
+  const lastComponentsRef = useRef<Component[]>([])
+  const isParsingRef = useRef(false)
 
   // Keep ref updated
   useEffect(() => {
@@ -69,7 +324,30 @@ export default function ComponentEditor({
   }, [html])
 
   useEffect(() => {
+    // Only update if CSS actually changed (prevent infinite loops)
+    if (editedCss === css) return
+    
     setEditedCss(css)
+    // Extract font settings from new CSS when it changes
+    const extracted = extractFontSettings(css)
+    
+    // Only update original font settings if they're different from current original
+    // This prevents resetting when CSS is updated with our own font changes
+    setOriginalFontSettings(prev => {
+      // If font settings haven't been manually modified, update original
+      if (!fontSettingsModified) {
+        return extracted
+      }
+      // If they have been modified, keep the original (don't reset it)
+      return prev
+    })
+    
+    // Only reset font settings if they haven't been manually modified
+    // This prevents overwriting user changes when CSS prop updates
+    if (!fontSettingsModified) {
+      setFontSettings(extracted)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [css])
 
   useEffect(() => {
@@ -78,16 +356,203 @@ export default function ComponentEditor({
 
   // Parse components when HTML changes
   useEffect(() => {
+    // Prevent infinite loops: don't parse if already parsing or if nothing changed
+    if (isParsingRef.current) return
+    if (lastParsedRef.current.html === editedHtml && lastParsedRef.current.css === editedCss) {
+      return
+    }
+    
+    isParsingRef.current = true
+    
     try {
       const parsed = parseComponentsFromHTML(editedHtml, editedCss)
-      setComponents(parsed)
+      
+      // Check if components actually changed before updating state
+      const componentsChanged = 
+        lastComponentsRef.current.length !== parsed.length ||
+        lastComponentsRef.current.some((comp, idx) => {
+          const newComp = parsed[idx]
+          return !newComp || comp.id !== newComp.id || comp.type !== newComp.type
+        })
+      
+      if (componentsChanged) {
+        // Update refs to track what we've parsed
+        lastParsedRef.current = { html: editedHtml, css: editedCss }
+        lastComponentsRef.current = parsed
+        setComponents(parsed)
+      } else {
+        // Even if components didn't change, update the parsed ref to prevent re-parsing
+        lastParsedRef.current = { html: editedHtml, css: editedCss }
+      }
     } catch (error) {
       console.error('Error parsing components:', error)
+    } finally {
+      // Reset flag after a short delay to allow state updates to complete
+      setTimeout(() => {
+        isParsingRef.current = false
+      }, 0)
     }
   }, [editedHtml, editedCss, editedJs])
 
-  // Generate preview HTML
+  // Apply font settings to CSS and update via onCodeChange
+  // Only apply if font settings have been modified by user
   useEffect(() => {
+    if (!onCodeChangeRef.current || !fontSettingsModified) return
+
+    // Remove existing font style rules from CSS (if any)
+    // Remove both old and new format font rules
+    let cleanCss = editedCss
+    // Remove font-related rules that we'll add dynamically (old format)
+    cleanCss = cleanCss.replace(/\/\* Title Font Settings \*\/[\s\S]*?\/\* Text Font Settings \*\/[\s\S]*?\/\* Override for elements[\s\S]*?\}/g, '')
+    // Remove new format font rules (with multiple patterns to catch all variations)
+    cleanCss = cleanCss.replace(/\/\* Title Font Settings \*\/[\s\S]*?\/\* Apply text font to links[\s\S]*?\}/g, '')
+    cleanCss = cleanCss.replace(/\/\* Title Font Settings \*\/[\s\S]*?\/\* Apply text font to paragraphs[\s\S]*?\}/g, '')
+    // Also remove any font-size, font-weight, font-family rules from h1-h6 and .hero-title, .section-title that we might have added
+    // This ensures we start with a clean slate
+    cleanCss = cleanCss.replace(/h1[^{]*\{[^}]*font-(?:size|weight|family):[^;]+;?[^}]*\}/gi, (match) => {
+      // Remove only font-* properties, keep other properties
+      return match.replace(/font-(?:size|weight|family):[^;]+;?/gi, '').replace(/\{[\s]*\}/g, '')
+    })
+
+    // Check if font settings differ from original
+    const hasChanges = 
+      fontSettings.titleFamily !== originalFontSettings.titleFamily ||
+      fontSettings.titleWeight !== originalFontSettings.titleWeight ||
+      fontSettings.titleSize !== originalFontSettings.titleSize ||
+      fontSettings.textFamily !== originalFontSettings.textFamily ||
+      fontSettings.textWeight !== originalFontSettings.textWeight ||
+      fontSettings.textSize !== originalFontSettings.textSize
+
+    if (!hasChanges) {
+      // If no changes, just use clean CSS without font overrides
+      const finalCss = cleanCss.trim()
+      // Only update if CSS actually changed (prevent infinite loops)
+      if (editedCss !== finalCss) {
+        setEditedCss(finalCss)
+        if (onCodeChangeRef.current) {
+          onCodeChangeRef.current(editedHtml, finalCss, editedJs)
+        }
+      }
+      return
+    }
+
+    // Add new font styles only if they differ from original
+    // Use more specific selectors to ensure they override original CSS
+    const fontStyles = `
+      /* Title Font Settings - Applied with high specificity */
+      h1, h2, h3, h4, h5, h6,
+      .title, [class*="title"],
+      .hero-title, .section-title,
+      h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
+      .title *, [class*="title"] *,
+      .hero-title *, .section-title * {
+        font-family: '${fontSettings.titleFamily}', sans-serif !important;
+        font-weight: ${fontSettings.titleWeight} !important;
+        font-size: ${fontSettings.titleSize}px !important;
+      }
+
+      /* Text Font Settings */
+      body {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+
+      /* Apply text font to paragraphs and general text elements */
+      p, span:not([class*="title"]):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+      .text, [class*="text"]:not([class*="title"]),
+      .hero-subtitle, .section-description,
+      .timeline-description, .about-text, .register-description,
+      .faq-answer, .footer-tagline, .footer-copyright {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+
+      /* Apply text font to links and list items */
+      a:not([class*="title"]):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+      li:not([class*="title"]) {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+    `
+
+    const updatedCss = cleanCss.trim() + '\n' + fontStyles
+    
+    // Only update if CSS actually changed (prevent infinite loops)
+    if (editedCss !== updatedCss) {
+      setEditedCss(updatedCss)
+      
+      // Notify parent of CSS change using ref to avoid dependency issues
+      if (onCodeChangeRef.current) {
+        onCodeChangeRef.current(editedHtml, updatedCss, editedJs)
+      }
+    }
+  }, [fontSettings, editedHtml, editedJs, fontSettingsModified, originalFontSettings, editedCss])
+
+  // Generate preview HTML with font settings applied
+  useEffect(() => {
+    // Only add font styles to preview if they've been modified
+    let cssWithFonts = editedCss
+    if (fontSettingsModified) {
+      // Check if font settings differ from original
+      const hasChanges = 
+        fontSettings.titleFamily !== originalFontSettings.titleFamily ||
+        fontSettings.titleWeight !== originalFontSettings.titleWeight ||
+        fontSettings.titleSize !== originalFontSettings.titleSize ||
+        fontSettings.textFamily !== originalFontSettings.textFamily ||
+        fontSettings.textWeight !== originalFontSettings.textWeight ||
+        fontSettings.textSize !== originalFontSettings.textSize
+
+      if (hasChanges) {
+        // Remove existing font overrides (both old and new format)
+        cssWithFonts = cssWithFonts.replace(/\/\* Title Font Settings \*\/[\s\S]*?\/\* Text Font Settings \*\/[\s\S]*?\/\* Override for elements[\s\S]*?\}/g, '')
+        cssWithFonts = cssWithFonts.replace(/\/\* Title Font Settings \*\/[\s\S]*?\/\* Apply text font to links[\s\S]*?\}/g, '')
+        
+        const fontStyles = `
+      /* Title Font Settings - Applied with high specificity */
+      h1, h2, h3, h4, h5, h6,
+      .title, [class*="title"],
+      .hero-title, .section-title,
+      h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
+      .title *, [class*="title"] *,
+      .hero-title *, .section-title * {
+        font-family: '${fontSettings.titleFamily}', sans-serif !important;
+        font-weight: ${fontSettings.titleWeight} !important;
+        font-size: ${fontSettings.titleSize}px !important;
+      }
+
+      /* Text Font Settings */
+      body {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+
+      /* Apply text font to paragraphs and general text elements */
+      p, span:not([class*="title"]):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+      .text, [class*="text"]:not([class*="title"]),
+      .hero-subtitle, .section-description,
+      .timeline-description, .about-text, .register-description,
+      .faq-answer, .footer-tagline, .footer-copyright {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+
+      /* Apply text font to links and list items */
+      a:not([class*="title"]):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6),
+      li:not([class*="title"]) {
+        font-family: '${fontSettings.textFamily}', sans-serif !important;
+        font-weight: ${fontSettings.textWeight} !important;
+        font-size: ${fontSettings.textSize}px !important;
+      }
+    `
+        cssWithFonts = cssWithFonts.trim() + '\n' + fontStyles
+      }
+    }
+
     const combinedHtml = `
 <!DOCTYPE html>
 <html lang="nl">
@@ -97,7 +562,7 @@ export default function ComponentEditor({
     <title>Live Preview</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        ${editedCss}
+        ${cssWithFonts}
         /* Selection highlight */
         .component-selected {
           outline: 3px solid #8B5CF6 !important;
@@ -156,7 +621,7 @@ export default function ComponentEditor({
 </html>`
     
     setPreviewHtml(combinedHtml)
-  }, [editedHtml, editedCss, editedJs, selectedComponent])
+  }, [editedHtml, editedCss, editedJs, selectedComponent, fontSettings, fontSettingsModified, originalFontSettings])
 
   // Update iframe when preview changes
   useEffect(() => {
@@ -336,46 +801,435 @@ export default function ComponentEditor({
   return (
     <div className="flex h-full" style={{ minHeight: 0, overflow: 'hidden' }}>
 
-      {/* Left Sidebar - Component List */}
-      <div className="w-64 glass-card border-r border-white/20 flex flex-col relative z-10">
-        <div className="p-4 border-b border-white/20">
-          <h2 className="text-white font-bold text-lg mb-2">Componenten</h2>
-          <p className="text-gray-300 text-xs">
-            {components.length} componenten op de pagina
-          </p>
+      {/* Left Subpanel - Icon Navigation */}
+      <div className="w-16 glass-card border-r border-white/20 flex flex-col relative z-10">
+        <div className="p-2 space-y-2">
+          {/* Components Icon */}
+          <button
+            onClick={() => setActiveLeftTab('components')}
+            className={`w-full p-3 rounded-lg transition-all flex items-center justify-center ${
+              activeLeftTab === 'components'
+                ? 'bg-[#482CFF] text-white'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Components"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+
+          {/* Colors Icon */}
+          <button
+            onClick={() => setActiveLeftTab('colors')}
+            className={`w-full p-3 rounded-lg transition-all flex items-center justify-center ${
+              activeLeftTab === 'colors'
+                ? 'bg-[#482CFF] text-white'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+          </button>
+
+          {/* Fonts Icon */}
+          <button
+            onClick={() => setActiveLeftTab('fonts')}
+            className={`w-full p-3 rounded-lg transition-all flex items-center justify-center ${
+              activeLeftTab === 'fonts'
+                ? 'bg-[#482CFF] text-white'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Fonts"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Publish Icon */}
+          <button
+            onClick={() => setActiveLeftTab('publish')}
+            className={`w-full p-3 rounded-lg transition-all flex items-center justify-center ${
+              activeLeftTab === 'publish'
+                ? 'bg-[#482CFF] text-white'
+                : 'text-gray-400 hover:text-white hover:bg-white/10'
+            }`}
+            title="Publish"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </button>
         </div>
-        
-        <div className="flex-1 overflow-y-auto">
-          {components.length === 0 ? (
-            <div className="p-4 text-center text-gray-400 text-sm">
-              Geen componenten gevonden
+      </div>
+
+      {/* Left Sidebar - Content based on active tab */}
+      <div className="w-64 glass-card border-r border-white/20 flex flex-col relative z-10">
+        {activeLeftTab === 'components' && (
+          <>
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-white font-bold text-lg mb-2">Componenten</h2>
+              <p className="text-gray-300 text-xs">
+                {components.length} componenten op de pagina
+              </p>
             </div>
-          ) : (
-            <div className="p-2 space-y-1">
-              {components.map((component) => (
-                <button
-                  key={component.id}
-                  onClick={() => setSelectedComponent(component)}
-                  className={`w-full text-left p-3 rounded-lg transition-all ${
-                    selectedComponent?.id === component.id
-                      ? 'bg-[#482CFF] text-white shadow-lg'
-                      : 'glass-button text-gray-300 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-shrink-0 text-gray-300">
-                      {getComponentIcon(component.type)}
+            
+            <div className="flex-1 overflow-y-auto">
+              {components.length === 0 ? (
+                <div className="p-4 text-center text-gray-400 text-sm">
+                  Geen componenten gevonden
+                </div>
+              ) : (
+                <div className="p-2 space-y-1">
+                  {components.map((component) => (
+                    <button
+                      key={component.id}
+                      onClick={() => setSelectedComponent(component)}
+                      className={`w-full text-left p-3 rounded-lg transition-all ${
+                        selectedComponent?.id === component.id
+                          ? 'bg-[#482CFF] text-white shadow-lg'
+                          : 'glass-button text-gray-300 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-shrink-0 text-gray-300">
+                          {getComponentIcon(component.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{component.name}</div>
+                          <div className="text-xs opacity-75 truncate">{component.type}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeLeftTab === 'colors' && (
+          <>
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-white font-bold text-lg mb-2">Kleuren</h2>
+              <p className="text-gray-300 text-xs">Pagina kleuren aanpassen</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div>
+                <label className="block text-gray-300 text-xs mb-2">Primaire Kleur</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="color"
+                    value={pageSettings.primaryColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                    className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={pageSettings.primaryColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                    className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-xs mb-2">Secundaire Kleur</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="color"
+                    value={pageSettings.secondaryColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                    className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={pageSettings.secondaryColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                    className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-xs mb-2">Achtergrond</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="color"
+                    value={pageSettings.backgroundColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                    className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={pageSettings.backgroundColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                    className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-300 text-xs mb-2">Tekst Kleur</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="color"
+                    value={pageSettings.textColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, textColor: e.target.value }))}
+                    className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={pageSettings.textColor}
+                    onChange={(e) => setPageSettings(prev => ({ ...prev, textColor: e.target.value }))}
+                    className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeLeftTab === 'fonts' && (
+          <>
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-white font-bold text-lg mb-2">Font</h2>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Titles Section */}
+              <div>
+                <label className="block text-gray-300 text-xs mb-3">Titles</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5">Font Family</label>
+                    <select 
+                      value={fontSettings.titleFamily}
+                      onChange={(e) => {
+                        setFontSettings(prev => ({ ...prev, titleFamily: e.target.value }))
+                        setFontSettingsModified(true)
+                      }}
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                    >
+                      <option value="Inter">Inter</option>
+                      <option value="Roboto">Roboto</option>
+                      <option value="Open Sans">Open Sans</option>
+                      <option value="Poppins">Poppins</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Playfair Display">Playfair Display</option>
+                      <option value="Arial">Arial</option>
+                      <option value="Helvetica">Helvetica</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                    </select>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <div className="flex-1">
+                      <label className="block text-gray-400 text-xs mb-1.5">Font Weight</label>
+                      <select 
+                        value={fontSettings.titleWeight}
+                        onChange={(e) => {
+                          setFontSettings(prev => ({ ...prev, titleWeight: e.target.value }))
+                          setFontSettingsModified(true)
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      >
+                        <option value="300">Light</option>
+                        <option value="400">Regular</option>
+                        <option value="500">Medium</option>
+                        <option value="600">Semi Bold</option>
+                        <option value="700">Bold</option>
+                      </select>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{component.name}</div>
-                      <div className="text-xs opacity-75 truncate">{component.type}</div>
+
+                    <div className="flex-1">
+                      <label className="block text-gray-400 text-xs mb-1.5">Font Size</label>
+                      <input
+                        type="number"
+                        value={fontSettings.titleSize}
+                        onChange={(e) => {
+                          setFontSettings(prev => ({ ...prev, titleSize: e.target.value }))
+                          setFontSettingsModified(true)
+                        }}
+                        placeholder="16"
+                        min="8"
+                        max="72"
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      />
                     </div>
                   </div>
-                </button>
-              ))}
+                </div>
+              </div>
+
+              {/* Text Section */}
+              <div>
+                <label className="block text-gray-300 text-xs mb-3">Text</label>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-gray-400 text-xs mb-1.5">Font Family</label>
+                    <select 
+                      value={fontSettings.textFamily}
+                      onChange={(e) => {
+                        setFontSettings(prev => ({ ...prev, textFamily: e.target.value }))
+                        setFontSettingsModified(true)
+                      }}
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                    >
+                      <option value="Inter">Inter</option>
+                      <option value="Roboto">Roboto</option>
+                      <option value="Open Sans">Open Sans</option>
+                      <option value="Poppins">Poppins</option>
+                      <option value="Montserrat">Montserrat</option>
+                      <option value="Playfair Display">Playfair Display</option>
+                      <option value="Arial">Arial</option>
+                      <option value="Helvetica">Helvetica</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                    </select>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <div className="flex-1">
+                      <label className="block text-gray-400 text-xs mb-1.5">Font Weight</label>
+                      <select 
+                        value={fontSettings.textWeight}
+                        onChange={(e) => {
+                          setFontSettings(prev => ({ ...prev, textWeight: e.target.value }))
+                          setFontSettingsModified(true)
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      >
+                        <option value="300">Light</option>
+                        <option value="400">Regular</option>
+                        <option value="500">Medium</option>
+                        <option value="600">Semi Bold</option>
+                        <option value="700">Bold</option>
+                      </select>
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="block text-gray-400 text-xs mb-1.5">Font Size</label>
+                      <input
+                        type="number"
+                        value={fontSettings.textSize}
+                        onChange={(e) => {
+                          setFontSettings(prev => ({ ...prev, textSize: e.target.value }))
+                          setFontSettingsModified(true)
+                        }}
+                        placeholder="11"
+                        min="8"
+                        max="72"
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
+
+        {activeLeftTab === 'publish' && (
+          <>
+            <div className="p-4 border-b border-white/20">
+              <h2 className="text-white font-bold text-lg mb-2">Publiceren</h2>
+              <p className="text-gray-300 text-xs">Publiceer of sla op als draft</p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="space-y-3">
+                <button
+                  onClick={onSaveDraft}
+                  disabled={isSaving || !onSaveDraft}
+                  className="w-full glass-button px-4 py-3 text-white rounded-lg hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  <span>{isSaving ? 'Opslaan...' : 'Opslaan als Draft'}</span>
+                </button>
+                
+                <button
+                  onClick={onPublish}
+                  disabled={isSaving || !onPublish}
+                  className="w-full px-4 py-3 bg-[#482CFF] text-white rounded-lg hover:bg-[#420AB2] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 font-semibold shadow-lg"
+                  style={{
+                    boxShadow: !isSaving ? '0 0 20px rgba(72, 44, 255, 0.4)' : 'none'
+                  }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span>{isSaving ? 'Publiceert...' : 'Publiceren'}</span>
+                </button>
+              </div>
+              
+              <div className="mt-6 p-4 bg-gray-800/40 backdrop-blur-sm rounded-lg border border-white/10">
+                <h3 className="text-white font-semibold text-sm mb-3">Status</h3>
+                {isSaving ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-blue-400">
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A9.001 9.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a9.003 9.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <p className="text-sm">Bezig met opslaan...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {!onSaveDraft || !onPublish ? (
+                      <div className="flex items-start space-x-2 text-yellow-400">
+                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <p className="text-xs">Publiceer functionaliteit niet beschikbaar</p>
+                      </div>
+                    ) : !html || html.trim().length === 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2 text-red-400">
+                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <p className="text-xs font-medium mb-1">Kan niet publiceren</p>
+                            <p className="text-xs text-gray-400">Geen HTML content gevonden. Genereer eerst een website via de wizard.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : !tournamentName || tournamentName.trim().length === 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-2 text-yellow-400">
+                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <div>
+                            <p className="text-xs font-medium mb-1">Toernooi naam vereist</p>
+                            <p className="text-xs text-gray-400">Voer een toernooi naam in via het invoerveld in de header.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start space-x-2 text-green-400">
+                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-xs font-medium mb-1">Klaar om te publiceren</p>
+                          <p className="text-xs text-gray-400">Alle vereisten zijn voldaan. Je kunt nu opslaan of publiceren.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Center - Preview */}

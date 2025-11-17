@@ -6,15 +6,11 @@ export default function Home() {
       
       {/* Minimalistische content */}
       <div className="text-center z-10 max-w-2xl mx-auto px-6">
-        <div className="bg-gray-800 bg-opacity-80 backdrop-blur-sm rounded-2xl p-12 shadow-2xl border border-gray-700">
+        <div className="glass-card rounded-2xl p-12">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
             TOURNAMENT
             <br />
-            <span className="text-transparent bg-clip-text" style={{
-              background: 'linear-gradient(45deg, #8B5CF6, #3B82F6)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
+            <span style={{ color: '#482CFF' }}>
               CREATOR
             </span>
           </h1>
@@ -27,9 +23,9 @@ export default function Home() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/dashboard">
-              <button className="text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl" style={{
-                background: 'linear-gradient(45deg, #8B5CF6, #3B82F6)',
-                boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
+              <button className="text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:bg-[#420AB2]" style={{
+                backgroundColor: '#482CFF',
+                boxShadow: '0 0 30px rgba(72, 44, 255, 0.4)'
               }}>
                 START CREATING
               </button>
