@@ -1072,10 +1072,9 @@ function WizardPageContent() {
                         type="text"
                         value={String(answers[question.id] || '')}
                         onChange={(e) => handleAnswer(question.id, e.target.value)}
-                        placeholder={question.placeholder}
-                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
+                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
                       />
-                      <label className="floating-label">
+                      <label className={`floating-label ${answers[question.id] ? 'floating-label-active' : ''}`}>
                         {question.question}
                         {question.required && <span className="text-red-400 ml-1">*</span>}
                       </label>
@@ -1087,11 +1086,10 @@ function WizardPageContent() {
                       <textarea
                         value={String(answers[question.id] || '')}
                         onChange={(e) => handleAnswer(question.id, e.target.value)}
-                        placeholder={question.placeholder}
                         rows={4}
-                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 resize-none transition-all ${answers[question.id] ? 'has-value' : ''}`}
+                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 resize-none transition-all ${answers[question.id] ? 'has-value' : ''}`}
                       />
-                      <label className="floating-label">
+                      <label className={`floating-label ${answers[question.id] ? 'floating-label-active' : ''}`}>
                         {question.question}
                         {question.required && <span className="text-red-400 ml-1">*</span>}
                       </label>
@@ -1117,11 +1115,10 @@ function WizardPageContent() {
                         type="number"
                         value={Number(answers[question.id] || 0)}
                         onChange={(e) => handleAnswer(question.id, parseInt(e.target.value) || 0)}
-                        placeholder={question.placeholder}
                         min="1"
-                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
+                        className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] && Number(answers[question.id]) > 0 ? 'has-value' : ''}`}
                       />
-                      <label className="floating-label">
+                      <label className={`floating-label ${answers[question.id] && Number(answers[question.id]) > 0 ? 'floating-label-active' : ''}`}>
                         {question.question}
                         {question.required && <span className="text-red-400 ml-1">*</span>}
                       </label>
@@ -1142,10 +1139,9 @@ function WizardPageContent() {
                             type="text"
                             value={String(answers[question.id] || '#3B82F6')}
                             onChange={(e) => handleAnswer(question.id, e.target.value)}
-                            placeholder="#3B82F6"
-                            className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
+                            className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
                           />
-                          <label className="floating-label">
+                          <label className={`floating-label ${answers[question.id] ? 'floating-label-active' : ''}`}>
                             {question.question}
                             {question.required && <span className="text-red-400 ml-1">*</span>}
                           </label>

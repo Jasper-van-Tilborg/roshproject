@@ -3,6 +3,329 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { parseComponentsFromHTML, Component, updateComponentInHTML } from '../utils/component-parser'
 
+// Color Picker Component
+function ColorPicker({ 
+  color, 
+  onColorChange, 
+  onClose 
+}: { 
+  color: string
+  onColorChange: (color: string) => void
+  onClose: () => void
+}) {
+  // Convert hex to HSL
+  const hexToHsl = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255
+    const g = parseInt(hex.slice(3, 5), 16) / 255
+    const b = parseInt(hex.slice(5, 7), 16) / 255
+
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    let h = 0, s = 0, l = (max + min) / 2
+
+    if (max !== min) {
+      const d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+        case g: h = ((b - r) / d + 2) / 6; break
+        case b: h = ((r - g) / d + 4) / 6; break
+      }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 }
+  }
+
+  // Convert HSL to hex
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100
+    const a = s * Math.min(l, 1 - l) / 100
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+      return Math.round(255 * color).toString(16).padStart(2, '0')
+    }
+    return `#${f(0)}${f(8)}${f(4)}`
+  }
+
+  // Convert HSL to RGB
+  const hslToRgb = (h: number, s: number, l: number) => {
+    l /= 100
+    const a = s * Math.min(l, 1 - l) / 100
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+      return Math.round(255 * color)
+    }
+    return { r: f(0), g: f(8), b: f(4) }
+  }
+
+  // Initialize HSL and RGB from color prop
+  const initializeFromColor = (hexColor: string) => {
+    if (!hexColor || !/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
+      return { h: 0, s: 100, l: 50, r: 0, g: 0, b: 0 }
+    }
+    const hsl = hexToHsl(hexColor)
+    const rgb = hslToRgb(hsl.h, hsl.s, hsl.l)
+    return { ...hsl, ...rgb }
+  }
+
+  const initialValues = initializeFromColor(color)
+  const [hue, setHue] = useState(initialValues.h)
+  const [saturation, setSaturation] = useState(initialValues.s)
+  const [lightness, setLightness] = useState(initialValues.l)
+  const [rgb, setRgb] = useState({ r: initialValues.r, g: initialValues.g, b: initialValues.b })
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const hueRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const draggingType = useRef<'picker' | 'hue' | null>(null)
+
+  const onColorChangeRef = useRef(onColorChange)
+  const lastPropColorRef = useRef<string>(color)
+  const lastInternalColorRef = useRef<string>(color)
+  const isInternalUpdateRef = useRef(false)
+
+  // Keep ref updated
+  useEffect(() => {
+    onColorChangeRef.current = onColorChange
+  }, [onColorChange])
+
+  // Initialize from hex color only when color prop changes externally
+  useEffect(() => {
+    if (!color || !/^#[0-9A-Fa-f]{6}$/.test(color)) return
+    
+    // Only update if the color prop actually changed externally (not from our internal updates)
+    if (color !== lastPropColorRef.current && !isInternalUpdateRef.current) {
+      const hsl = hexToHsl(color)
+      setHue(hsl.h)
+      setSaturation(hsl.s)
+      setLightness(hsl.l)
+      setRgb(hslToRgb(hsl.h, hsl.s, hsl.l))
+      lastPropColorRef.current = color
+      lastInternalColorRef.current = color
+    }
+    isInternalUpdateRef.current = false
+  }, [color])
+
+  // Update color when HSL changes
+  useEffect(() => {
+    const newHex = hslToHex(hue, saturation, lightness)
+    const newRgb = hslToRgb(hue, saturation, lightness)
+    setRgb(newRgb)
+    
+    // Only call onColorChange if the color actually changed
+    if (newHex !== lastInternalColorRef.current) {
+      lastInternalColorRef.current = newHex
+      isInternalUpdateRef.current = true
+      onColorChangeRef.current(newHex)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hue, saturation, lightness])
+
+  // Handle saturation/lightness picker
+  const handlePickerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!pickerRef.current) return
+    const rect = pickerRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+    setSaturation(x * 100)
+    setLightness((1 - y) * 100)
+  }
+
+  const handlePickerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    isDragging.current = true
+    draggingType.current = 'picker'
+    handlePickerClick(e)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      
+      if (draggingType.current === 'picker' && pickerRef.current) {
+        const rect = pickerRef.current.getBoundingClientRect()
+        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+        const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+        setSaturation(x * 100)
+        setLightness((1 - y) * 100)
+      } else if (draggingType.current === 'hue' && hueRef.current) {
+        const rect = hueRef.current.getBoundingClientRect()
+        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+        setHue(x * 360)
+      }
+    }
+
+    const handleMouseUp = () => {
+      isDragging.current = false
+      draggingType.current = null
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
+
+  // Handle hue slider
+  const handleHueClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hueRef.current) return
+    const rect = hueRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    setHue(x * 360)
+  }
+
+  const handleHueMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    isDragging.current = true
+    draggingType.current = 'hue'
+    handleHueClick(e)
+  }
+
+  // Update from RGB inputs
+  const handleRgbChange = (channel: 'r' | 'g' | 'b', value: number) => {
+    const newRgb = { ...rgb, [channel]: Math.max(0, Math.min(255, value)) }
+    setRgb(newRgb)
+    
+    // Convert RGB to HSL
+    const r = newRgb.r / 255
+    const g = newRgb.g / 255
+    const b = newRgb.b / 255
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    let h = 0, s = 0, l = (max + min) / 2
+
+    if (max !== min) {
+      const d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+        case g: h = ((b - r) / d + 2) / 6; break
+        case b: h = ((r - g) / d + 4) / 6; break
+      }
+    }
+
+    setHue(h * 360)
+    setSaturation(s * 100)
+    setLightness(l * 100)
+  }
+
+  const displayColor = hslToHex(hue, saturation, lightness)
+  const hueColor = `hsl(${hue}, 100%, 50%)`
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="glass-card rounded-xl p-6 w-96 max-w-[90vw] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-semibold text-lg">Kleur Kiezen</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Saturation/Lightness Picker */}
+        <div className="mb-4">
+          <div
+            ref={pickerRef}
+            className="w-full h-64 rounded-lg cursor-crosshair relative overflow-hidden border border-gray-700"
+            style={{
+              background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, ${hueColor})`
+            }}
+            onMouseDown={handlePickerMouseDown}
+          >
+            <div
+              className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg pointer-events-none"
+              style={{
+                left: `${saturation}%`,
+                top: `${100 - lightness}%`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Hue Slider and Color Preview */}
+        <div className="flex items-center space-x-4 mb-4">
+          {/* Color Preview */}
+          <div className="flex-shrink-0">
+            <div
+              className="w-12 h-12 rounded-full border-2 border-gray-600 shadow-lg"
+              style={{ backgroundColor: displayColor }}
+            />
+          </div>
+
+          {/* Hue Slider */}
+          <div className="flex-1">
+            <div
+              ref={hueRef}
+              className="w-full h-6 rounded-lg cursor-pointer relative overflow-hidden border border-gray-700"
+              style={{
+                background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+              }}
+              onMouseDown={handleHueMouseDown}
+            >
+              <div
+                className="absolute top-0 bottom-0 w-2 border-2 border-white shadow-lg pointer-events-none"
+                style={{
+                  left: `${(hue / 360) * 100}%`,
+                  transform: 'translateX(-50%)'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* RGB Inputs */}
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">R</label>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.r}
+              onChange={(e) => handleRgbChange('r', parseInt(e.target.value) || 0)}
+              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">G</label>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.g}
+              onChange={(e) => handleRgbChange('g', parseInt(e.target.value) || 0)}
+              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-400 text-xs mb-1">B</label>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              value={rgb.b}
+              onChange={(e) => handleRgbChange('b', parseInt(e.target.value) || 0)}
+              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 interface ComponentEditorProps {
   html: string
   css: string
@@ -293,6 +616,18 @@ export default function ComponentEditor({
     return extractFontSettings(css)
   })
   const [fontSettingsModified, setFontSettingsModified] = useState(false)
+  const [colorPickerOpen, setColorPickerOpen] = useState<{ type: 'background' | 'color' | null }>({ type: null })
+  const [currentColors, setCurrentColors] = useState<{ backgroundColor?: string; color?: string }>({})
+
+  // Initialize current colors when component is selected
+  useEffect(() => {
+    if (selectedComponent) {
+      setCurrentColors({
+        backgroundColor: selectedComponent.styles.backgroundColor,
+        color: selectedComponent.styles.color
+      })
+    }
+  }, [selectedComponent?.id])
 
   // Sync external viewport prop
   useEffect(() => {
@@ -312,11 +647,170 @@ export default function ComponentEditor({
   const lastParsedRef = useRef<{ html: string; css: string }>({ html: '', css: '' })
   const lastComponentsRef = useRef<Component[]>([])
   const isParsingRef = useRef(false)
+  const isApplyingFontsRef = useRef(false)
+  const lastAppliedFontsRef = useRef<string>('')
 
   // Keep ref updated
   useEffect(() => {
     onCodeChangeRef.current = onCodeChange
   }, [onCodeChange])
+
+  // Helper function to ensure navigation format CSS exists
+  const ensureNavigationFormatCSS = useCallback((cssContent: string): string => {
+    // Check if navigation format CSS already exists
+    if (cssContent.includes('[data-nav-format="default"]') || cssContent.includes('.nav-format-default')) {
+      return cssContent
+    }
+    
+    // Add navigation format CSS if it doesn't exist
+    const navigationFormatCSS = `
+/* Navigation Format Styles - Auto-generated */
+[data-nav-format="default"] .nav-container,
+.nav-format-default .nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+[data-nav-format="default"] .nav-logo,
+.nav-format-default .nav-logo {
+  flex-shrink: 0;
+}
+
+[data-nav-format="default"] .nav-links,
+.nav-format-default .nav-links {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+}
+
+[data-nav-format="centered"] .nav-container,
+.nav-format-centered .nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  position: relative;
+}
+
+[data-nav-format="centered"] .nav-logo,
+.nav-format-centered .nav-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+[data-nav-format="centered"] .nav-logo img,
+.nav-format-centered .nav-logo img {
+  pointer-events: auto;
+}
+
+[data-nav-format="centered"] .nav-links,
+.nav-format-centered .nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  gap: 2rem;
+}
+
+/* First 2 links go to the left */
+[data-nav-format="centered"] .nav-links li:nth-child(1),
+.nav-format-centered .nav-links li:nth-child(1),
+[data-nav-format="centered"] .nav-links li:nth-child(2),
+.nav-format-centered .nav-links li:nth-child(2) {
+  margin-right: auto;
+  order: 0;
+}
+
+/* Spacer element (added via JavaScript) */
+[data-nav-format="centered"] .nav-links .nav-spacer,
+.nav-format-centered .nav-links .nav-spacer {
+  flex: 1;
+  order: 1;
+  min-width: 150px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Links from 3rd onwards go to the right */
+[data-nav-format="centered"] .nav-links li:nth-child(n+3):not(.nav-spacer),
+.nav-format-centered .nav-links li:nth-child(n+3):not(.nav-spacer) {
+  order: 2;
+  margin-left: auto;
+}
+
+[data-nav-format="minimal"] .nav-container,
+.nav-format-minimal .nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+}
+
+[data-nav-format="minimal"] .nav-logo,
+.nav-format-minimal .nav-logo {
+  flex-shrink: 0;
+}
+
+[data-nav-format="minimal"] .nav-links,
+.nav-format-minimal .nav-links {
+  display: flex;
+  list-style: none;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+}
+
+[data-nav-format="spacious"] .nav-container,
+.nav-format-spacious .nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+}
+
+[data-nav-format="spacious"] .nav-logo,
+.nav-format-spacious .nav-logo {
+  flex-shrink: 0;
+}
+
+[data-nav-format="spacious"] .nav-links,
+.nav-format-spacious .nav-links {
+  display: flex;
+  list-style: none;
+  gap: 3rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  margin: 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.nav-links a:hover {
+  opacity: 0.7;
+}
+`
+    
+    return cssContent.trim() + '\n\n' + navigationFormatCSS.trim()
+  }, [])
 
   // Update local state when props change (important for loading existing code)
   useEffect(() => {
@@ -327,7 +821,9 @@ export default function ComponentEditor({
     // Only update if CSS actually changed (prevent infinite loops)
     if (editedCss === css) return
     
-    setEditedCss(css)
+    // Ensure navigation format CSS exists
+    const cssWithNav = ensureNavigationFormatCSS(css)
+    setEditedCss(cssWithNav)
     // Extract font settings from new CSS when it changes
     const extracted = extractFontSettings(css)
     
@@ -376,10 +872,41 @@ export default function ComponentEditor({
         })
       
       if (componentsChanged) {
+        // Preserve logo properties from existing components when updating
+        const updatedParsed = parsed.map(newComp => {
+          const existingComp = components.find(c => c.id === newComp.id)
+          if (existingComp && existingComp.properties.logo && newComp.properties.logo) {
+            // If existing component has a logo with src, preserve it
+            const existingLogo = existingComp.properties.logo as { src?: string; alt?: string }
+            const newLogo = newComp.properties.logo as { src?: string; alt?: string }
+            // Preserve existing logo if it's a data URL (uploaded) and new logo is empty or not a data URL
+            if (existingLogo.src && existingLogo.src.startsWith('data:') && (!newLogo.src || newLogo.src === '' || newLogo.src === 'data:,' || (!newLogo.src.startsWith('data:') && newLogo.src !== existingLogo.src))) {
+              return {
+                ...newComp,
+                properties: {
+                  ...newComp.properties,
+                  logo: existingLogo
+                }
+              }
+            }
+            // Also preserve if new logo src matches existing (to prevent overwriting)
+            if (existingLogo.src && newLogo.src && existingLogo.src === newLogo.src) {
+              return {
+                ...newComp,
+                properties: {
+                  ...newComp.properties,
+                  logo: existingLogo
+                }
+              }
+            }
+          }
+          return newComp
+        })
+        
         // Update refs to track what we've parsed
         lastParsedRef.current = { html: editedHtml, css: editedCss }
-        lastComponentsRef.current = parsed
-        setComponents(parsed)
+        lastComponentsRef.current = updatedParsed
+        setComponents(updatedParsed)
       } else {
         // Even if components didn't change, update the parsed ref to prevent re-parsing
         lastParsedRef.current = { html: editedHtml, css: editedCss }
@@ -398,6 +925,13 @@ export default function ComponentEditor({
   // Only apply if font settings have been modified by user
   useEffect(() => {
     if (!onCodeChangeRef.current || !fontSettingsModified) return
+    if (isApplyingFontsRef.current) return
+
+    // Create a signature of current font settings to check if we've already applied them
+    const fontSignature = `${fontSettings.titleFamily}-${fontSettings.titleWeight}-${fontSettings.titleSize}-${fontSettings.textFamily}-${fontSettings.textWeight}-${fontSettings.textSize}`
+    if (lastAppliedFontsRef.current === fontSignature) return
+
+    isApplyingFontsRef.current = true
 
     // Remove existing font style rules from CSS (if any)
     // Remove both old and new format font rules
@@ -482,14 +1016,22 @@ export default function ComponentEditor({
     
     // Only update if CSS actually changed (prevent infinite loops)
     if (editedCss !== updatedCss) {
+      lastAppliedFontsRef.current = fontSignature
       setEditedCss(updatedCss)
       
       // Notify parent of CSS change using ref to avoid dependency issues
       if (onCodeChangeRef.current) {
         onCodeChangeRef.current(editedHtml, updatedCss, editedJs)
       }
+    } else {
+      lastAppliedFontsRef.current = fontSignature
     }
-  }, [fontSettings, editedHtml, editedJs, fontSettingsModified, originalFontSettings, editedCss])
+    
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isApplyingFontsRef.current = false
+    }, 0)
+  }, [fontSettings, editedHtml, editedJs, fontSettingsModified, originalFontSettings])
 
   // Generate preview HTML with font settings applied
   useEffect(() => {
@@ -553,6 +1095,154 @@ export default function ComponentEditor({
       }
     }
 
+    // Navigation format CSS - Add dynamic CSS for navigation formats
+    const navigationFormatCSS = `
+      /* Navigation Format Styles */
+      [data-nav-format="default"] .nav-container,
+      .nav-format-default .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+      }
+      
+      [data-nav-format="default"] .nav-logo,
+      .nav-format-default .nav-logo {
+        flex-shrink: 0;
+      }
+      
+      [data-nav-format="default"] .nav-links,
+      .nav-format-default .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+        margin: 0;
+        padding: 0;
+      }
+      
+      [data-nav-format="centered"] .nav-container,
+      .nav-format-centered .nav-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 2rem;
+        position: relative;
+      }
+      
+      [data-nav-format="centered"] .nav-logo,
+      .nav-format-centered .nav-logo {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        pointer-events: none;
+      }
+      
+      [data-nav-format="centered"] .nav-logo img,
+      .nav-format-centered .nav-logo img {
+        pointer-events: auto;
+      }
+      
+      [data-nav-format="centered"] .nav-links,
+      .nav-format-centered .nav-links {
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        gap: 2rem;
+      }
+      
+      /* First 2 links go to the left */
+      [data-nav-format="centered"] .nav-links li:nth-child(1),
+      .nav-format-centered .nav-links li:nth-child(1),
+      [data-nav-format="centered"] .nav-links li:nth-child(2),
+      .nav-format-centered .nav-links li:nth-child(2) {
+        margin-right: auto;
+        order: 0;
+      }
+      
+      /* Spacer element (added via JavaScript) */
+      [data-nav-format="centered"] .nav-links .nav-spacer,
+      .nav-format-centered .nav-links .nav-spacer {
+        flex: 1;
+        order: 1;
+        min-width: 150px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* Links from 3rd onwards go to the right */
+      [data-nav-format="centered"] .nav-links li:nth-child(n+3):not(.nav-spacer),
+      .nav-format-centered .nav-links li:nth-child(n+3):not(.nav-spacer) {
+        order: 2;
+        margin-left: auto;
+      }
+      
+      [data-nav-format="minimal"] .nav-container,
+      .nav-format-minimal .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+      }
+      
+      [data-nav-format="minimal"] .nav-logo,
+      .nav-format-minimal .nav-logo {
+        flex-shrink: 0;
+      }
+      
+      [data-nav-format="minimal"] .nav-links,
+      .nav-format-minimal .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 0.75rem;
+        margin: 0;
+        padding: 0;
+      }
+      
+      [data-nav-format="spacious"] .nav-container,
+      .nav-format-spacious .nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem 4rem;
+      }
+      
+      [data-nav-format="spacious"] .nav-logo,
+      .nav-format-spacious .nav-logo {
+        flex-shrink: 0;
+      }
+      
+      [data-nav-format="spacious"] .nav-links,
+      .nav-format-spacious .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 3rem;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* General navigation styles */
+      .nav-links li {
+        margin: 0;
+      }
+      
+      .nav-links a {
+        text-decoration: none;
+        color: inherit;
+        transition: opacity 0.2s;
+      }
+      
+      .nav-links a:hover {
+        opacity: 0.7;
+      }
+    `
+
     const combinedHtml = `
 <!DOCTYPE html>
 <html lang="nl">
@@ -563,6 +1253,7 @@ export default function ComponentEditor({
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         ${cssWithFonts}
+        ${navigationFormatCSS}
         /* Selection highlight */
         .component-selected {
           outline: 3px solid #8B5CF6 !important;
@@ -615,6 +1306,42 @@ export default function ComponentEditor({
               }
             }
           }
+          
+          // Add spacer for centered navigation format
+          const centeredNavs = document.querySelectorAll('[data-nav-format="centered"] .nav-links, .nav-format-centered .nav-links');
+          centeredNavs.forEach(function(navLinks) {
+            const links = Array.from(navLinks.children);
+            if (links.length >= 3) {
+              // Check if spacer already exists
+              const existingSpacer = navLinks.querySelector('.nav-spacer');
+              if (!existingSpacer) {
+                // Create spacer element
+                const spacer = document.createElement('li');
+                spacer.className = 'nav-spacer';
+                spacer.style.flex = '1';
+                spacer.style.minWidth = '150px';
+                spacer.style.order = '1';
+                spacer.style.listStyle = 'none';
+                spacer.style.margin = '0';
+                spacer.style.padding = '0';
+                
+                // Insert after 2nd link
+                if (links[1] && links[1].nextSibling) {
+                  navLinks.insertBefore(spacer, links[1].nextSibling);
+                } else if (links[1]) {
+                  navLinks.appendChild(spacer);
+                }
+                
+                // Set order for remaining links
+                for (let i = 2; i < links.length; i++) {
+                  if (links[i] && links[i] !== spacer) {
+                    links[i].style.order = '2';
+                    links[i].style.marginLeft = 'auto';
+                  }
+                }
+              }
+            }
+          });
         });
     </script>
 </body>
@@ -636,7 +1363,61 @@ export default function ComponentEditor({
     styles?: { [key: string]: string }
   }) => {
     const newHtml = updateComponentInHTML(editedHtml, componentId, updates)
-    setEditedHtml(newHtml)
+    
+    // If logo is being updated, ensure it's properly set in the HTML
+    if (updates.properties?.logo) {
+      const logoData = updates.properties.logo as { src?: string; alt?: string }
+      if (logoData.src) {
+        // Force update the HTML to include the logo src
+        const parser = new DOMParser()
+        let bodyContent = newHtml
+        if (newHtml.includes('<body')) {
+          const bodyMatch = newHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
+          if (bodyMatch) {
+            bodyContent = bodyMatch[1]
+          }
+        }
+        const doc = parser.parseFromString(`<div>${bodyContent}</div>`, 'text/html')
+        const element = doc.getElementById(componentId) || doc.querySelector(`[data-component="${componentId}"]`)
+        if (element) {
+          let logoImg = element.querySelector('#nav-logo-img')
+          if (!logoImg) {
+            logoImg = element.querySelector('[data-editable-image="true"]')
+          }
+          if (!logoImg) {
+            logoImg = element.querySelector('.nav-logo img') || element.querySelector('nav img') || element.querySelector('header img')
+          }
+          if (logoImg) {
+            logoImg.setAttribute('src', logoData.src)
+            if (logoImg.tagName === 'IMG') {
+              (logoImg as HTMLImageElement).src = logoData.src
+            }
+          }
+          const wrapper = doc.querySelector('div')
+          if (wrapper) {
+            setEditedHtml(wrapper.innerHTML)
+          } else {
+            setEditedHtml(newHtml)
+          }
+        } else {
+          setEditedHtml(newHtml)
+        }
+      } else {
+        setEditedHtml(newHtml)
+      }
+    } else {
+      setEditedHtml(newHtml)
+    }
+    
+    // Update current colors if color styles are being updated
+    if (updates.styles) {
+      if ('background-color' in updates.styles) {
+        setCurrentColors(prev => ({ ...prev, backgroundColor: updates.styles!['background-color'] }))
+      }
+      if ('color' in updates.styles) {
+        setCurrentColors(prev => ({ ...prev, color: updates.styles!.color }))
+      }
+    }
     
     // Update components list
     setComponents(prev => prev.map(comp => {
@@ -659,11 +1440,14 @@ export default function ComponentEditor({
       })
     }
 
+    // Ensure navigation format CSS exists before saving
+    const cssWithNav = ensureNavigationFormatCSS(editedCss)
+
     // Notify parent
     if (onCodeChangeRef.current) {
-      onCodeChangeRef.current(newHtml, editedCss, editedJs)
+      onCodeChangeRef.current(newHtml, cssWithNav, editedJs)
     }
-  }, [editedHtml, editedCss, editedJs, selectedComponent])
+  }, [editedHtml, editedCss, editedJs, selectedComponent, ensureNavigationFormatCSS])
 
   const handleIframeClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement
@@ -741,6 +1525,12 @@ export default function ComponentEditor({
       ),
       // Header - navigation/menu icon
       header: (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      ),
+      // Navigation - navigation/menu icon
+      navigation: (
         <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
@@ -1301,116 +2091,227 @@ export default function ComponentEditor({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {/* Content Properties */}
-              <div>
-                <h3 className="text-white font-semibold mb-3 text-sm">Inhoud</h3>
-                <div className="space-y-3">
-                  {selectedComponent.properties.title !== undefined && (
-                    <div>
-                      <label className="block text-gray-300 text-xs mb-1">Titel</label>
-                      <input
-                        type="text"
-                        value={String(selectedComponent.properties.title || '')}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          properties: { title: e.target.value }
-                        })}
-                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-                      />
+              {/* Navigation-specific properties */}
+              {selectedComponent.type === 'navigation' && (
+                <>
+                  {/* Format Selection */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Format</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: 'default', label: 'Default Design', desc: 'Logo left' },
+                        { value: 'centered', label: 'Centered Logo', desc: 'Logo mid' },
+                        { value: 'minimal', label: 'Minimal Spacing', desc: 'Logo left' },
+                        { value: 'spacious', label: 'Spacious Layout', desc: 'Logo left' }
+                      ].map((format) => {
+                        const isSelected = (selectedComponent.properties.navFormat || 'default') === format.value
+                        return (
+                          <button
+                            key={format.value}
+                            onClick={() => updateComponent(selectedComponent.id, {
+                              properties: { navFormat: format.value }
+                            })}
+                            className={`p-3 rounded-lg border transition-all text-left relative group ${
+                              isSelected
+                                ? 'border-[#482CFF] bg-[#482CFF]/20'
+                                : 'border-gray-700 bg-gray-900/60 hover:border-gray-600'
+                            }`}
+                            onMouseEnter={(e) => {
+                              // Show preview on hover (placeholder for now)
+                            }}
+                          >
+                            <div className="text-white text-xs font-medium mb-1">{format.label}</div>
+                            <div className="text-gray-400 text-xs">{format.desc}</div>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-2 h-2 bg-[#482CFF] rounded-full"></div>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
-                  )}
-                  
-                  {selectedComponent.properties.subtitle !== undefined && (
-                    <div>
-                      <label className="block text-gray-300 text-xs mb-1">Ondertitel</label>
-                      <input
-                        type="text"
-                        value={String(selectedComponent.properties.subtitle || '')}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          properties: { subtitle: e.target.value }
-                        })}
-                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-                      />
-                    </div>
-                  )}
+                  </div>
 
-                  {selectedComponent.properties.description !== undefined && (
-                    <div>
-                      <label className="block text-gray-300 text-xs mb-1">Beschrijving</label>
-                      <textarea
-                        value={String(selectedComponent.properties.description || '')}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          properties: { description: e.target.value }
-                        })}
-                        rows={3}
-                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 resize-none transition-all"
-                      />
+                  {/* Logo Upload */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Logo</h3>
+                    <div className="space-y-3">
+                      <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-gray-600 transition-colors cursor-pointer bg-gray-900/60">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const reader = new FileReader()
+                              reader.onload = (event) => {
+                                const src = event.target?.result as string
+                                const currentLogo = (selectedComponent.properties.logo as { src?: string; alt?: string }) || {}
+                                updateComponent(selectedComponent.id, {
+                                  properties: {
+                                    logo: {
+                                      ...currentLogo,
+                                      src: src,
+                                      alt: currentLogo.alt || 'Logo'
+                                    }
+                                  }
+                                })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="hidden"
+                          id="logo-upload"
+                        />
+                        <label htmlFor="logo-upload" className="cursor-pointer">
+                          <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <p className="text-gray-300 text-xs mb-1">Klik om logo te uploaden</p>
+                          <p className="text-gray-500 text-xs">PNG, JPG, SVG</p>
+                        </label>
+                      </div>
+                      {(selectedComponent.properties.logo as { src?: string })?.src && (
+                        <div className="relative">
+                          <img
+                            src={(selectedComponent.properties.logo as { src?: string }).src}
+                            alt={(selectedComponent.properties.logo as { alt?: string })?.alt || 'Logo'}
+                            className="w-full h-auto rounded-lg border border-gray-700"
+                          />
+                          <button
+                            onClick={() => {
+                              updateComponent(selectedComponent.id, {
+                                properties: {
+                                  logo: {
+                                    src: '',
+                                    alt: 'Logo'
+                                  }
+                                }
+                              })
+                            }}
+                            className="absolute top-2 right-2 p-1 bg-red-600/80 hover:bg-red-600 rounded text-white text-xs"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+
+                  {/* Nav Links */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Nav Links</h3>
+                    <div className="space-y-2">
+                      {Array.isArray(selectedComponent.properties.navLinks) && selectedComponent.properties.navLinks.length > 0 ? (
+                        (selectedComponent.properties.navLinks as Array<{ text?: string; href?: string }>).map((link, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <span className="text-gray-400 text-xs w-6">{index + 1}</span>
+                            <input
+                              type="text"
+                              value={link.text || ''}
+                              onChange={(e) => {
+                                const updatedLinks = [...(selectedComponent.properties.navLinks as Array<{ text?: string; href?: string }>)]
+                                updatedLinks[index] = { ...updatedLinks[index], text: e.target.value }
+                                updateComponent(selectedComponent.id, {
+                                  properties: { navLinks: updatedLinks }
+                                })
+                              }}
+                              placeholder="Text"
+                              className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400 text-xs text-center py-4">
+                          Geen nav links gevonden. Voeg links toe in de HTML.
+                        </div>
+                      )}
+                      <button
+                        onClick={() => {
+                          const currentLinks = Array.isArray(selectedComponent.properties.navLinks) 
+                            ? [...(selectedComponent.properties.navLinks as Array<{ text?: string; href?: string }>)]
+                            : []
+                          const newLink = { text: 'Nieuwe Link', href: '#section' }
+                          updateComponent(selectedComponent.id, {
+                            properties: { navLinks: [...currentLinks, newLink] }
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-gray-300 text-sm hover:bg-gray-800/60 transition-all flex items-center justify-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Add more</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Style Properties */}
               <div>
                 <h3 className="text-white font-semibold mb-3 text-sm">Styling</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Achtergrond Kleur */}
                   <div>
-                    <label className="block text-gray-300 text-xs mb-1">Achtergrond Kleur</label>
-                    <div className="flex space-x-2">
-                      <input
-                        type="color"
-                        value={selectedComponent.styles.backgroundColor || '#000000'}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          styles: { 'background-color': e.target.value }
-                        })}
-                        className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                    <label className="block text-gray-300 text-xs mb-2">Achtergrond Kleur</label>
+                    <button
+                      onClick={() => setColorPickerOpen({ type: 'background' })}
+                      className="flex items-center space-x-3 p-2 rounded-lg border border-gray-700 bg-gray-900/60 hover:bg-gray-800/60 transition-all w-full"
+                    >
+                      <div 
+                        className="w-10 h-10 rounded-full border-2 border-gray-600 shadow-lg flex-shrink-0"
+                        style={{ backgroundColor: currentColors.backgroundColor || selectedComponent.styles.backgroundColor || '#000000' }}
                       />
-                      <input
-                        type="text"
-                        value={selectedComponent.styles.backgroundColor || '#000000'}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          styles: { 'background-color': e.target.value }
-                        })}
-                        className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-                      />
-                    </div>
+                      <span className="text-gray-300 text-sm font-mono">
+                        {currentColors.backgroundColor || selectedComponent.styles.backgroundColor || '#000000'}
+                      </span>
+                    </button>
                   </div>
 
+                  {/* Tekst Kleur */}
                   <div>
-                    <label className="block text-gray-300 text-xs mb-1">Tekst Kleur</label>
-                    <div className="flex space-x-2">
-                      <input
-                        type="color"
-                        value={selectedComponent.styles.color || '#ffffff'}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          styles: { color: e.target.value }
-                        })}
-                        className="w-12 h-10 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer"
+                    <label className="block text-gray-300 text-xs mb-2">Tekst Kleur</label>
+                    <button
+                      onClick={() => setColorPickerOpen({ type: 'color' })}
+                      className="flex items-center space-x-3 p-2 rounded-lg border border-gray-700 bg-gray-900/60 hover:bg-gray-800/60 transition-all w-full"
+                    >
+                      <div 
+                        className="w-10 h-10 rounded-full border-2 border-gray-600 shadow-lg flex-shrink-0"
+                        style={{ backgroundColor: currentColors.color || selectedComponent.styles.color || '#ffffff' }}
                       />
-                      <input
-                        type="text"
-                        value={selectedComponent.styles.color || '#ffffff'}
-                        onChange={(e) => updateComponent(selectedComponent.id, {
-                          styles: { color: e.target.value }
-                        })}
-                        className="flex-1 px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 text-xs mb-1">Padding</label>
-                    <input
-                      type="text"
-                      value={selectedComponent.styles.padding || ''}
-                      onChange={(e) => updateComponent(selectedComponent.id, {
-                        styles: { padding: e.target.value }
-                      })}
-                      placeholder="bijv. 2rem"
-                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-                    />
+                      <span className="text-gray-300 text-sm font-mono">
+                        {currentColors.color || selectedComponent.styles.color || '#ffffff'}
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
+
+              {/* Color Picker Modal */}
+              {colorPickerOpen.type && (
+                <ColorPicker
+                  key={`${colorPickerOpen.type}-${selectedComponent.id}-${colorPickerOpen.type === 'background' 
+                    ? (currentColors.backgroundColor || selectedComponent.styles.backgroundColor || '#000000')
+                    : (currentColors.color || selectedComponent.styles.color || '#ffffff')}`}
+                  color={colorPickerOpen.type === 'background' 
+                    ? (currentColors.backgroundColor || selectedComponent.styles.backgroundColor || '#000000')
+                    : (currentColors.color || selectedComponent.styles.color || '#ffffff')}
+                  onColorChange={(newColor) => {
+                    if (colorPickerOpen.type === 'background') {
+                      updateComponent(selectedComponent.id, {
+                        styles: { 'background-color': newColor }
+                      })
+                    } else {
+                      updateComponent(selectedComponent.id, {
+                        styles: { color: newColor }
+                      })
+                    }
+                  }}
+                  onClose={() => setColorPickerOpen({ type: null })}
+                />
+              )}
             </div>
           </>
         ) : (

@@ -138,6 +138,175 @@ const config = {
 - Cross-browser compatible
 - SEO-friendly markup
 
+🧭 NAVIGATION COMPONENT SPECIFICATIES
+
+Het Navigation component (header/navbar) moet volledig bewerkbaar zijn met de volgende structuur:
+
+1. FORMAT SELECTIE
+   Het Navigation component moet 4 verschillende formaten ondersteunen via data-attribute:
+   - data-nav-format="default" - Logo links, nav links rechts (standaard navbar)
+   - data-nav-format="centered" - Logo gecentreerd, nav links links en rechts van logo
+   - data-nav-format="minimal" - Logo links, nav links rechts, maar met minimale spacing
+   - data-nav-format="spacious" - Logo links, nav links rechts, maar met ruime spacing
+
+   HTML structuur:
+   <header id="navigation-section" class="navigation-section" data-component="navigation" data-editable="true" data-nav-format="default">
+     <nav class="nav-container">
+       <div class="nav-logo">
+         <img id="nav-logo-img" src="" alt="Logo" data-editable-image="true" />
+       </div>
+       <ul class="nav-links" data-nav-links="true">
+         <li><a href="#hero-section" data-nav-link-text="Home">Home</a></li>
+         <li><a href="#bracket-section" data-nav-link-text="Bracket">Bracket</a></li>
+         <li><a href="#schedule-section" data-nav-link-text="Programma">Programma</a></li>
+         <li><a href="#about-section" data-nav-link-text="Over">Over</a></li>
+       </ul>
+     </nav>
+   </header>
+
+   BELANGRIJK:
+   - Elke nav link moet data-nav-link-text attribuut hebben met de bewerkbare tekst
+   - De href moet automatisch naar de juiste sectie leiden (#hero-section, #bracket-section, etc.)
+   - Gebruik CSS classes voor format variaties: .nav-format-default, .nav-format-centered, .nav-format-minimal, .nav-format-spacious
+   
+   CSS voor format variaties (VERPLICHT te implementeren):
+   
+   /* Default Format - Logo links, nav rechts */
+   [data-nav-format="default"] .nav-container,
+   .nav-format-default .nav-container {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 1rem 2rem;
+   }
+   [data-nav-format="default"] .nav-links,
+   .nav-format-default .nav-links {
+     display: flex;
+     list-style: none;
+     gap: 2rem;
+   }
+   
+   /* Centered Format - Logo gecentreerd, nav links en rechts */
+   [data-nav-format="centered"] .nav-container,
+   .nav-format-centered .nav-container {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 1rem 2rem;
+     position: relative;
+   }
+   [data-nav-format="centered"] .nav-logo,
+   .nav-format-centered .nav-logo {
+     position: absolute;
+     left: 50%;
+     top: 50%;
+     transform: translate(-50%, -50%);
+     z-index: 10;
+     pointer-events: none;
+   }
+   [data-nav-format="centered"] .nav-logo img,
+   .nav-format-centered .nav-logo img {
+     pointer-events: auto;
+   }
+   [data-nav-format="centered"] .nav-links,
+   .nav-format-centered .nav-links {
+     display: flex;
+     list-style: none;
+     margin: 0;
+     padding: 0;
+     width: 100%;
+     position: relative;
+     z-index: 1;
+     gap: 2rem;
+   }
+   /* First 2 links go to the left */
+   [data-nav-format="centered"] .nav-links li:nth-child(1),
+   .nav-format-centered .nav-links li:nth-child(1),
+   [data-nav-format="centered"] .nav-links li:nth-child(2),
+   .nav-format-centered .nav-links li:nth-child(2) {
+     margin-right: auto;
+   }
+   /* Add a spacer between 2nd and 3rd link using a pseudo-element on the ul */
+   [data-nav-format="centered"] .nav-links::after,
+   .nav-format-centered .nav-links::after {
+     content: '';
+     flex: 1;
+     order: 1;
+     min-width: 150px;
+   }
+   /* Links from 3rd onwards go to the right */
+   [data-nav-format="centered"] .nav-links li:nth-child(n+3),
+   .nav-format-centered .nav-links li:nth-child(n+3) {
+     order: 2;
+     margin-left: auto;
+   }
+   
+   /* Minimal Format - Default maar met minimale spacing */
+   [data-nav-format="minimal"] .nav-container,
+   .nav-format-minimal .nav-container {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 0.5rem 1rem;
+   }
+   [data-nav-format="minimal"] .nav-links,
+   .nav-format-minimal .nav-links {
+     display: flex;
+     list-style: none;
+     gap: 0.75rem;
+   }
+   
+   /* Spacious Format - Default maar met ruime spacing */
+   [data-nav-format="spacious"] .nav-container,
+   .nav-format-spacious .nav-container {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 2rem 4rem;
+   }
+   [data-nav-format="spacious"] .nav-links,
+   .nav-format-spacious .nav-links {
+     display: flex;
+     list-style: none;
+     gap: 3rem;
+   }
+
+2. LOGO UPLOAD
+   - Logo moet in een <img> element met id="nav-logo-img" en data-editable-image="true"
+   - Standaard src kan leeg zijn of een placeholder
+   - Logo moet responsive zijn en goed schalen
+
+3. NAV LINKS
+   - Alle nav links moeten in een <ul class="nav-links"> met data-nav-links="true"
+   - Elke link moet data-nav-link-text attribuut hebben voor bewerkbare tekst
+   - Href moet automatisch naar componenten leiden (gebruik #component-id format)
+   - Minimaal 4 links genereren: Home, Bracket, Programma, Over
+
+4. CSS VARIABLES
+   Gebruik CSS variables voor bewerkbare eigenschappen:
+   :root {
+     --nav-bg-color: #ffffff;
+     --nav-text-color: #000000;
+     --nav-logo-width: 120px;
+     --nav-logo-height: 40px;
+     --nav-link-spacing: 2rem; /* Voor minimal/spacious variaties */
+   }
+
+5. JAVASCRIPT CONFIG
+   const navConfig = {
+     format: 'default', // 'default', 'centered', 'minimal', 'spacious'
+     logo: {
+       src: '',
+       alt: 'Logo'
+     },
+     links: [
+       { text: 'Home', href: '#hero-section' },
+       { text: 'Bracket', href: '#bracket-section' },
+       { text: 'Programma', href: '#schedule-section' },
+       { text: 'Over', href: '#about-section' }
+     ]
+   }
+
 📝 OUTPUT INSTRUCTIE
 Lever ALLEEN de drie code bestanden (HTML, CSS, JS) in code blocks.
 Geen uitleg, geen pseudocode, alleen werkende code.`;

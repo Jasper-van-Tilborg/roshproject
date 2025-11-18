@@ -82,6 +82,7 @@ function extractComponentType(element: HTMLElement, id: string): string {
   if (dataComponent) return dataComponent
 
   // Check ID patterns
+  if (id.includes('navigation') || id.includes('nav') || id.includes('header')) return 'navigation'
   if (id.includes('hero')) return 'hero'
   if (id.includes('bracket') || id.includes('teams')) return 'bracket'
   if (id.includes('twitch') || id.includes('stream')) return 'twitch'
@@ -94,10 +95,14 @@ function extractComponentType(element: HTMLElement, id: string): string {
   
   // Check class names
   const classes = element.className
+  if (classes.includes('navigation') || classes.includes('nav') || classes.includes('header')) return 'navigation'
   if (classes.includes('hero')) return 'hero'
   if (classes.includes('bracket') || classes.includes('team')) return 'bracket'
   if (classes.includes('twitch')) return 'twitch'
   if (classes.includes('sponsor')) return 'sponsors'
+  
+  // Check tag name
+  if (element.tagName === 'HEADER' || element.tagName === 'NAV') return 'navigation'
   
   // Default
   return 'section'
@@ -105,6 +110,7 @@ function extractComponentType(element: HTMLElement, id: string): string {
 
 function getComponentName(type: string, element: HTMLElement): string {
   const names: { [key: string]: string } = {
+    navigation: 'Navigation',
     hero: 'Hero Sectie',
     bracket: 'Bracket / Teams',
     twitch: 'Twitch Stream',
@@ -158,6 +164,31 @@ function extractProperties(element: HTMLElement): { [key: string]: unknown } {
     src: img.getAttribute('src'),
     alt: img.getAttribute('alt')
   }))
+
+  // Extract navigation-specific properties
+  const navFormat = element.getAttribute('data-nav-format')
+  if (navFormat) {
+    props.navFormat = navFormat
+  }
+
+  // Extract nav links
+  const navLinks = element.querySelectorAll('[data-nav-link-text]')
+  if (navLinks.length > 0) {
+    props.navLinks = Array.from(navLinks).map(link => ({
+      text: link.getAttribute('data-nav-link-text') || link.textContent?.trim() || '',
+      href: link.getAttribute('href') || '',
+      element: link
+    }))
+  }
+
+  // Extract logo
+  const logoImg = element.querySelector('#nav-logo-img, [data-editable-image="true"]')
+  if (logoImg) {
+    props.logo = {
+      src: logoImg.getAttribute('src') || '',
+      alt: logoImg.getAttribute('alt') || 'Logo'
+    }
+  }
 
   // Extract data-attributes
   Array.from(element.attributes).forEach(attr => {
@@ -219,8 +250,17 @@ export function updateComponentInHTML(
     content?: string
   }
 ): string {
+  // Extract body content if full HTML document
+  let bodyContent = originalHTML
+  if (originalHTML.includes('<body')) {
+    const bodyMatch = originalHTML.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
+    if (bodyMatch) {
+      bodyContent = bodyMatch[1]
+    }
+  }
+
   const parser = new DOMParser()
-  const doc = parser.parseFromString(originalHTML, 'text/html')
+  const doc = parser.parseFromString(`<div>${bodyContent}</div>`, 'text/html')
   
   const element = doc.getElementById(componentId) || doc.querySelector(`[data-component="${componentId}"]`)
   if (!element) return originalHTML
@@ -234,6 +274,47 @@ export function updateComponentInHTML(
       } else if (key === 'description') {
         const para = element.querySelector('p')
         if (para) para.textContent = String(value)
+      } else if (key === 'navFormat') {
+        // Update navigation format
+        element.setAttribute('data-nav-format', String(value))
+        // Update CSS class if needed
+        element.classList.remove('nav-format-default', 'nav-format-centered', 'nav-format-minimal', 'nav-format-spacious')
+        element.classList.add(`nav-format-${value}`)
+      } else if (key === 'logo') {
+        // Update logo image - try multiple selectors to find the logo
+        let logoImg = element.querySelector('#nav-logo-img')
+        if (!logoImg) {
+          logoImg = element.querySelector('[data-editable-image="true"]')
+        }
+        if (!logoImg) {
+          // Fallback: find any img in nav-logo or first img in navigation
+          logoImg = element.querySelector('.nav-logo img') || element.querySelector('nav img') || element.querySelector('header img')
+        }
+        if (logoImg && typeof value === 'object' && value !== null) {
+          const logoData = value as { src?: string; alt?: string }
+          if (logoData.src !== undefined) {
+            logoImg.setAttribute('src', String(logoData.src))
+            // Also update the innerHTML if it's an img tag
+            if (logoImg.tagName === 'IMG') {
+              (logoImg as HTMLImageElement).src = String(logoData.src)
+            }
+          }
+          if (logoData.alt !== undefined) {
+            logoImg.setAttribute('alt', String(logoData.alt))
+          }
+        }
+      } else if (key === 'navLinks' && Array.isArray(value)) {
+        // Update nav links text
+        const links = element.querySelectorAll('[data-nav-link-text]')
+        links.forEach((link, index) => {
+          if (value[index] && typeof value[index] === 'object') {
+            const linkData = value[index] as { text?: string }
+            if (linkData.text !== undefined) {
+              link.setAttribute('data-nav-link-text', String(linkData.text))
+              link.textContent = String(linkData.text)
+            }
+          }
+        })
       } else {
         element.setAttribute(`data-${key}`, String(value))
       }
@@ -266,5 +347,12 @@ export function updateComponentInHTML(
     element.innerHTML = updates.content
   }
 
-  return doc.documentElement.outerHTML
+  // Get the wrapper div content (we wrapped bodyContent in a div)
+  const wrapper = doc.querySelector('div')
+  if (wrapper) {
+    return wrapper.innerHTML
+  }
+
+  // Fallback: return original HTML if parsing failed
+  return originalHTML
 }
