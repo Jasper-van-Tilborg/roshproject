@@ -1359,25 +1359,8 @@ export default function Dashboard() {
 
     const handleTemplateSelect = (templateId: string) => {
       if (templateId === 'custom') {
-        // Custom template - alleen livestream
-        setEnabledComponents({
-          header: false,
-          description: false,
-          tournamentDetails: false,
-          registration: false,
-          stats: false,
-          schedule: false,
-          rules: false,
-          prizes: false,
-          sponsors: false,
-          social: false,
-          contact: false,
-          livestream: true
-        });
-        setComponentOrder(['livestream']);
-      
-      // Naar create-tournament view
-      setCurrentView('create-tournament');
+        router.push('/custom');
+        return;
       }
     };
 
