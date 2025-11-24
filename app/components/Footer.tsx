@@ -11,6 +11,7 @@ export interface FooterLink {
 }
 
 export interface FooterConfig {
+  showFooter: boolean
   backgroundColor: string
   textColor: string
   linkColor: string
@@ -28,6 +29,7 @@ export interface FooterConfig {
   layout: 'layout1' | 'layout2' | 'layout3'
   padding: number
   showDivider: boolean
+  showBottomDivider: boolean
   logoUrl?: string
   logoText?: string
   navigationLinks: {
@@ -39,6 +41,7 @@ export interface FooterConfig {
 }
 
 const defaultConfig: FooterConfig = {
+  showFooter: true,
   backgroundColor: '#111827',
   textColor: '#f3f4f6',
   linkColor: '#d1d5db',
@@ -50,6 +53,7 @@ const defaultConfig: FooterConfig = {
   layout: 'layout1',
   padding: 48,
   showDivider: true,
+  showBottomDivider: true,
   logoUrl: '',
   logoText: 'LOGO',
   navigationLinks: {
@@ -67,6 +71,7 @@ interface FooterProps {
 export default function Footer({ config = {} }: FooterProps) {
   const finalConfig: FooterConfig = { ...defaultConfig, ...config }
   const {
+    showFooter,
     backgroundColor,
     textColor,
     linkColor,
@@ -78,15 +83,20 @@ export default function Footer({ config = {} }: FooterProps) {
     layout,
     padding,
     showDivider,
+    showBottomDivider,
     logoUrl,
     logoText,
     navigationLinks
   } = finalConfig
 
+  if (!showFooter) {
+    return null
+  }
+
 
   const renderSocialLinks = () => {
     if (!showSocialLinks) return null
-    
+
     const activeSocials = Object.entries(socialLinks).filter(([_, url]) => url && url.trim() !== '')
     if (activeSocials.length === 0) return null
 
@@ -234,7 +244,7 @@ export default function Footer({ config = {} }: FooterProps) {
   const renderLogo = () => {
     // Check if logoUrl exists and is not empty after trimming
     const validLogoUrl = logoUrl && logoUrl.trim() !== ''
-    
+
     if (validLogoUrl) {
       return (
         <div className="flex items-center" style={{ minHeight: '48px' }}>
@@ -316,7 +326,7 @@ export default function Footer({ config = {} }: FooterProps) {
         <div className="md:col-span-3">
           {renderLogo()}
         </div>
-        
+
         {/* Navigation Links Rechts */}
         <div className="md:col-span-9">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -327,9 +337,9 @@ export default function Footer({ config = {} }: FooterProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Copyright Links, Socials Rechts */}
-      <div className="flex justify-between items-center pt-6 border-t" style={{ borderColor: `${linkColor}20` }}>
+      <div className={`flex justify-between items-center pt-6 ${showBottomDivider ? 'border-t' : ''}`} style={showBottomDivider ? { borderColor: `${linkColor}20` } : {}}>
         {copyrightText && (
           <div
             style={{
@@ -360,13 +370,13 @@ export default function Footer({ config = {} }: FooterProps) {
             {renderNavigationLink(navigationLinks.location)}
           </div>
         </div>
-        
+
         {/* Logo Rechts */}
         <div className="md:col-span-3 flex justify-end md:justify-start">
           {renderLogo()}
         </div>
       </div>
-      
+
       {/* Socials Links, Copyright Rechts */}
       <div className="flex justify-between items-center pt-6 border-t" style={{ borderColor: `${linkColor}20` }}>
         <div className="flex justify-start">
@@ -389,31 +399,27 @@ export default function Footer({ config = {} }: FooterProps) {
   // Layout 3: Links 2 stukken, rechts 2 stukken, logo in het midden, socials rechtsonderin
   const renderLayout3 = () => (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-6">
         {/* Links 2 stukken */}
-        <div className="md:col-span-4">
-          <div className="flex flex-col gap-4">
-            {renderNavigationLink(navigationLinks.home)}
-            {renderNavigationLink(navigationLinks.info)}
-          </div>
+        <div className="flex flex-row gap-6">
+          {renderNavigationLink(navigationLinks.home)}
+          {renderNavigationLink(navigationLinks.info)}
         </div>
-        
+
         {/* Logo in het midden */}
-        <div className="md:col-span-4 flex justify-center">
+        <div className="flex justify-center">
           {renderLogo()}
         </div>
-        
+
         {/* Rechts 2 stukken */}
-        <div className="md:col-span-4">
-          <div className="flex flex-col gap-4">
-            {renderNavigationLink(navigationLinks.bracket)}
-            {renderNavigationLink(navigationLinks.location)}
-          </div>
+        <div className="flex flex-row gap-6">
+          {renderNavigationLink(navigationLinks.bracket)}
+          {renderNavigationLink(navigationLinks.location)}
         </div>
       </div>
-      
+
       {/* Copyright Links, Socials Rechts */}
-      <div className="flex justify-between items-center pt-6 border-t" style={{ borderColor: `${linkColor}20` }}>
+      <div className={`flex justify-between items-center pt-6 ${showBottomDivider ? 'border-t' : ''}`} style={showBottomDivider ? { borderColor: `${linkColor}20` } : {}}>
         {copyrightText && (
           <div
             style={{
