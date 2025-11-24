@@ -1,8 +1,29 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { ReactNode, MouseEvent as ReactMouseEvent, ChangeEvent } from 'react';
 import Link from 'next/link';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  useDraggable,
+  useDroppable,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const createId = () => Math.random().toString(36).substring(2, 9);
 
@@ -189,10 +210,362 @@ function Icon({ name, className }: { name: IconName; className?: string }) {
   );
 }
 
+type SortableComponentItemProps = {
+  component: ComponentToggle;
+  isActive: boolean;
+  isVisible: boolean;
+  onSelect: () => void;
+  onToggle: (e: React.MouseEvent) => void;
+};
+
+// Draggable Upload Item Component
+function DraggableUploadItem({ 
+  item, 
+  onDelete, 
+  onRename,
+  onUseInComponent 
+}: { 
+  item: UploadItem; 
+  onDelete: (id: string) => void; 
+  onRename: (id: string, name: string) => void;
+  onUseInComponent: (componentId: string, imageUrl: string) => void;
+}) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `upload-${item.id}`,
+    data: {
+      type: 'upload',
+      item,
+    },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const imageOptions = [
+    { id: 'navigation', label: 'Navigation Logo', icon: 'navigation' as IconName },
+    { id: 'hero', label: 'Hero Section', icon: 'hero' as IconName },
+    { id: 'about', label: 'About Image', icon: 'about' as IconName },
+    { id: 'footer', label: 'Footer Logo', icon: 'footer' as IconName },
+  ];
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-[#11132A] border border-white/10 rounded-2xl p-4 flex gap-4 items-center relative"
+    >
+      <div 
+        {...listeners}
+        {...attributes}
+        className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1B1F3E] to-[#0B0E1C] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-grab active:cursor-grabbing"
+      >
+        <img 
+          src={item.url} 
+          alt={item.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex-1">
+        <input
+          value={item.name}
+          onChange={(e) => onRename(item.id, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-transparent text-sm font-semibold w-full focus:outline-none focus:border-b focus:border-[#755DFF]"
+        />
+        <p className="text-xs text-white/40">{item.size}</p>
+        {item.usedIn.length > 0 && (
+          <p className="text-[11px] text-white/50 mt-1">
+            Used in: {item.usedIn.join(', ')}
+          </p>
+        )}
+      </div>
+      <div className="flex flex-col gap-2 relative">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDropdown(!showDropdown);
+          }}
+          className="text-xs text-white/60 hover:text-white transition bg-[#755DFF]/10 hover:bg-[#755DFF]/20 px-3 py-1.5 rounded-lg border border-[#755DFF]/30 flex items-center gap-1.5"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v8M8 12h8" />
+          </svg>
+          Use
+        </button>
+        
+        {showDropdown && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowDropdown(false)}
+            />
+            <div className="absolute right-0 top-8 z-50 bg-[#0E1020] border border-white/20 rounded-xl shadow-2xl py-2 min-w-[180px]">
+              <div className="px-3 py-2 text-xs uppercase tracking-wider text-white/40 border-b border-white/10">
+                Use in component
+              </div>
+              {imageOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUseInComponent(option.id, item.url);
+                    setShowDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2.5 text-sm text-white/70 hover:text-white hover:bg-[#755DFF]/10 flex items-center gap-2 transition-colors"
+                >
+                  <Icon name={option.icon} className="w-4 h-4" />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(item.url).then(() => {
+              const button = e.currentTarget;
+              const originalText = button.textContent;
+              button.textContent = 'Copied!';
+              setTimeout(() => {
+                if (button) button.textContent = originalText;
+              }, 2000);
+            });
+          }}
+          className="text-xs text-white/60 hover:text-white transition"
+        >
+          Copy URL
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(item.id);
+          }}
+          className="text-xs text-red-400 hover:text-red-300 transition"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Droppable Image Field Component (for settings panel)
+function DroppableImageField({ 
+  id, 
+  value, 
+  onChange, 
+  label, 
+  placeholder,
+  children 
+}: { 
+  id: string; 
+  value: string; 
+  onChange: (url: string) => void;
+  label?: string;
+  placeholder?: string;
+  children: ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: {
+      type: 'image-field',
+      onChange,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`space-y-2 ${isOver ? 'bg-[#755DFF]/20 border border-[#755DFF] rounded-lg p-2' : ''}`}
+    >
+      {label && <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">{label}</h3>}
+      {children}
+    </div>
+  );
+}
+
+// Droppable Image Area Component (for preview)
+function DroppableImageArea({ 
+  id, 
+  value, 
+  onChange, 
+  className = '',
+  style,
+  children,
+  minHeight = '100px'
+}: { 
+  id: string; 
+  value: string; 
+  onChange: (url: string) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  children: ReactNode;
+  minHeight?: string;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: {
+      type: 'image-field',
+      onChange,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`relative ${className} ${isOver ? 'ring-2 ring-[#755DFF] ring-offset-2 ring-offset-transparent' : ''}`}
+      style={style}
+    >
+      {children}
+      {isOver && (
+        <div className="absolute inset-0 bg-[#755DFF]/20 border-2 border-dashed border-[#755DFF] rounded-lg flex items-center justify-center z-50 pointer-events-none">
+          <div className="text-[#755DFF] font-semibold text-sm">Drop image here</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SortableComponentItem({ component, isActive, isVisible, onSelect, onToggle }: SortableComponentItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: component.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onSelect}
+      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all cursor-pointer ${
+        isActive ? 'border-[#755DFF] bg-[#1a1d36]' : 'border-white/10 hover:border-white/30'
+      } ${isDragging ? 'z-50' : ''}`}
+    >
+      <div className="flex items-center gap-3 text-left flex-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-white/40 hover:text-white/60 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="4" cy="4" r="1.5" />
+            <circle cx="12" cy="4" r="1.5" />
+            <circle cx="4" cy="8" r="1.5" />
+            <circle cx="12" cy="8" r="1.5" />
+            <circle cx="4" cy="12" r="1.5" />
+            <circle cx="12" cy="12" r="1.5" />
+          </svg>
+        </div>
+        <Icon name={component.icon} className="w-5 h-5" />
+        <div>
+          <p className="font-medium text-sm">{component.label}</p>
+          <p className="text-xs text-white/40 capitalize">
+            {isVisible ? 'visible on canvas' : 'click to show'}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(e);
+        }}
+        className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${
+          isVisible ? 'bg-[#755DFF]' : 'bg-white/15'
+        }`}
+        role="switch"
+        aria-checked={isVisible}
+      >
+        <span
+          className={`inline-block h-5 w-5 bg-white rounded-full transform transition ${
+            isVisible ? 'translate-x-5' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
 type ComponentToggle = {
   id: string;
   label: string;
   icon: IconName;
+};
+
+type NavigationMenuItem = {
+  id: string;
+  label: string;
+  type: 'section' | 'external';
+  value: string;
+  icon: string;
+  enabled: boolean;
+};
+
+type NavigationCTASettings = {
+  enabled: boolean;
+  label: string;
+  link: string;
+  background: string;
+  textColor: string;
+  radius: number;
+};
+
+type NavigationSettingsState = {
+  logoUrl: string;
+  logoWidth: number;
+  linkType: 'home' | 'custom';
+  customUrl: string;
+  sticky: boolean;
+  textColor: string;
+  hoverColor: string;
+  activeColor: string;
+  backgroundColor: string;
+  padding: {
+    top: number;
+    bottom: number;
+  };
+  cta: NavigationCTASettings;
+  menuItems: NavigationMenuItem[];
+};
+
+type NavigationSettingsOverrides = Partial<Omit<NavigationSettingsState, 'padding' | 'cta'>> & {
+  padding?: Partial<NavigationSettingsState['padding']>;
+  cta?: Partial<NavigationCTASettings>;
+};
+
+type NavigationLayoutConfig = {
+  wrapperClass: string;
+  logoWrapperClass?: string;
+  menuWrapperClass?: string;
+  menuGapClass?: string;
+  uppercaseLinks?: boolean;
+  ctaPlacement?: 'inline' | 'stacked';
+  ctaVisibility?: 'respect' | 'force-hide';
+};
+
+type NavigationFormatOption = {
+  id: string;
+  label: string;
+  subLabel: string;
+  description: string;
+  layout: NavigationLayoutConfig;
+  settings?: NavigationSettingsOverrides;
 };
 
 const COMPONENTS: ComponentToggle[] = [
@@ -212,11 +585,115 @@ const COMPONENTS: ComponentToggle[] = [
   { id: 'footer', label: 'Footer', icon: 'footer' },
 ];
 
-const NAVIGATION_FORMATS = [
-  { id: 'default', label: 'Default Design', subLabel: 'Logo left' },
-  { id: 'centered', label: 'Centered Logo', subLabel: 'Logo mid' },
-  { id: 'minimal', label: 'Minimal Spacing', subLabel: 'Logo right' },
-  { id: 'spacious', label: 'Spacious Layout', subLabel: 'Logo left' },
+const NAVIGATION_FORMATS: NavigationFormatOption[] = [
+  {
+    id: 'default',
+    label: 'Default Design',
+    subLabel: 'Logo left',
+    description: 'Klassieke verdeling met CTA rechts',
+    layout: {
+      wrapperClass: 'flex-col md:flex-row items-center justify-between gap-4 md:gap-8',
+      logoWrapperClass: 'justify-start',
+      menuWrapperClass: 'justify-center flex-1',
+      menuGapClass: 'gap-6',
+      ctaPlacement: 'inline',
+      ctaVisibility: 'respect',
+    },
+    settings: {
+      padding: { top: 16, bottom: 16 },
+      cta: { enabled: true },
+    },
+  },
+  {
+    id: 'centered',
+    label: 'Centered Logo',
+    subLabel: 'Logo mid',
+    description: 'Logo en menu gecentreerd met CTA eronder',
+    layout: {
+      wrapperClass: 'flex-col items-center text-center gap-4',
+      logoWrapperClass: 'justify-center',
+      menuWrapperClass: 'justify-center',
+      menuGapClass: 'gap-5',
+      ctaPlacement: 'stacked',
+      ctaVisibility: 'respect',
+    },
+    settings: {
+      padding: { top: 28, bottom: 28 },
+      cta: { enabled: true },
+    },
+  },
+  {
+    id: 'minimal',
+    label: 'Minimal Spacing',
+    subLabel: 'Logo right',
+    description: 'Compacte balk met menu rechts en geen CTA',
+    layout: {
+      wrapperClass: 'flex-col md:flex-row items-center justify-between gap-3',
+      logoWrapperClass: 'md:order-3 order-1 justify-end',
+      menuWrapperClass: 'md:order-2 order-2 justify-end flex-1',
+      menuGapClass: 'gap-4',
+      uppercaseLinks: true,
+      ctaPlacement: 'inline',
+      ctaVisibility: 'force-hide',
+    },
+    settings: {
+      padding: { top: 10, bottom: 10 },
+      cta: { enabled: false },
+    },
+  },
+  {
+    id: 'spacious',
+    label: 'Spacious Layout',
+    subLabel: 'Logo left',
+    description: 'Extra ademruimte en prominente CTA',
+    layout: {
+      wrapperClass: 'flex-col lg:flex-row items-center justify-between gap-6 lg:gap-12',
+      logoWrapperClass: 'justify-start',
+      menuWrapperClass: 'justify-center flex-1',
+      menuGapClass: 'gap-8',
+      ctaPlacement: 'inline',
+      ctaVisibility: 'respect',
+    },
+    settings: {
+      padding: { top: 24, bottom: 24 },
+      cta: { enabled: true, radius: 999 },
+    },
+  },
+];
+
+const HERO_TEMPLATES = [
+  {
+    id: 'classic-center',
+    label: 'Classic Center',
+    description: 'Tekst gecentreerd met dubbele CTA',
+    layout: 'text',
+    defaultAlignment: 'center' as 'left' | 'center' | 'right',
+    requiresImage: false,
+  },
+  {
+    id: 'story-left',
+    label: 'Story Left',
+    description: 'Links uitgelijnde storytelling lay-out',
+    layout: 'text',
+    defaultAlignment: 'left' as 'left' | 'center' | 'right',
+    requiresImage: false,
+  },
+  {
+    id: 'split-image-left',
+    label: 'Split Image Left',
+    description: 'Afbeelding links & content rechts',
+    layout: 'split',
+    imagePosition: 'left' as 'left' | 'right',
+    requiresImage: true,
+  },
+  {
+    id: 'split-image-right',
+    label: 'Split Image Right',
+    description: 'Afbeelding rechts & content links',
+    layout: 'split',
+    imagePosition: 'right' as 'left' | 'right',
+    requiresImage: true,
+  },
 ];
 
 const VIEWPORTS: Array<'desktop' | 'tablet' | 'mobile'> = ['desktop', 'tablet', 'mobile'];
@@ -348,6 +825,9 @@ type UploadItem = {
 };
 
 export default function CustomTemplatePage() {
+  const [componentOrder, setComponentOrder] = useState<string[]>(() => 
+    COMPONENTS.map(comp => comp.id)
+  );
   const [componentState, setComponentState] = useState<Record<string, boolean>>(() =>
     COMPONENTS.reduce((acc, comp) => {
       acc[comp.id] = true;
@@ -355,11 +835,21 @@ export default function CustomTemplatePage() {
     }, {} as Record<string, boolean>)
   );
   const [activeComponent, setActiveComponent] = useState<string>('navigation');
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [navFormat, setNavFormat] = useState<string>('default');
   const [activeTab, setActiveTab] = useState<EditorTab>('components');
   const [colorPalette, setColorPalette] = useState<Record<ThemeColorKey, string>>(DEFAULT_COLORS);
   const [overlayOpacity, setOverlayOpacity] = useState(0.72);
+  const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>({
     headingFamily: 'Space Grotesk',
     bodyFamily: 'Inter',
@@ -385,7 +875,7 @@ export default function CustomTemplatePage() {
     },
   ]);
 
-  const [navigationSettings, setNavigationSettings] = useState({
+  const [navigationSettings, setNavigationSettings] = useState<NavigationSettingsState>({
     logoUrl: '',
     logoWidth: 140,
     linkType: 'home' as 'home' | 'custom',
@@ -413,6 +903,8 @@ export default function CustomTemplatePage() {
   });
 
   const [heroSettings, setHeroSettings] = useState({
+    template: 'classic-center',
+    heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
     title: 'Het grootste Rocket League toernooi van de winter',
     subtitle: 'Het grootste Rocket League toernooi van de winter',
     overlayColor: '#05060D',
@@ -636,6 +1128,115 @@ export default function CustomTemplatePage() {
     scrollToComponent(id);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    // Handle upload item drop on image field
+    if (active.id.toString().startsWith('upload-') && over) {
+      const uploadId = active.id.toString().replace('upload-', '');
+      const upload = uploads.find(u => u.id === uploadId);
+      
+      if (upload && over.data.current?.type === 'image-field') {
+        const onChange = over.data.current.onChange as (url: string) => void;
+        if (onChange) {
+          onChange(upload.url);
+          
+          // Detect component name from drop zone ID
+          let componentName = activeComponentLabel;
+          const dropZoneId = over.id.toString();
+          if (dropZoneId.includes('navigation')) {
+            componentName = 'Navigation';
+          } else if (dropZoneId.includes('hero')) {
+            componentName = 'Hero';
+          } else if (dropZoneId.includes('about')) {
+            componentName = 'About';
+          } else if (dropZoneId.includes('footer')) {
+            componentName = 'Footer';
+          }
+          
+          // Update usedIn for the upload
+          setUploads((prev) =>
+            prev.map((item) => {
+              if (item.id === uploadId) {
+                const usedIn = item.usedIn.includes(componentName) 
+                  ? item.usedIn 
+                  : [...item.usedIn, componentName];
+                return { ...item, usedIn };
+              }
+              return item;
+            })
+          );
+        }
+      }
+    }
+
+    // Handle component reordering
+    if (over && active.id !== over.id && typeof active.id === 'string' && typeof over.id === 'string') {
+      if (!active.id.toString().startsWith('upload-')) {
+        setComponentOrder((items) => {
+          const oldIndex = items.indexOf(active.id as string);
+          const newIndex = items.indexOf(over.id as string);
+          if (oldIndex !== -1 && newIndex !== -1) {
+            return arrayMove(items, oldIndex, newIndex);
+          }
+          return items;
+        });
+      }
+    }
+
+    setActiveDragId(null);
+  };
+
+  const sortedComponents = useMemo(() => {
+    return componentOrder
+      .map(id => COMPONENTS.find(comp => comp.id === id))
+      .filter((comp): comp is ComponentToggle => comp !== undefined);
+  }, [componentOrder]);
+
+  const selectedNavigationFormat = useMemo(() => {
+    return NAVIGATION_FORMATS.find((format) => format.id === navFormat) ?? NAVIGATION_FORMATS[0];
+  }, [navFormat]);
+
+  const selectedHeroTemplate = useMemo(() => {
+    return HERO_TEMPLATES.find((template) => template.id === heroSettings.template) ?? HERO_TEMPLATES[0];
+  }, [heroSettings.template]);
+
+  const navigationLayout = selectedNavigationFormat.layout;
+  const navigationWrapperClass = navigationLayout.wrapperClass || 'items-center justify-between gap-8';
+  const navigationLogoWrapperClass = navigationLayout.logoWrapperClass ?? 'justify-start';
+  const navigationMenuWrapperClass = navigationLayout.menuWrapperClass ?? 'justify-center flex-1';
+  const navigationMenuGapClass = navigationLayout.menuGapClass ?? 'gap-6';
+  const navigationMenuLinkClass = `text-sm font-medium transition-colors hover:opacity-80 ${
+    navigationLayout.uppercaseLinks ? 'uppercase tracking-[0.2em] text-xs' : ''
+  }`;
+  const shouldShowNavigationCta = navigationSettings.cta.enabled && navigationLayout.ctaVisibility !== 'force-hide';
+  const isStackedNavigationCta = navigationLayout.ctaPlacement === 'stacked';
+  const navigationCtaElement = (
+    <a
+      href={navigationSettings.cta.link}
+      className="px-6 py-2 rounded-full font-semibold text-sm transition-transform hover:scale-105"
+      style={{
+        backgroundColor: navigationSettings.cta.background,
+        color: navigationSettings.cta.textColor,
+        borderRadius: navigationSettings.cta.radius,
+      }}
+    >
+      {navigationSettings.cta.label}
+    </a>
+  );
+
+  const componentOrderMap = useMemo(() => {
+    const orderMap: Record<string, number> = {};
+    componentOrder.forEach((id, index) => {
+      orderMap[id] = index;
+    });
+    return orderMap;
+  }, [componentOrder]);
+
   const handleColorChange = (key: ThemeColorKey, value: string) => {
     setColorPalette((prev) => ({
       ...prev,
@@ -662,8 +1263,30 @@ export default function CustomTemplatePage() {
     const reader = new FileReader();
     reader.onload = () => {
       callback(reader.result as string);
+      event.target.value = '';
     };
     reader.readAsDataURL(file);
+  };
+
+  const mergeNavigationSettings = (
+    prev: NavigationSettingsState,
+    overrides?: NavigationSettingsOverrides
+  ): NavigationSettingsState => {
+    if (!overrides) return prev;
+    return {
+      ...prev,
+      ...overrides,
+      padding: overrides.padding ? { ...prev.padding, ...overrides.padding } : prev.padding,
+      cta: overrides.cta ? { ...prev.cta, ...overrides.cta } : prev.cta,
+    };
+  };
+
+  const handleNavigationFormatSelect = (formatId: string) => {
+    setNavFormat(formatId);
+    const preset = NAVIGATION_FORMATS.find((format) => format.id === formatId);
+    if (preset?.settings) {
+      setNavigationSettings((prev) => mergeNavigationSettings(prev, preset.settings));
+    }
   };
 
   const updateNavigationMenuItem = (id: string, field: string, value: string | boolean) => {
@@ -865,30 +1488,88 @@ export default function CustomTemplatePage() {
                 {NAVIGATION_FORMATS.map((format) => (
                   <button
                     key={format.id}
-                    onClick={() => setNavFormat(format.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
+                    type="button"
+                    aria-pressed={navFormat === format.id}
+                    onClick={() => handleNavigationFormatSelect(format.id)}
+                    className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
                       navFormat === format.id
                         ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
                         : 'border-white/10 hover:border-white/30'
                     }`}
                   >
-                    <p className="font-semibold">{format.label}</p>
-                    <p className="text-xs uppercase tracking-widest text-white/40">{format.subLabel}</p>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold">{format.label}</p>
+                        <p className="text-xs uppercase tracking-widest text-white/40">{format.subLabel}</p>
+                      </div>
+                      {navFormat === format.id && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                    </div>
+                    <p className="text-xs text-white/60">{format.description}</p>
                   </button>
                 ))}
               </div>
             </section>
 
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Logo</h3>
+            <DroppableImageField
+              id="navigation-logo"
+              value={navigationSettings.logoUrl}
+              onChange={(url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url }))}
+              label="Logo"
+            >
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+                    {navigationSettings.logoUrl ? (
+                      <img src={navigationSettings.logoUrl} alt="Logo preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <Icon name="image" className="w-7 h-7 text-white/30" />
+                    )}
+                  </div>
+                  <div className="flex-1 w-full space-y-2 text-left">
+                    <p className="text-sm font-semibold text-white">Upload een logo</p>
+                    <p className="text-xs text-white/60">Sleep een afbeelding hierheen of kies een optie hieronder.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => navigationLogoInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                      >
+                        Upload bestand
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('uploads')}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                      >
+                        Media library
+                      </button>
+                      {navigationSettings.logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setNavigationSettings((prev) => ({ ...prev, logoUrl: '' }))}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition"
+                        >
+                          Verwijder logo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  value={navigationSettings.logoUrl}
+                  onChange={(e) => setNavigationSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
+                  placeholder="https://images.rosh.gg/logo.png"
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                />
+              </div>
               <input
-                type="text"
-                value={navigationSettings.logoUrl}
-                onChange={(e) => setNavigationSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
-                placeholder="Logo URL"
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                ref={navigationLogoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, (url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url })))}
               />
-              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url })))} />
               <label className="text-xs text-white/60 flex flex-col gap-2">
                 Breedte ({navigationSettings.logoWidth}px)
                 <input
@@ -899,7 +1580,7 @@ export default function CustomTemplatePage() {
                   onChange={(e) => setNavigationSettings((prev) => ({ ...prev, logoWidth: Number(e.target.value) }))}
                 />
               </label>
-            </section>
+            </DroppableImageField>
 
             <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Menu-items</h3>
@@ -1086,6 +1767,35 @@ export default function CustomTemplatePage() {
       case 'hero':
         return (
           <div className={panelClass}>
+            <section className="space-y-3">
+              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Templates</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {HERO_TEMPLATES.map((template) => {
+                  const isSelected = heroSettings.template === template.id;
+                  return (
+                    <button
+                      key={template.id}
+                      onClick={() => handleHeroTemplateChange(template.id)}
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                        isSelected
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <p className="font-semibold flex items-center justify-between">
+                        {template.label}
+                        {template.requiresImage && (
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 border border-white/20 px-2 py-0.5 rounded-full">
+                            Image
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-white/50 mt-1">{template.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
             <section className="space-y-2">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Content</h3>
               <input
@@ -1141,6 +1851,23 @@ export default function CustomTemplatePage() {
                 <option value="bottom">Onder</option>
               </select>
             </section>
+            {selectedHeroTemplate.requiresImage && (
+              <DroppableImageField
+                id="hero-image"
+                value={heroSettings.heroImageUrl}
+                onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
+                label="Hero afbeelding"
+              >
+                <input
+                  type="text"
+                  value={heroSettings.heroImageUrl}
+                  onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  placeholder="Afbeelding URL"
+                />
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
+              </DroppableImageField>
+            )}
             <section className="space-y-2">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Knoppen</h3>
               <div className="grid grid-cols-2 gap-3">
@@ -1209,8 +1936,12 @@ export default function CustomTemplatePage() {
                 <option value="stacked">Afbeelding boven / tekst onder</option>
               </select>
             </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Afbeelding</h3>
+            <DroppableImageField
+              id="about-image"
+              value={aboutSettings.imageUrl}
+              onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+              label="Afbeelding"
+            >
               <input
                 type="text"
                 value={aboutSettings.imageUrl}
@@ -1227,7 +1958,7 @@ export default function CustomTemplatePage() {
                 <input type="checkbox" checked={aboutSettings.imageShadow} onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageShadow: e.target.checked }))} />
                 Shadow effect
               </label>
-            </section>
+            </DroppableImageField>
             <section className="space-y-2">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Tekst</h3>
               <input
@@ -1686,8 +2417,12 @@ export default function CustomTemplatePage() {
       case 'footer':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Footer content</h3>
+            <DroppableImageField
+              id="footer-logo"
+              value={footerSettings.logoUrl}
+              onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+              label="Footer content"
+            >
               <input
                 value={footerSettings.logoUrl}
                 onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
@@ -1695,6 +2430,8 @@ export default function CustomTemplatePage() {
                 placeholder="Logo URL"
               />
               <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))} />
+            </DroppableImageField>
+            <section className="space-y-2">
               <textarea
                 value={footerSettings.description}
                 onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
@@ -1810,18 +2547,70 @@ export default function CustomTemplatePage() {
     });
   };
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.warn(`File ${file.name} is not an image, skipping.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileUrl = reader.result as string;
+        const fileSize = formatFileSize(file.size);
+        
+        setUploads((prev) => [
+          ...prev,
+          {
+            id: createId(),
+            name: file.name,
+            url: fileUrl,
+            size: fileSize,
+            usedIn: [],
+          },
+        ]);
+      };
+      reader.onerror = () => {
+        console.error(`Error reading file: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input zodat dezelfde file opnieuw geselecteerd kan worden
+    if (event.target) {
+      event.target.value = '';
+    }
+  };
+
   const addUpload = () => {
-    const nextIndex = uploads.length + 1;
-    setUploads((prev) => [
-      ...prev,
-      {
-        id: `asset-${nextIndex}`,
-        name: `new-asset-${nextIndex}.png`,
-        url: 'https://images.rosh.gg/placeholders/new.png',
-        size: '540 KB',
-        usedIn: [],
-      },
-    ]);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files) {
+        const changeEvent = {
+          target,
+        } as ChangeEvent<HTMLInputElement>;
+        handleFileUpload(changeEvent);
+      }
+    };
+    input.click();
   };
 
   const deleteUpload = (id: string) => {
@@ -1834,14 +2623,109 @@ export default function CustomTemplatePage() {
     );
   };
 
+  const handleHeroTemplateChange = (templateId: string) => {
+    const template = HERO_TEMPLATES.find((t) => t.id === templateId);
+    setHeroSettings((prev) => ({
+      ...prev,
+      template: templateId,
+      alignment: (template?.defaultAlignment as typeof prev.alignment | undefined) ?? prev.alignment,
+    }));
+  };
+
+  const useImageInComponent = (componentId: string, imageUrl: string, uploadId: string) => {
+    // Update the appropriate component setting based on componentId
+    switch (componentId) {
+      case 'navigation':
+        setNavigationSettings((prev) => ({ ...prev, logoUrl: imageUrl }));
+        break;
+      case 'hero':
+        setHeroSettings((prev) => ({ ...prev, heroImageUrl: imageUrl }));
+        break;
+      case 'about':
+        setAboutSettings((prev) => ({ ...prev, imageUrl: imageUrl }));
+        break;
+      case 'footer':
+        setFooterSettings((prev) => ({ ...prev, logoUrl: imageUrl }));
+        break;
+    }
+
+    // Update the component label for tracking
+    const componentLabels: Record<string, string> = {
+      navigation: 'Navigation',
+      hero: 'Hero',
+      about: 'About',
+      footer: 'Footer',
+    };
+
+    const componentName = componentLabels[componentId] || componentId;
+    
+    // Update usedIn for the upload
+    setUploads((prev) =>
+      prev.map((item) => {
+        if (item.id === uploadId) {
+          const usedIn = item.usedIn.includes(componentName) 
+            ? item.usedIn 
+            : [...item.usedIn, componentName];
+          return { ...item, usedIn };
+        }
+        return item;
+      })
+    );
+
+    // Select the component so the user can see it
+    setActiveComponent(componentId);
+  };
+
+  // Clone preview content to fullscreen modal
+  useEffect(() => {
+    if (isFullscreen) {
+      // Small delay to ensure DOM is ready
+      const timeoutId = setTimeout(() => {
+        const previewContainer = document.querySelector('[data-preview-scroll-container]') as HTMLElement;
+        const fullscreenContainer = document.getElementById('fullscreen-preview-container');
+        
+        if (previewContainer && fullscreenContainer) {
+          // Clone the inner content (first child of preview container)
+          const innerContent = previewContainer.firstElementChild as HTMLElement;
+          if (innerContent) {
+            const cloned = innerContent.cloneNode(true) as HTMLElement;
+            // Preserve all styles and ensure full width/height, remove margins/padding
+            cloned.style.minHeight = '100%';
+            cloned.style.width = '100%';
+            cloned.style.display = 'flex';
+            cloned.style.flexDirection = 'column';
+            cloned.style.margin = '0';
+            cloned.style.padding = '0';
+            fullscreenContainer.innerHTML = '';
+            fullscreenContainer.appendChild(cloned);
+            
+            // Ensure the first child (navigation) also has no margin-top
+            const firstChild = cloned.firstElementChild as HTMLElement;
+            if (firstChild) {
+              firstChild.style.marginTop = '0';
+            }
+          }
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isFullscreen, componentState, colorPalette, fontSettings, navigationSettings, heroSettings, viewport, aboutSettings, programSettings, bracketSettings]);
+
   return (
-    <div className="min-h-screen bg-[#05060D] text-white flex flex-col">
-      <header className="fixed top-0 left-0 right-0 z-20 border-b border-white/10 bg-[#0E1020] px-8 py-5 flex items-center justify-between">
-        <div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="min-h-screen bg-[#05060D] text-white flex flex-col">
+        <header className="fixed top-0 left-0 right-0 z-20 border-b border-white/10 bg-[#0E1020] px-8 py-5 flex items-center justify-between">
+        <div className="flex-1">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">Live Editor</p>
           <h1 className="text-2xl font-semibold mt-1">Bouw een geheel eigen pagina</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex-1 flex items-center justify-center gap-3">
           <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
             {VIEWPORTS.map((vp) => (
               <button
@@ -1855,6 +2739,18 @@ export default function CustomTemplatePage() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setIsFullscreen(true)}
+            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition flex items-center gap-2"
+            title="Fullscreen preview"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+            </svg>
+            Fullscreen
+          </button>
+        </div>
+        <div className="flex-1 flex items-center justify-end gap-3">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 hover:border-white/40 transition-colors text-sm"
@@ -1908,50 +2804,30 @@ export default function CustomTemplatePage() {
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
               {activeTab === 'components' && (
-                <>
-                  {COMPONENTS.map((component) => {
+                <SortableContext
+                  items={componentOrder}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {sortedComponents.map((component) => {
                     const isActive = activeComponent === component.id;
                     return (
-                      <div
+                      <SortableComponentItem
                         key={component.id}
-                        onClick={() => handleComponentSelect(component.id)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all cursor-pointer ${
-                          isActive ? 'border-[#755DFF] bg-[#1a1d36]' : 'border-white/10 hover:border-white/30'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 text-left">
-                          <Icon name={component.icon} className="w-5 h-5" />
-                          <div>
-                            <p className="font-medium text-sm">{component.label}</p>
-                            <p className="text-xs text-white/40 capitalize">
-                              {componentState[component.id] ? 'visible on canvas' : 'click to show'}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setComponentState((prev) => ({
-                              ...prev,
-                              [component.id]: !prev[component.id],
-                            }));
-                          }}
-                          className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${
-                            componentState[component.id] ? 'bg-[#755DFF]' : 'bg-white/15'
-                          }`}
-                          role="switch"
-                          aria-checked={componentState[component.id]}
-                        >
-                          <span
-                            className={`inline-block h-5 w-5 bg-white rounded-full transform transition ${
-                              componentState[component.id] ? 'translate-x-5' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
+                        component={component}
+                        isActive={isActive}
+                        isVisible={componentState[component.id]}
+                        onSelect={() => handleComponentSelect(component.id)}
+                        onToggle={(e) => {
+                          e.stopPropagation();
+                          setComponentState((prev) => ({
+                            ...prev,
+                            [component.id]: !prev[component.id],
+                          }));
+                        }}
+                      />
                     );
                   })}
-                </>
+                </SortableContext>
               )}
 
               {activeTab === 'colors' && (
@@ -2173,38 +3049,22 @@ export default function CustomTemplatePage() {
 
                   <div className="space-y-3">
                     {uploads.map((asset) => (
-                      <div
+                      <DraggableUploadItem
                         key={asset.id}
-                        className="bg-[#11132A] border border-white/10 rounded-2xl p-4 flex gap-4 items-center"
-                      >
-                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1B1F3E] to-[#0B0E1C] border border-white/5 flex items-center justify-center">
-                          <Icon name="image" className="w-7 h-7" />
-                        </div>
-                        <div className="flex-1">
-                          <input
-                            value={asset.name}
-                            onChange={(e) => renameUpload(asset.id, e.target.value)}
-                            className="bg-transparent text-sm font-semibold w-full focus:outline-none focus:border-b focus:border-[#755DFF]"
-                          />
-                          <p className="text-xs text-white/40">{asset.size}</p>
-                          {asset.usedIn.length > 0 && (
-                            <p className="text-[11px] text-white/50 mt-1">
-                              Used in: {asset.usedIn.join(', ')}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <button className="text-xs text-white/60 hover:text-white transition">Copy URL</button>
-                          <button
-                            onClick={() => deleteUpload(asset.id)}
-                            className="text-xs text-red-400 hover:text-red-300 transition"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
+                        item={asset}
+                        onDelete={deleteUpload}
+                        onRename={renameUpload}
+                        onUseInComponent={(componentId, imageUrl) => useImageInComponent(componentId, imageUrl, asset.id)}
+                      />
                     ))}
                   </div>
+                  {uploads.length === 0 && (
+                    <div className="text-center py-12 text-white/40 text-sm">
+                      <Icon name="image" className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>No assets uploaded yet</p>
+                      <p className="text-xs mt-1">Click "Upload new asset" to get started</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -2215,7 +3075,7 @@ export default function CustomTemplatePage() {
         <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
           <div className="flex-1 overflow-y-auto" data-preview-scroll-container>
             <div 
-              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308]"
+              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
                 fontFamily: fontSettings.bodyFamily,
@@ -2233,11 +3093,17 @@ export default function CustomTemplatePage() {
                     borderColor: colorPalette.border,
                     paddingTop: navigationSettings.padding.top,
                     paddingBottom: navigationSettings.padding.bottom,
+                    order: componentOrderMap['navigation'] ?? 0,
                   }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
-                  <div className="container mx-auto px-6 flex items-center justify-between relative z-20 gap-8">
-                    <div className="flex items-center gap-4">
+                  <div className={`container mx-auto px-6 flex relative z-20 ${navigationWrapperClass}`}>
+                    <DroppableImageArea
+                      id="preview-navigation-logo"
+                      value={navigationSettings.logoUrl}
+                      onChange={(url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url }))}
+                      className={`flex items-center gap-4 ${navigationLogoWrapperClass}`}
+                    >
                       {navigationSettings.logoUrl ? (
                         <img
                           src={navigationSettings.logoUrl}
@@ -2250,15 +3116,15 @@ export default function CustomTemplatePage() {
                           Tournament
                         </div>
                       )}
-                    </div>
-                    <ul className={`flex items-center gap-6 ${navFormat === 'centered' ? 'justify-center flex-1' : ''}`}>
+                    </DroppableImageArea>
+                    <ul className={`flex items-center ${navigationMenuGapClass} ${navigationMenuWrapperClass}`}>
                       {navigationSettings.menuItems
                         .filter((item) => item.enabled && item.label.trim())
-                        .map((item, idx) => (
+                        .map((item) => (
                           <li key={item.id} className="relative">
                             <a 
                               href={item.type === 'section' ? item.value : item.value || '#'}
-                              className="text-sm font-medium transition-colors hover:opacity-80"
+                              className={navigationMenuLinkClass}
                               style={{ color: navigationSettings.textColor }}
                               onMouseEnter={(e) => e.currentTarget.style.color = navigationSettings.hoverColor}
                               onMouseLeave={(e) => e.currentTarget.style.color = navigationSettings.textColor}
@@ -2268,20 +3134,13 @@ export default function CustomTemplatePage() {
                           </li>
                         ))}
                     </ul>
-                    {navigationSettings.cta.enabled && (
-                      <a
-                        href={navigationSettings.cta.link}
-                        className="px-6 py-2 rounded-full font-semibold text-sm transition-transform hover:scale-105"
-                        style={{
-                          backgroundColor: navigationSettings.cta.background,
-                          color: navigationSettings.cta.textColor,
-                          borderRadius: navigationSettings.cta.radius,
-                        }}
-                      >
-                        {navigationSettings.cta.label}
-                      </a>
-                    )}
+                    {shouldShowNavigationCta && !isStackedNavigationCta && navigationCtaElement}
                   </div>
+                  {shouldShowNavigationCta && isStackedNavigationCta && (
+                    <div className="container mx-auto px-6 mt-4 flex justify-center">
+                      {navigationCtaElement}
+                    </div>
+                  )}
                 </nav>
               )}
 
@@ -2291,8 +3150,12 @@ export default function CustomTemplatePage() {
                   id="hero-section"
                   data-component-id="hero"
                   onClick={(e) => handleComponentClick('hero', e)}
-                  className={`relative py-20 px-6 overflow-hidden cursor-pointer group flex`}
-                  style={{ backgroundColor: colorPalette.sectionBackground }}
+                  className={`relative overflow-hidden cursor-pointer group flex ${
+                    selectedHeroTemplate.layout === 'split' 
+                      ? 'py-24 px-6 md:py-32' 
+                      : 'py-20 px-6'
+                  }`}
+                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['hero'] ?? 1 }}
                 >
                   <div
                     className="absolute inset-0 pointer-events-none"
@@ -2303,74 +3166,126 @@ export default function CustomTemplatePage() {
                     }}
                   />
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
-                  <div
-                    className="container mx-auto max-w-5xl relative z-20 flex flex-col gap-6"
-                    style={{
-                      textAlign: heroSettings.alignment,
-                      justifyContent:
-                        heroSettings.verticalAlignment === 'top'
-                          ? 'flex-start'
-                          : heroSettings.verticalAlignment === 'bottom'
-                          ? 'flex-end'
-                          : 'center',
-                    }}
-                  >
-                    <div className="mb-2 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Rocket League
-                    </div>
-                    <h1 
-                      className="font-bold mb-4"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h1}px`,
-                        fontWeight: fontSettings.weights.heading,
-                        lineHeight: `${fontSettings.lineHeight}%`
-                      }}
-                    >
-                      {heroSettings.title}
-                    </h1>
-                    <p className="text-lg mb-6 opacity-90 max-w-3xl" style={{ color: colorPalette.bodyText, marginLeft: heroSettings.alignment === 'left' ? 0 : 'auto', marginRight: heroSettings.alignment === 'right' ? 0 : 'auto' }}>
-                      {heroSettings.subtitle}
-                    </p>
-                    <div className="flex flex-wrap gap-6 mb-8" style={{ justifyContent: heroSettings.alignment === 'left' ? 'flex-start' : heroSettings.alignment === 'right' ? 'flex-end' : 'center' }}>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">📅</span>
-                        <span className="text-sm">17 januari 2026</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">📍</span>
-                        <span className="text-sm">Rotterdam Ahoy</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">👥</span>
-                        <span className="text-sm">16 Teams</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-4 flex-wrap" style={{ justifyContent: heroSettings.alignment === 'left' ? 'flex-start' : heroSettings.alignment === 'right' ? 'flex-end' : 'center' }}>
-                      <a 
-                        href={heroSettings.primaryButton.link}
-                        className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
-                        style={{ 
-                          backgroundColor: heroSettings.primaryButton.background,
-                          color: heroSettings.primaryButton.textColor
+                  {(() => {
+                    const isSplitLayout = selectedHeroTemplate.layout === 'split';
+                    const imageFirst = selectedHeroTemplate.imagePosition === 'left';
+                    const textAlignment = isSplitLayout ? 'left' : heroSettings.alignment;
+                    const justifyContent =
+                      heroSettings.verticalAlignment === 'top'
+                        ? 'flex-start'
+                        : heroSettings.verticalAlignment === 'bottom'
+                        ? 'flex-end'
+                        : 'center';
+
+                    const textBlock = (
+                      <div
+                        className={`flex flex-col gap-6 ${isSplitLayout ? 'max-w-xl' : ''}`}
+                        style={{
+                          textAlign: textAlignment,
+                          alignItems:
+                            textAlignment === 'center'
+                              ? 'center'
+                              : textAlignment === 'right'
+                              ? 'flex-end'
+                              : 'flex-start',
                         }}
                       >
-                        {heroSettings.primaryButton.label}
-                      </a>
-                      <a 
-                        href={heroSettings.secondaryButton.link}
-                        className="px-6 py-3 rounded-lg font-semibold border transition-all hover:scale-105"
-                        style={{ 
-                          borderColor: heroSettings.secondaryButton.borderColor,
-                          color: heroSettings.secondaryButton.textColor,
-                          backgroundColor: 'transparent'
-                        }}
+                        <div className="mb-2 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
+                          Rocket League
+                        </div>
+                        <h1 
+                          className="font-bold mb-4"
+                          style={{ 
+                            color: colorPalette.headingText,
+                            fontFamily: fontSettings.headingFamily,
+                            fontSize: `${fontSettings.sizes.h1}px`,
+                            fontWeight: fontSettings.weights.heading,
+                            lineHeight: `${fontSettings.lineHeight}%`
+                          }}
+                        >
+                          {heroSettings.title}
+                        </h1>
+                        <p
+                          className="text-lg mb-6 opacity-90 max-w-3xl"
+                          style={{
+                            color: colorPalette.bodyText,
+                            marginLeft: textAlignment === 'center' ? 'auto' : undefined,
+                            marginRight: textAlignment === 'center' ? 'auto' : undefined,
+                          }}
+                        >
+                          {heroSettings.subtitle}
+                        </p>
+                        <div className="flex flex-wrap gap-6 mb-8" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">📅</span>
+                            <span className="text-sm">17 januari 2026</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">📍</span>
+                            <span className="text-sm">Rotterdam Ahoy</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">👥</span>
+                            <span className="text-sm">16 Teams</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-4 flex-wrap" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
+                          <a 
+                            href={heroSettings.primaryButton.link}
+                            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                            style={{ 
+                              backgroundColor: heroSettings.primaryButton.background,
+                              color: heroSettings.primaryButton.textColor
+                            }}
+                          >
+                            {heroSettings.primaryButton.label}
+                          </a>
+                          <a 
+                            href={heroSettings.secondaryButton.link}
+                            className="px-6 py-3 rounded-lg font-semibold border transition-all hover:scale-105"
+                            style={{ 
+                              borderColor: heroSettings.secondaryButton.borderColor,
+                              color: heroSettings.secondaryButton.textColor,
+                              backgroundColor: 'transparent'
+                            }}
+                          >
+                            {heroSettings.secondaryButton.label}
+                          </a>
+                        </div>
+                      </div>
+                    );
+
+                    const imageBlock = selectedHeroTemplate.requiresImage ? (
+                      <DroppableImageArea
+                        id="preview-hero-image"
+                        value={heroSettings.heroImageUrl}
+                        onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
+                        className="w-full flex justify-center"
+                        minHeight="260px"
+                        style={{ padding: '1rem 0' }}
                       >
-                        {heroSettings.secondaryButton.label}
-                      </a>
-                    </div>
-                  </div>
+                        {heroSettings.heroImageUrl && (
+                          <img
+                            src={heroSettings.heroImageUrl}
+                            alt="Hero visual"
+                            className="w-full max-w-xl rounded-3xl shadow-2xl object-cover"
+                            style={{ maxHeight: isSplitLayout ? '500px' : undefined }}
+                          />
+                        )}
+                      </DroppableImageArea>
+                    ) : null;
+
+                    return (
+                      <div
+                        className={`container mx-auto relative z-20 ${isSplitLayout ? 'max-w-6xl grid gap-12 md:grid-cols-2 items-center px-4' : 'max-w-5xl flex flex-col gap-6 px-4'}`}
+                        style={{ justifyContent: isSplitLayout ? undefined : justifyContent }}
+                      >
+                        {isSplitLayout && imageFirst && imageBlock}
+                        {textBlock}
+                        {isSplitLayout && !imageFirst && imageBlock}
+                      </div>
+                    );
+                  })()}
                 </section>
               )}
 
@@ -2381,20 +3296,27 @@ export default function CustomTemplatePage() {
                   data-component-id="about"
                   onClick={(e) => handleComponentClick('about', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: aboutSettings.backgroundColor, paddingTop: aboutSettings.padding.top, paddingBottom: aboutSettings.padding.bottom }}
+                  style={{ backgroundColor: aboutSettings.backgroundColor, paddingTop: aboutSettings.padding.top, paddingBottom: aboutSettings.padding.bottom, order: componentOrderMap['about'] ?? 2 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl relative z-20">
                     <div className="grid gap-10 items-center md:grid-cols-2" style={{ flexDirection: aboutSettings.layout === 'stacked' ? 'column' : undefined }}>
                       {(aboutSettings.layout === 'image-left' || aboutSettings.layout === 'stacked') && (
-                        <div className="w-full flex justify-center">
-                          <img
-                            src={aboutSettings.imageUrl}
-                            alt="About visual"
-                            className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
-                            style={{ borderRadius: aboutSettings.imageRadius }}
-                          />
-                        </div>
+                        <DroppableImageArea
+                          id="preview-about-image-left"
+                          value={aboutSettings.imageUrl}
+                          onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+                          className="w-full flex justify-center"
+                        >
+                          {aboutSettings.imageUrl && (
+                            <img
+                              src={aboutSettings.imageUrl}
+                              alt="About visual"
+                              className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
+                              style={{ borderRadius: aboutSettings.imageRadius }}
+                            />
+                          )}
+                        </DroppableImageArea>
                       )}
                       <div className="space-y-4">
                         <p className="text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
@@ -2430,14 +3352,21 @@ export default function CustomTemplatePage() {
                         </div>
                       </div>
                       {aboutSettings.layout === 'image-right' && (
-                        <div className="w-full flex justify-center">
-                          <img
-                            src={aboutSettings.imageUrl}
-                            alt="About visual"
-                            className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
-                            style={{ borderRadius: aboutSettings.imageRadius }}
-                          />
-                        </div>
+                        <DroppableImageArea
+                          id="preview-about-image-right"
+                          value={aboutSettings.imageUrl}
+                          onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+                          className="w-full flex justify-center"
+                        >
+                          {aboutSettings.imageUrl && (
+                            <img
+                              src={aboutSettings.imageUrl}
+                              alt="About visual"
+                              className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
+                              style={{ borderRadius: aboutSettings.imageRadius }}
+                            />
+                          )}
+                        </DroppableImageArea>
                       )}
                     </div>
                   </div>
@@ -2451,7 +3380,7 @@ export default function CustomTemplatePage() {
                   data-component-id="program"
                   onClick={(e) => handleComponentClick('program', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: programSettings.backgroundColor }}
+                  style={{ backgroundColor: programSettings.backgroundColor, order: componentOrderMap['program'] ?? 3 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-5xl relative z-20">
@@ -2538,7 +3467,7 @@ export default function CustomTemplatePage() {
                   data-component-id="group-stage"
                   onClick={(e) => handleComponentClick('group-stage', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground }}
+                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['group-stage'] ?? 4 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl">
@@ -2614,7 +3543,7 @@ export default function CustomTemplatePage() {
                   data-component-id="bracket"
                   onClick={(e) => handleComponentClick('bracket', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.sectionBackground }}
+                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['bracket'] ?? 5 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl">
@@ -2689,7 +3618,7 @@ export default function CustomTemplatePage() {
                   data-component-id="teams"
                   onClick={(e) => handleComponentClick('teams', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground }}
+                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl">
@@ -2764,7 +3693,7 @@ export default function CustomTemplatePage() {
                   data-component-id="stats"
                   onClick={(e) => handleComponentClick('stats', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.sectionBackground }}
+                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['stats'] ?? 7 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl">
@@ -2806,7 +3735,7 @@ export default function CustomTemplatePage() {
                   data-component-id="registration"
                   onClick={(e) => handleComponentClick('registration', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground }}
+                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['registration'] ?? 8 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-2xl">
@@ -2921,7 +3850,7 @@ export default function CustomTemplatePage() {
                   data-component-id="faq"
                   onClick={(e) => handleComponentClick('faq', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.sectionBackground }}
+                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['faq'] ?? 9 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-4xl">
@@ -2978,7 +3907,7 @@ export default function CustomTemplatePage() {
                   data-component-id="twitch"
                   onClick={(e) => handleComponentClick('twitch', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: twitchSettings.background }}
+                  style={{ backgroundColor: twitchSettings.background, order: componentOrderMap['twitch'] ?? 10 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-5xl">
@@ -3040,7 +3969,7 @@ export default function CustomTemplatePage() {
                   data-component-id="sponsors"
                   onClick={(e) => handleComponentClick('sponsors', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: sponsorSettings.backgroundColor }}
+                  style={{ backgroundColor: sponsorSettings.backgroundColor, order: componentOrderMap['sponsors'] ?? 11 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-6xl">
@@ -3100,7 +4029,7 @@ export default function CustomTemplatePage() {
                   data-component-id="socials"
                   onClick={(e) => handleComponentClick('socials', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground }}
+                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['socials'] ?? 12 }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
                   <div className="container mx-auto max-w-4xl">
@@ -3148,7 +4077,8 @@ export default function CustomTemplatePage() {
                   className="py-12 px-6 border-t cursor-pointer relative group"
                   style={{ 
                     backgroundColor: footerSettings.backgroundColor,
-                    borderColor: colorPalette.border
+                    borderColor: colorPalette.border,
+                    order: componentOrderMap['footer'] ?? 13
                   }}
                 >
                   <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
@@ -3166,16 +4096,24 @@ export default function CustomTemplatePage() {
                       }}
                     >
                       <div>
-                        {footerSettings.logoUrl ? (
-                          <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 mb-4 object-contain" />
-                        ) : (
-                          <h3 
-                            className="text-xl font-bold mb-4"
-                            style={{ color: footerSettings.textColor }}
-                          >
-                            Winter Championship 2026
-                          </h3>
-                        )}
+                        <DroppableImageArea
+                          id="preview-footer-logo"
+                          value={footerSettings.logoUrl}
+                          onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+                          className="mb-4"
+                          minHeight="40px"
+                        >
+                          {footerSettings.logoUrl ? (
+                            <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 object-contain" />
+                          ) : (
+                            <h3 
+                              className="text-xl font-bold"
+                              style={{ color: footerSettings.textColor }}
+                            >
+                              Winter Championship 2026
+                            </h3>
+                          )}
+                        </DroppableImageArea>
                         <p className="text-sm opacity-80" style={{ color: footerSettings.textColor }}>
                           {footerSettings.description}
                         </p>
@@ -3252,7 +4190,91 @@ export default function CustomTemplatePage() {
           {renderSettingsPanel()}
         </aside>
       </main>
-    </div>
+
+      {/* Fullscreen Preview Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-[#05060D] flex flex-col">
+          <div className="flex items-center justify-between px-8 py-4 border-b border-white/10 bg-[#0E1020]">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-semibold">Live Preview - Fullscreen</h2>
+              <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
+                {VIEWPORTS.map((vp) => (
+                  <button
+                    key={vp}
+                    onClick={() => setViewport(vp)}
+                    className={`px-4 py-1.5 rounded-full text-sm capitalize transition ${
+                      viewport === vp ? 'bg-white text-black font-semibold' : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    {vp}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition flex items-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+              Sluiten
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-[#03040B] flex items-start justify-center">
+            <div 
+              className="bg-gradient-to-br from-[#0B0E1F] to-[#020308] w-full transition-all"
+              style={{ 
+                backgroundColor: colorPalette.pageBackground,
+                fontFamily: fontSettings.bodyFamily,
+                color: colorPalette.bodyText,
+                maxWidth: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
+                width: viewport === 'desktop' ? '100%' : 'auto',
+                boxShadow: '0 0 0 1px rgba(255,255,255,0.1)',
+                minHeight: '100%'
+              }}
+            >
+              {/* Preview content will be cloned here via useEffect */}
+              <div 
+                id="fullscreen-preview-container" 
+                className="w-full flex flex-col"
+                style={{ 
+                  backgroundColor: colorPalette.pageBackground,
+                  fontFamily: fontSettings.bodyFamily,
+                  color: colorPalette.bodyText,
+                  width: '100%',
+                  minHeight: '100%',
+                  margin: 0,
+                  padding: 0
+                }} 
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global DragOverlay for uploads */}
+      <DragOverlay>
+        {activeDragId && activeDragId.toString().startsWith('upload-') ? (
+          (() => {
+            const uploadId = activeDragId.toString().replace('upload-', '');
+            const item = uploads.find(u => u.id === uploadId);
+            return item ? (
+              <div className="bg-[#11132A] border border-[#755DFF] rounded-2xl p-4 flex gap-4 items-center opacity-90 shadow-xl">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1B1F3E] to-[#0B0E1C] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{item.name}</p>
+                  <p className="text-xs text-white/40">{item.size}</p>
+                </div>
+              </div>
+            ) : null;
+          })()
+        ) : null}
+      </DragOverlay>
+      </div>
+    </DndContext>
   );
 }
 
