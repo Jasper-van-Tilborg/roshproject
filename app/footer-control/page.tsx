@@ -14,10 +14,11 @@ export default function FooterControlPage() {
         showSocialLinks: true,
         socialLinks: {
             instagram: '',
-            twitter: '',
+            x: '',
             discord: '',
             facebook: '',
-            youtube: ''
+            youtube: '',
+            linkedin: ''
         },
         links: [],
         layout: 'layout1',
@@ -87,6 +88,91 @@ export default function FooterControlPage() {
         })
     }
 
+    const addSubItem = (key: keyof FooterConfig['navigationLinks']) => {
+        const currentSubItems = config.navigationLinks[key].subItems || []
+        updateConfig({
+            navigationLinks: {
+                ...config.navigationLinks,
+                [key]: {
+                    ...config.navigationLinks[key],
+                    subItems: [...currentSubItems, { label: '', url: '' }]
+                }
+            }
+        })
+    }
+
+    const updateSubItem = (key: keyof FooterConfig['navigationLinks'], index: number, field: 'label' | 'url', value: string) => {
+        const currentSubItems = config.navigationLinks[key].subItems || []
+        const updatedSubItems = [...currentSubItems]
+        updatedSubItems[index] = {
+            ...updatedSubItems[index],
+            [field]: value
+        }
+        updateConfig({
+            navigationLinks: {
+                ...config.navigationLinks,
+                [key]: {
+                    ...config.navigationLinks[key],
+                    subItems: updatedSubItems
+                }
+            }
+        })
+    }
+
+    const removeSubItem = (key: keyof FooterConfig['navigationLinks'], index: number) => {
+        const currentSubItems = config.navigationLinks[key].subItems || []
+        const updatedSubItems = currentSubItems.filter((_, i) => i !== index)
+        updateConfig({
+            navigationLinks: {
+                ...config.navigationLinks,
+                [key]: {
+                    ...config.navigationLinks[key],
+                    subItems: updatedSubItems.length > 0 ? updatedSubItems : undefined
+                }
+            }
+        })
+    }
+
+    const renderSubItems = (key: keyof FooterConfig['navigationLinks']) => {
+        const subItems = config.navigationLinks[key].subItems || []
+        return (
+            <div className="mt-2 space-y-2 pl-4 border-l-2 border-gray-600">
+                {subItems.map((subItem, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                        <div className="grid grid-cols-2 gap-2 flex-1">
+                            <input
+                                type="text"
+                                value={subItem.label}
+                                onChange={(e) => updateSubItem(key, index, 'label', e.target.value)}
+                                className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                placeholder="Sub-item label"
+                            />
+                            <input
+                                type="text"
+                                value={subItem.url}
+                                onChange={(e) => updateSubItem(key, index, 'url', e.target.value)}
+                                className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                placeholder="/url"
+                            />
+                        </div>
+                        <button
+                            onClick={() => removeSubItem(key, index)}
+                            className="px-2 py-1.5 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition"
+                            title="Verwijderen"
+                        >
+                            ×
+                        </button>
+                    </div>
+                ))}
+                <button
+                    onClick={() => addSubItem(key)}
+                    className="w-full px-2 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition"
+                >
+                    + Sub-item toevoegen
+                </button>
+            </div>
+        )
+    }
 
     const updateSocialLink = (platform: keyof FooterConfig['socialLinks'], value: string) => {
         updateConfig({
@@ -108,7 +194,7 @@ export default function FooterControlPage() {
 
                 <div className="p-4">
                     {/* Footer Toggle */}
-                    <div className="flex flex-col items-start gap-3 p-4 border border-gray-600 rounded-lg bg-gray-800">
+                    <div className="flex items-center justify-between gap-3 p-4 border border-gray-600 rounded-lg bg-gray-800">
                         <label htmlFor="showFooter" className="text-sm font-medium text-white">
                             Footer weergeven
                         </label>
@@ -259,7 +345,10 @@ export default function FooterControlPage() {
                                             />
                                         </div>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <label htmlFor="showBottomDivider" className="text-xs font-medium text-gray-300">
+                                                Scheidingsstreep
+                                            </label>
                                             <input
                                                 type="checkbox"
                                                 id="showBottomDivider"
@@ -267,9 +356,6 @@ export default function FooterControlPage() {
                                                 onChange={(e) => updateConfig({ showBottomDivider: e.target.checked })}
                                                 className="w-4 h-4"
                                             />
-                                            <label htmlFor="showBottomDivider" className="text-xs font-medium text-gray-300">
-                                                Scheidingsstreep
-                                            </label>
                                         </div>
                                     </div>
                                 )}
@@ -308,7 +394,8 @@ export default function FooterControlPage() {
                                                     type="text"
                                                     value={config.backgroundColor}
                                                     onChange={(e) => updateConfig({ backgroundColor: e.target.value })}
-                                                    className="w-24 px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                    style={{ width: '72px' }}
+                                                    className="px-1.5 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
                                                 />
                                             </div>
                                         </div>
@@ -328,7 +415,8 @@ export default function FooterControlPage() {
                                                     type="text"
                                                     value={config.textColor}
                                                     onChange={(e) => updateConfig({ textColor: e.target.value })}
-                                                    className="w-24 px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                    style={{ width: '72px' }}
+                                                    className="px-1.5 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
                                                 />
                                             </div>
                                         </div>
@@ -348,7 +436,8 @@ export default function FooterControlPage() {
                                                     type="text"
                                                     value={config.linkColor}
                                                     onChange={(e) => updateConfig({ linkColor: e.target.value })}
-                                                    className="w-24 px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                    style={{ width: '72px' }}
+                                                    className="px-1.5 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
                                                 />
                                             </div>
                                         </div>
@@ -368,7 +457,8 @@ export default function FooterControlPage() {
                                                     type="text"
                                                     value={config.linkHoverColor}
                                                     onChange={(e) => updateConfig({ linkHoverColor: e.target.value })}
-                                                    className="w-24 px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                    style={{ width: '72px' }}
+                                                    className="px-1.5 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
                                                 />
                                             </div>
                                         </div>
@@ -393,83 +483,79 @@ export default function FooterControlPage() {
                                     </svg>
                                 </button>
                                 {openSections.socialLinks && (
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <input
-                                                type="checkbox"
-                                                id="showSocialLinks"
-                                                checked={config.showSocialLinks}
-                                                onChange={(e) => updateConfig({ showSocialLinks: e.target.checked })}
-                                                className="w-4 h-4"
-                                            />
-                                            <label htmlFor="showSocialLinks" className="text-sm font-medium text-gray-300">
-                                                Social Media Links weergeven
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                Instagram URL
                                             </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.instagram || ''}
+                                                onChange={(e) => updateSocialLink('instagram', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://instagram.com/..."
+                                            />
                                         </div>
-                                        {config.showSocialLinks && (
-                                            <div className="space-y-3 pl-6">
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                                                        Instagram URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={config.socialLinks.instagram || ''}
-                                                        onChange={(e) => updateSocialLink('instagram', e.target.value)}
-                                                        className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
-                                                        placeholder="https://instagram.com/..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                                                        Twitter URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={config.socialLinks.twitter || ''}
-                                                        onChange={(e) => updateSocialLink('twitter', e.target.value)}
-                                                        className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
-                                                        placeholder="https://twitter.com/..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                                                        Discord URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={config.socialLinks.discord || ''}
-                                                        onChange={(e) => updateSocialLink('discord', e.target.value)}
-                                                        className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
-                                                        placeholder="https://discord.gg/..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                                                        Facebook URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={config.socialLinks.facebook || ''}
-                                                        onChange={(e) => updateSocialLink('facebook', e.target.value)}
-                                                        className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
-                                                        placeholder="https://facebook.com/..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                                                        YouTube URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={config.socialLinks.youtube || ''}
-                                                        onChange={(e) => updateSocialLink('youtube', e.target.value)}
-                                                        className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
-                                                        placeholder="https://youtube.com/..."
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                X (Twitter) URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.x || ''}
+                                                onChange={(e) => updateSocialLink('x', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://x.com/..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                Discord URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.discord || ''}
+                                                onChange={(e) => updateSocialLink('discord', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://discord.gg/..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                Facebook URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.facebook || ''}
+                                                onChange={(e) => updateSocialLink('facebook', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://facebook.com/..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                YouTube URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.youtube || ''}
+                                                onChange={(e) => updateSocialLink('youtube', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://youtube.com/..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-300 mb-1">
+                                                LinkedIn URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={config.socialLinks.linkedin || ''}
+                                                onChange={(e) => updateSocialLink('linkedin', e.target.value)}
+                                                className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white"
+                                                placeholder="https://linkedin.com/..."
+                                            />
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -608,6 +694,7 @@ export default function FooterControlPage() {
                                                     placeholder="/url"
                                                 />
                                             </div>
+                                            {renderSubItems('home')}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-300 mb-1">
@@ -629,6 +716,7 @@ export default function FooterControlPage() {
                                                     placeholder="/url"
                                                 />
                                             </div>
+                                            {renderSubItems('info')}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-300 mb-1">
@@ -650,6 +738,7 @@ export default function FooterControlPage() {
                                                     placeholder="/url"
                                                 />
                                             </div>
+                                            {renderSubItems('bracket')}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-300 mb-1">
@@ -671,6 +760,7 @@ export default function FooterControlPage() {
                                                     placeholder="/url"
                                                 />
                                             </div>
+                                            {renderSubItems('location')}
                                         </div>
                                     </div>
                                 )}
