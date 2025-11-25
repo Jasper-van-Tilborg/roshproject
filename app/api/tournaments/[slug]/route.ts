@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase, isSupabaseConfigured } from '../../../../lib/supabase'
+import { findMockTournament, mockTournaments } from '../../../../data/mock-tournaments'
 
 // Helper om te detecteren of een string een UUID is
 function isUUID(str: string): boolean {
@@ -17,29 +18,18 @@ export async function GET(
     // Check if Supabase is properly configured
     const isConfigured = isSupabaseConfigured()
     
+    const { slug } = await params
+    
     if (!isConfigured) {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      
-      console.error('Supabase not configured:', {
-        hasUrl: !!url,
-        hasKey: !!key,
-        urlValue: url?.substring(0, 30) || 'missing',
-        keyValue: key ? '***' + key.slice(-10) : 'missing',
-        urlIsPlaceholder: url === 'https://placeholder.supabase.co',
-        keyIsPlaceholder: key === 'placeholder-key'
-      })
-      
+      const mock = findMockTournament(slug)
+      if (mock) {
+        return NextResponse.json({ tournament: mock, warning: 'Supabase niet geconfigureerd - mock data' })
+      }
       return NextResponse.json(
-        { 
-          error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables and restart your development server.',
-          hint: 'Make sure your .env.local file exists in the project root and contains both variables. Then restart with: npm run dev'
-        },
-        { status: 503 }
+        { error: 'Supabase niet geconfigureerd en mock toernooi niet gevonden', tournaments: mockTournaments },
+        { status: 404 }
       )
     }
-
-    const { slug } = await params
     const identifier = slug
     
     console.log('API route received identifier:', identifier)

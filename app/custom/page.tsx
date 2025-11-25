@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState, useEffect, useRef } from 'react';
-import type { ReactNode, MouseEvent as ReactMouseEvent, ChangeEvent } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import type { ReactNode, MouseEvent as ReactMouseEvent, ChangeEvent, CSSProperties, JSX } from 'react';
 import Link from 'next/link';
 import {
   DndContext,
@@ -24,8 +24,34 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { LivestreamEmbed } from '../components/livestream';
 
 const createId = () => Math.random().toString(36).substring(2, 9);
+
+// Helper function to parse Twitch channel from URL or return the input if it's already a channel name
+const parseChannelFromUrl = (input: string): string | null => {
+  if (!input || !input.trim()) return null;
+  const trimmed = input.trim();
+  // If it doesn't look like a URL, assume it's a channel name
+  if (!trimmed.includes('://') && !trimmed.includes('.')) {
+    return trimmed.toLowerCase();
+  }
+  try {
+    const url = new URL(trimmed);
+    if (!/twitch\.tv$/i.test(url.hostname)) return null;
+    const segments = url.pathname.split('/').filter(Boolean);
+    if (segments.length >= 1) {
+      const first = segments[0].toLowerCase();
+      if (first !== 'videos' && first !== 'directory') {
+        return first;
+      }
+    }
+    return null;
+  } catch {
+    // If URL parsing fails, treat as channel name
+    return trimmed.toLowerCase();
+  }
+};
 
 const moveItem = <T,>(list: T[], from: number, to: number) => {
   const updated = [...list];
@@ -57,34 +83,33 @@ type IconName =
 
 const ICONS: Record<IconName, ReactNode> = {
   components: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="2" />
-      <rect x="14" y="3" width="7" height="7" rx="2" />
-      <rect x="3" y="14" width="7" height="7" rx="2" />
-      <path d="M17.5 14.5v6" />
-      <path d="M14 17.5h7" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <path d="M3 14h8v8" />
     </svg>
   ),
   colors: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3a9 9 0 0 0 0 18 2.5 2.5 0 0 0 0-5h-3.5" />
-      <path d="M7 6h.01" />
-      <path d="M5 12h.01" />
-      <path d="M7 18h.01" />
-      <path d="M12 9h.01" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
     </svg>
   ),
   fonts: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 20h4l4-16 4 16h4" />
-      <path d="M9 12h6" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 20h16" />
+      <path d="M6 20V4l6 12 6-12v16" />
     </svg>
   ),
   uploads: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 4v12" />
-      <path d="M8 8l4-4 4 4" />
-      <rect x="4" y="16" width="16" height="4" rx="1" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
   ),
   navigation: (
@@ -700,6 +725,48 @@ const VIEWPORTS: Array<'desktop' | 'tablet' | 'mobile'> = ['desktop', 'tablet', 
 
 type EditorTab = 'components' | 'colors' | 'fonts' | 'uploads';
 
+const HEADING_FONT_OPTIONS = [
+  'Space Grotesk',
+  'Montserrat',
+  'Poppins',
+  'Playfair Display',
+  'Oswald',
+  'Bebas Neue',
+];
+
+const BODY_FONT_OPTIONS = [
+  'Inter',
+  'Roboto',
+  'Nunito',
+  'Work Sans',
+  'Lexend',
+  'DM Sans',
+];
+
+const GOOGLE_FONT_CONFIG: Record<string, string> = {
+  'Space Grotesk': 'Space+Grotesk:wght@400;500;700',
+  Montserrat: 'Montserrat:wght@400;500;600;700',
+  Poppins: 'Poppins:wght@400;500;600;700',
+  'Playfair Display': 'Playfair+Display:wght@400;600;700',
+  Oswald: 'Oswald:wght@400;500;600;700',
+  'Bebas Neue': 'Bebas+Neue',
+  Inter: 'Inter:wght@400;500;600;700',
+  Roboto: 'Roboto:wght@400;500;700',
+  Nunito: 'Nunito:wght@400;600;700',
+  'Work Sans': 'Work+Sans:wght@400;500;600;700',
+  Lexend: 'Lexend:wght@400;500;600;700',
+  'DM Sans': 'DM+Sans:wght@400;500;600;700',
+};
+
+const formatFontStack = (font: string, fallback = 'sans-serif') => {
+  if (!font) {
+    return fallback;
+  }
+  const needsQuotes = /\s/.test(font);
+  const normalized = needsQuotes ? `'${font}'` : font;
+  return `${normalized}, ${fallback}`;
+};
+
 type ThemeColorKey =
   | 'primary'
   | 'secondary'
@@ -730,69 +797,155 @@ type ThemeColorKey =
   | 'overlay'
   | 'shadow';
 
-const DEFAULT_COLORS: Record<ThemeColorKey, string> = {
+type BaseColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'text';
+
+const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+const normalizeHex = (color: string) => {
+  if (!color) return '000000';
+  let hex = color.trim().replace('#', '');
+  if (hex.length === 3) {
+    hex = hex
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+  if (hex.length !== 6 || Number.isNaN(Number.parseInt(hex, 16))) {
+    return '000000';
+  }
+  return hex.toLowerCase();
+};
+
+const hexToRgb = (color: string) => {
+  const hex = normalizeHex(color);
+  const int = Number.parseInt(hex, 16);
+  return {
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255,
+  };
+};
+
+const rgbToHex = ({ r, g, b }: { r: number; g: number; b: number }) => {
+  const toHex = (value: number) => clamp(Math.round(value), 0, 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+const mixColors = (colorA: string, colorB: string, amount: number) => {
+  const mixAmount = clamp(amount, 0, 1);
+  const a = hexToRgb(colorA);
+  const b = hexToRgb(colorB);
+  const mixChannel = (channel: keyof typeof a) => a[channel] + (b[channel] - a[channel]) * mixAmount;
+  return rgbToHex({
+    r: mixChannel('r'),
+    g: mixChannel('g'),
+    b: mixChannel('b'),
+  });
+};
+
+const lightenColor = (color: string, amount = 0.1) => mixColors(color, '#ffffff', amount);
+const darkenColor = (color: string, amount = 0.1) => mixColors(color, '#000000', amount);
+
+const DEFAULT_BASE_COLORS: Record<BaseColorKey, string> = {
   primary: '#755DFF',
   secondary: '#3A7AFE',
   accent: '#FF5F8D',
-  link: '#7AA2FF',
-  linkHover: '#A6C1FF',
-  bodyText: '#CBD5F5',
-  headingText: '#FFFFFF',
-  mutedText: '#7A83A1',
-  pageBackground: '#05060D',
-  sectionBackground: '#0E1020',
-  cardBackground: '#11132A',
-  navBackground: '#0B0D1C',
-  navText: '#FFFFFF',
-  navHover: '#A5B4FF',
-  footerBackground: '#05060D',
-  footerText: '#9AA0C2',
-  footerLink: '#7AA2FF',
-  footerLinkHover: '#BBD1FF',
-  buttonPrimary: '#755DFF',
-  buttonPrimaryText: '#FFFFFF',
-  buttonPrimaryHover: '#9C8DFF',
-  buttonSecondary: '#1D1F3E',
-  buttonSecondaryText: '#FFFFFF',
-  buttonSecondaryHover: '#2C2E57',
-  border: '#20233F',
-  divider: '#2E3158',
-  overlay: '#0A0E24',
-  shadow: '#0F1433',
+  background: '#05060D',
+  text: '#FFFFFF',
 };
 
-const THEME_PRESETS: Array<{ id: string; name: string; colors: Partial<Record<ThemeColorKey, string>> }> = [
+const generateColorPalette = (baseColors: Record<BaseColorKey, string>): Record<ThemeColorKey, string> => {
+  const { primary, secondary, accent, background, text } = baseColors;
+  const link = lightenColor(primary, 0.15);
+  const linkHover = lightenColor(primary, 0.3);
+  const sectionBackground = lightenColor(background, 0.08);
+  const cardBackground = lightenColor(background, 0.15);
+  const navBackground = darkenColor(background, 0.1);
+  const footerBackground = darkenColor(background, 0.05);
+  const footerText = lightenColor(text, 0.2);
+  const footerLink = lightenColor(primary, 0.2);
+  const footerLinkHover = lightenColor(primary, 0.35);
+  const buttonPrimaryHover = lightenColor(primary, 0.15);
+  const buttonSecondary = lightenColor(background, 0.12);
+  const buttonSecondaryHover = lightenColor(background, 0.2);
+  const mutedText = mixColors(text, background, 0.4);
+  const border = lightenColor(background, 0.25);
+  const divider = lightenColor(background, 0.18);
+  const overlay = darkenColor(background, 0.3);
+  const shadow = darkenColor(background, 0.45);
+
+  return {
+    primary,
+    secondary,
+    accent,
+    link,
+    linkHover,
+    bodyText: text,
+    headingText: text,
+    mutedText,
+    pageBackground: background,
+    sectionBackground,
+    cardBackground,
+    navBackground,
+    navText: text,
+    navHover: lightenColor(primary, 0.25),
+    footerBackground,
+    footerText,
+    footerLink,
+    footerLinkHover,
+    buttonPrimary: primary,
+    buttonPrimaryText: '#FFFFFF',
+    buttonPrimaryHover,
+    buttonSecondary,
+    buttonSecondaryText: text,
+    buttonSecondaryHover,
+    border,
+    divider,
+    overlay,
+    shadow,
+  };
+};
+
+const BASE_COLOR_FIELDS: Array<{ key: BaseColorKey; label: string; helper?: string }> = [
+  { key: 'primary', label: 'Primary Accent', helper: 'Buttons, highlights en CTA\'s' },
+  { key: 'secondary', label: 'Secondary Accent', helper: 'Badges en secundaire CTA\'s' },
+  { key: 'accent', label: 'Accent Detail', helper: 'Decoratieve accenten' },
+  { key: 'background', label: 'Background', helper: 'Pagina- en kaartachtergrond' },
+  { key: 'text', label: 'Text', helper: 'Body- en headingtekst' },
+];
+
+const THEME_PRESETS: Array<{ id: string; name: string; baseColors: Partial<Record<BaseColorKey, string>> }> = [
   {
     id: 'neon',
     name: 'Neon Pulse',
-    colors: {
+    baseColors: {
       primary: '#9C1AFF',
       secondary: '#00D5FF',
       accent: '#FF4ECD',
-      pageBackground: '#01040E',
-      sectionBackground: '#0A0F1F',
+      background: '#01040E',
+      text: '#F7F7FF',
     },
   },
   {
     id: 'sunset',
     name: 'Sunset Heat',
-    colors: {
+    baseColors: {
       primary: '#FF7A18',
       secondary: '#AF002D',
       accent: '#FFD447',
-      pageBackground: '#0C0401',
-      sectionBackground: '#1F0A05',
+      background: '#120404',
+      text: '#FFF8F2',
     },
   },
   {
     id: 'midnight',
     name: 'Midnight Frost',
-    colors: {
+    baseColors: {
       primary: '#5ED6FF',
       secondary: '#93A1FF',
       accent: '#B8FFCB',
-      cardBackground: '#0F1A2E',
-      pageBackground: '#030711',
+      background: '#030711',
+      text: '#E2F4FF',
     },
   },
 ];
@@ -824,16 +977,268 @@ type UploadItem = {
   usedIn: string[];
 };
 
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4';
+type BodyVariant = 'body' | 'small';
+type TextElementTag = keyof JSX.IntrinsicElements;
+
+const DEFAULT_FONT_SETTINGS: FontSettings = {
+  headingFamily: 'Space Grotesk',
+  bodyFamily: 'Inter',
+  sizes: { h1: 48, h2: 36, h3: 28, h4: 20, body: 16, small: 13 },
+  weights: { heading: 700, body: 400 },
+  lineHeight: 140,
+  letterSpacing: 2,
+};
+
+const DEFAULT_UPLOADS: UploadItem[] = [
+  {
+    id: 'logo',
+    name: 'team-legion-logo.png',
+    url: 'https://images.rosh.gg/logo.png',
+    size: '320 KB',
+    usedIn: ['Navigation', 'Hero'],
+  },
+  {
+    id: 'banner',
+    name: 'hero-banner.jpg',
+    url: 'https://images.rosh.gg/banner.jpg',
+    size: '1.2 MB',
+    usedIn: ['Hero section'],
+  },
+];
+
+const DEFAULT_OVERLAY_OPACITY = 0.72;
+
+const HEADING_SIZE_MAP: Record<HeadingLevel, keyof FontSettings['sizes']> = {
+  h1: 'h1',
+  h2: 'h2',
+  h3: 'h3',
+  h4: 'h4',
+};
+
+const BODY_SIZE_MAP: Record<BodyVariant, keyof FontSettings['sizes']> = {
+  body: 'body',
+  small: 'small',
+};
+
+const getDefaultFontSettings = (): FontSettings => ({
+  headingFamily: DEFAULT_FONT_SETTINGS.headingFamily,
+  bodyFamily: DEFAULT_FONT_SETTINGS.bodyFamily,
+  sizes: { ...DEFAULT_FONT_SETTINGS.sizes },
+  weights: { ...DEFAULT_FONT_SETTINGS.weights },
+  lineHeight: DEFAULT_FONT_SETTINGS.lineHeight,
+  letterSpacing: DEFAULT_FONT_SETTINGS.letterSpacing,
+});
+
+const getDefaultNavigationSettings = (): NavigationSettingsState => ({
+  logoUrl: '',
+  logoWidth: 140,
+  linkType: 'home',
+  customUrl: '/',
+  sticky: true,
+  textColor: '#FFFFFF',
+  hoverColor: '#A6B4FF',
+  activeColor: '#755DFF',
+  backgroundColor: 'rgba(5,6,13,0.85)',
+  padding: { top: 16, bottom: 16 },
+  cta: {
+    enabled: true,
+    label: 'Schrijf je team in',
+    link: '#register-section',
+    background: '#755DFF',
+    textColor: '#FFFFFF',
+    radius: 999,
+  },
+  menuItems: [
+    { id: createId(), label: 'Home', type: 'section', value: '#hero-section', icon: '', enabled: true },
+    { id: createId(), label: 'Over', type: 'section', value: '#about-section', icon: '', enabled: true },
+    { id: createId(), label: 'Schema', type: 'section', value: '#schedule-section', icon: '', enabled: true },
+    { id: createId(), label: 'Teams', type: 'section', value: '#teams-section', icon: '', enabled: true },
+  ],
+});
+
+const getDefaultHeroSettings = () => ({
+  template: 'classic-center',
+  heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
+  title: 'Het grootste Rocket League toernooi van de winter',
+  subtitle: 'Het grootste Rocket League toernooi van de winter',
+  overlayColor: '#05060D',
+  overlayOpacity: 60,
+  blurOverlay: false,
+  alignment: 'center' as 'left' | 'center' | 'right',
+  verticalAlignment: 'center' as 'top' | 'center' | 'bottom',
+  primaryButton: {
+    label: 'Schrijf je team in',
+    link: '#register-section',
+    background: '#755DFF',
+    textColor: '#FFFFFF',
+  },
+  secondaryButton: {
+    label: 'Meer informatie',
+    link: '#about-section',
+    borderColor: '#755DFF',
+    textColor: '#FFFFFF',
+  },
+});
+
+const getDefaultAboutSettings = () => ({
+  layout: 'image-left' as 'image-left' | 'image-right' | 'stacked',
+  imageUrl: 'https://images.rosh.gg/hero.jpg',
+  imageRadius: 24,
+  imageShadow: true,
+  title: 'De ultieme wintercompetitie',
+  subtitle: 'Over het toernooi',
+  paragraph:
+    'Welkom bij de Winter Championship 2026, het meest prestigieuze Rocket League toernooi van het seizoen. In de iconische Rotterdam Ahoy strijden 16 topteams om de felbegeerde wintertrofee en een totaal prijzenpot van €25.000.',
+  bullets: [
+    { id: createId(), text: 'Groepsfase met 16 topteams' },
+    { id: createId(), text: 'Live publiek en professionele setup' },
+  ],
+  buttons: [{ id: createId(), label: 'Bekijk schema', link: '#schedule-section' }],
+  backgroundColor: '#05060D',
+  padding: { top: 80, bottom: 80 },
+});
+
+const getDefaultProgramSettings = () => ({
+  layout: 'timeline' as 'timeline' | 'table',
+  columnWidth: 40,
+  backgroundColor: '#0E1020',
+  borderColor: '#20233F',
+  timeColor: '#755DFF',
+  items: [
+    { id: createId(), time: '09:00', title: 'Deuren Open & Check-in', description: 'Teams melden zich aan en doen warming-up', icon: '' },
+    { id: createId(), time: '10:00', title: 'Openingsceremonie', description: 'Verwelkoming en toernooi introductie', icon: '' },
+    { id: createId(), time: '11:00', title: 'Groepsfase - Ronde 1', description: 'Eerste wedstrijden in alle vier groepen', icon: '' },
+  ],
+});
+
+const getDefaultBracketSettings = () => ({
+  source: 'manual' as 'manual' | 'api',
+  apiEndpoint: '',
+  style: {
+    mode: 'default' as 'default' | 'compact',
+    animations: true,
+    lineThickness: 2,
+    lineColor: '#755DFF',
+    teamBlockColor: '#11132A',
+    winnerColor: '#4ADE80',
+  },
+  rounds: [
+    {
+      id: createId(),
+      name: 'Round of 16',
+      matches: [
+        { id: createId(), teamA: 'Team Alpha', teamB: 'Team Beta', scoreA: '16', scoreB: '12' },
+        { id: createId(), teamA: 'Team Gamma', teamB: 'Team Delta', scoreA: '14', scoreB: '16' },
+      ],
+    },
+    {
+      id: createId(),
+      name: 'Quarter Finals',
+      matches: [{ id: createId(), teamA: 'Team Alpha', teamB: 'Team Delta', scoreA: '16', scoreB: '14' }],
+    },
+  ],
+});
+
+const getDefaultTwitchSettings = () => ({
+  channel: 'roshlive',
+  autoplay: false,
+  showChat: true,
+  layout: 'stacked' as 'stacked' | 'side-by-side' | 'stream-only',
+  width: 100,
+  height: 420,
+  background: '#05060D',
+});
+
+const getDefaultSponsorSettings = () => ({
+  layout: 'grid' as 'grid' | 'carousel',
+  columns: 3,
+  logoSize: 80,
+  gap: 20,
+  grayscaleHover: true,
+  backgroundColor: '#0E1020',
+  divider: false,
+  logos: [
+    { id: createId(), name: 'Lenovo Legion', url: 'https://images.rosh.gg/lenovo.png', link: '#' },
+    { id: createId(), name: 'Intel', url: 'https://images.rosh.gg/intel.png', link: '#' },
+    { id: createId(), name: 'NVIDIA', url: 'https://images.rosh.gg/nvidia.png', link: '#' },
+    { id: createId(), name: 'Red Bull', url: 'https://images.rosh.gg/redbull.png', link: '#' },
+  ],
+});
+
+const getDefaultSocialSettings = () => ({
+  display: 'icon-text' as 'icon' | 'icon-text',
+  size: 20,
+  style: 'filled' as 'filled' | 'outline' | 'rounded',
+  icons: [
+    { id: 'twitch', label: 'Twitch', enabled: true, link: '#' },
+    { id: 'youtube', label: 'YouTube', enabled: true, link: '#' },
+    { id: 'twitter', label: 'Twitter', enabled: true, link: '#' },
+    { id: 'instagram', label: 'Instagram', enabled: false, link: '#' },
+    { id: 'tiktok', label: 'TikTok', enabled: false, link: '#' },
+    { id: 'discord', label: 'Discord', enabled: true, link: '#' },
+  ],
+});
+
+const getDefaultFooterSettings = () => ({
+  logoUrl: '',
+  description: 'Het grootste wintertoernooi van het jaar',
+  copyright: '© 2026 Winter Championship. Alle rechten voorbehouden.',
+  layout: 'three-columns' as 'two-columns' | 'three-columns' | 'centered',
+  backgroundColor: '#05060D',
+  textColor: '#FFFFFF',
+  divider: true,
+  spacing: 32,
+  links: {
+    tournament: [
+      { id: createId(), label: 'Over', link: '#about-section' },
+      { id: createId(), label: 'Schema', link: '#schedule-section' },
+      { id: createId(), label: 'Groepen', link: '#bracket-section' },
+      { id: createId(), label: 'Teams', link: '#teams-section' },
+    ],
+    info: [
+      { id: createId(), label: 'Inschrijven', link: '#register-section' },
+      { id: createId(), label: 'FAQ', link: '#faq-section' },
+      { id: createId(), label: 'Reglement', link: '#' },
+      { id: createId(), label: 'Contact', link: '#' },
+    ],
+  },
+  showSocials: true,
+});
+
+const getDefaultUploads = (): UploadItem[] =>
+  DEFAULT_UPLOADS.map((upload) => ({ ...upload, usedIn: [...upload.usedIn] }));
+
+const getDefaultComponentOrder = () => COMPONENTS.map((comp) => comp.id);
+
+const getDefaultComponentVisibility = () =>
+  COMPONENTS.reduce((acc, comp) => {
+    acc[comp.id] = true;
+    return acc;
+  }, {} as Record<string, boolean>);
+
+interface HeadingTextProps {
+  level: HeadingLevel;
+  children: ReactNode;
+  className?: string;
+  color?: string;
+  align?: 'left' | 'center' | 'right';
+  style?: CSSProperties;
+}
+
+interface BodyTextProps {
+  children: ReactNode;
+  variant?: BodyVariant;
+  as?: TextElementTag;
+  className?: string;
+  color?: string;
+  align?: 'left' | 'center' | 'right';
+  style?: CSSProperties;
+}
+
 export default function CustomTemplatePage() {
-  const [componentOrder, setComponentOrder] = useState<string[]>(() => 
-    COMPONENTS.map(comp => comp.id)
-  );
-  const [componentState, setComponentState] = useState<Record<string, boolean>>(() =>
-    COMPONENTS.reduce((acc, comp) => {
-      acc[comp.id] = true;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
+  const [componentOrder, setComponentOrder] = useState<string[]>(() => getDefaultComponentOrder());
+  const [componentState, setComponentState] = useState<Record<string, boolean>>(() => getDefaultComponentVisibility());
   const [activeComponent, setActiveComponent] = useState<string>('navigation');
   
   const sensors = useSensors(
@@ -847,213 +1252,265 @@ export default function CustomTemplatePage() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [navFormat, setNavFormat] = useState<string>('default');
   const [activeTab, setActiveTab] = useState<EditorTab>('components');
-  const [colorPalette, setColorPalette] = useState<Record<ThemeColorKey, string>>(DEFAULT_COLORS);
-  const [overlayOpacity, setOverlayOpacity] = useState(0.72);
+  const [baseColors, setBaseColors] = useState<Record<BaseColorKey, string>>(() => ({ ...DEFAULT_BASE_COLORS }));
+  const [colorPalette, setColorPalette] = useState<Record<ThemeColorKey, string>>(() => generateColorPalette(DEFAULT_BASE_COLORS));
+  const colorPaletteRef = useRef(colorPalette);
+  const [overlayOpacity, setOverlayOpacity] = useState(DEFAULT_OVERLAY_OPACITY);
+  const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
-  const [fontSettings, setFontSettings] = useState<FontSettings>({
-    headingFamily: 'Space Grotesk',
-    bodyFamily: 'Inter',
-    sizes: { h1: 48, h2: 36, h3: 28, h4: 20, body: 16, small: 13 },
-    weights: { heading: 700, body: 400 },
-    lineHeight: 140,
-    letterSpacing: 2,
-  });
-  const [uploads, setUploads] = useState<UploadItem[]>([
-    {
-      id: 'logo',
-      name: 'team-legion-logo.png',
-      url: 'https://images.rosh.gg/logo.png',
-      size: '320 KB',
-      usedIn: ['Navigation', 'Hero'],
-    },
-    {
-      id: 'banner',
-      name: 'hero-banner.jpg',
-      url: 'https://images.rosh.gg/banner.jpg',
-      size: '1.2 MB',
-      usedIn: ['Hero section'],
-    },
-  ]);
+  const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
+  const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
-  const [navigationSettings, setNavigationSettings] = useState<NavigationSettingsState>({
-    logoUrl: '',
-    logoWidth: 140,
-    linkType: 'home' as 'home' | 'custom',
-    customUrl: '/',
-    sticky: true,
-    textColor: '#FFFFFF',
-    hoverColor: '#A6B4FF',
-    activeColor: '#755DFF',
-    backgroundColor: 'rgba(5,6,13,0.85)',
-    padding: { top: 16, bottom: 16 },
-    cta: {
-      enabled: true,
-      label: 'Schrijf je team in',
-      link: '#register-section',
-      background: '#755DFF',
-      textColor: '#FFFFFF',
-      radius: 999,
-    },
-    menuItems: [
-      { id: createId(), label: 'Home', type: 'section', value: '#hero-section', icon: '', enabled: true },
-      { id: createId(), label: 'Over', type: 'section', value: '#about-section', icon: '', enabled: true },
-      { id: createId(), label: 'Schema', type: 'section', value: '#schedule-section', icon: '', enabled: true },
-      { id: createId(), label: 'Teams', type: 'section', value: '#teams-section', icon: '', enabled: true },
-    ],
-  });
+  const [navigationSettings, setNavigationSettings] = useState<NavigationSettingsState>(() => getDefaultNavigationSettings());
 
-  const [heroSettings, setHeroSettings] = useState({
-    template: 'classic-center',
-    heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
-    title: 'Het grootste Rocket League toernooi van de winter',
-    subtitle: 'Het grootste Rocket League toernooi van de winter',
-    overlayColor: '#05060D',
-    overlayOpacity: 60,
-    blurOverlay: false,
-    alignment: 'center' as 'left' | 'center' | 'right',
-    verticalAlignment: 'center' as 'top' | 'center' | 'bottom',
-    primaryButton: {
-      label: 'Schrijf je team in',
-      link: '#register-section',
-      background: '#755DFF',
-      textColor: '#FFFFFF',
-    },
-    secondaryButton: {
-      label: 'Meer informatie',
-      link: '#about-section',
-      borderColor: '#755DFF',
-      textColor: '#FFFFFF',
-    },
-  });
+  const [heroSettings, setHeroSettings] = useState(() => getDefaultHeroSettings());
 
-  const [aboutSettings, setAboutSettings] = useState({
-    layout: 'image-left' as 'image-left' | 'image-right' | 'stacked',
-    imageUrl: 'https://images.rosh.gg/hero.jpg',
-    imageRadius: 24,
-    imageShadow: true,
-    title: 'De ultieme wintercompetitie',
-    subtitle: 'Over het toernooi',
-    paragraph:
-      'Welkom bij de Winter Championship 2026, het meest prestigieuze Rocket League toernooi van het seizoen. In de iconische Rotterdam Ahoy strijden 16 topteams om de felbegeerde wintertrofee en een totaal prijzenpot van €25.000.',
-    bullets: [
-      { id: createId(), text: 'Groepsfase met 16 topteams' },
-      { id: createId(), text: 'Live publiek en professionele setup' },
-    ],
-    buttons: [
-      { id: createId(), label: 'Bekijk schema', link: '#schedule-section' },
-    ],
-    backgroundColor: '#05060D',
-    padding: { top: 80, bottom: 80 },
-  });
+  const [aboutSettings, setAboutSettings] = useState(() => getDefaultAboutSettings());
 
-  const [programSettings, setProgramSettings] = useState({
-    layout: 'timeline' as 'timeline' | 'table',
-    columnWidth: 40,
-    backgroundColor: '#0E1020',
-    borderColor: '#20233F',
-    timeColor: '#755DFF',
-    items: [
-      { id: createId(), time: '09:00', title: 'Deuren Open & Check-in', description: 'Teams melden zich aan en doen warming-up', icon: '' },
-      { id: createId(), time: '10:00', title: 'Openingsceremonie', description: 'Verwelkoming en toernooi introductie', icon: '' },
-      { id: createId(), time: '11:00', title: 'Groepsfase - Ronde 1', description: 'Eerste wedstrijden in alle vier groepen', icon: '' },
-    ],
-  });
+  const [programSettings, setProgramSettings] = useState(() => getDefaultProgramSettings());
 
-  const [bracketSettings, setBracketSettings] = useState({
-    source: 'manual' as 'manual' | 'api',
-    apiEndpoint: '',
-    style: {
-      mode: 'default' as 'default' | 'compact',
-      animations: true,
-      lineThickness: 2,
-      lineColor: '#755DFF',
-      teamBlockColor: '#11132A',
-      winnerColor: '#4ADE80',
-    },
-    rounds: [
-      {
-        id: createId(),
-        name: 'Round of 16',
-        matches: [
-          { id: createId(), teamA: 'Team Alpha', teamB: 'Team Beta', scoreA: '16', scoreB: '12' },
-          { id: createId(), teamA: 'Team Gamma', teamB: 'Team Delta', scoreA: '14', scoreB: '16' },
-        ],
-      },
-      {
-        id: createId(),
-        name: 'Quarter Finals',
-        matches: [
-          { id: createId(), teamA: 'Team Alpha', teamB: 'Team Delta', scoreA: '16', scoreB: '14' },
-        ],
-      },
-    ],
-  });
+  const [bracketSettings, setBracketSettings] = useState(() => getDefaultBracketSettings());
 
-  const [twitchSettings, setTwitchSettings] = useState({
-    channel: 'roshlive',
-    autoplay: false,
-    showChat: true,
-    layout: 'stacked' as 'stacked' | 'side-by-side' | 'stream-only',
-    width: 100,
-    height: 420,
-    background: '#05060D',
-  });
+  const [twitchSettings, setTwitchSettings] = useState(() => getDefaultTwitchSettings());
 
-  const [sponsorSettings, setSponsorSettings] = useState({
-    layout: 'grid' as 'grid' | 'carousel',
-    columns: 3,
-    logoSize: 80,
-    gap: 20,
-    grayscaleHover: true,
-    backgroundColor: '#0E1020',
-    divider: false,
-    logos: [
-      { id: createId(), name: 'Lenovo Legion', url: 'https://images.rosh.gg/lenovo.png', link: '#' },
-      { id: createId(), name: 'Intel', url: 'https://images.rosh.gg/intel.png', link: '#' },
-      { id: createId(), name: 'NVIDIA', url: 'https://images.rosh.gg/nvidia.png', link: '#' },
-      { id: createId(), name: 'Red Bull', url: 'https://images.rosh.gg/redbull.png', link: '#' },
-    ],
-  });
+  const [sponsorSettings, setSponsorSettings] = useState(() => getDefaultSponsorSettings());
 
-  const [socialSettings, setSocialSettings] = useState({
-    display: 'icon-text' as 'icon' | 'icon-text',
-    size: 20,
-    style: 'filled' as 'filled' | 'outline' | 'rounded',
-    icons: [
-      { id: 'twitch', label: 'Twitch', enabled: true, link: '#' },
-      { id: 'youtube', label: 'YouTube', enabled: true, link: '#' },
-      { id: 'twitter', label: 'Twitter', enabled: true, link: '#' },
-      { id: 'instagram', label: 'Instagram', enabled: false, link: '#' },
-      { id: 'tiktok', label: 'TikTok', enabled: false, link: '#' },
-      { id: 'discord', label: 'Discord', enabled: true, link: '#' },
-    ],
-  });
+  const [socialSettings, setSocialSettings] = useState(() => getDefaultSocialSettings());
 
-  const [footerSettings, setFooterSettings] = useState({
-    logoUrl: '',
-    description: 'Het grootste wintertoernooi van het jaar',
-    copyright: '© 2026 Winter Championship. Alle rechten voorbehouden.',
-    layout: 'three-columns' as 'two-columns' | 'three-columns' | 'centered',
-    backgroundColor: '#05060D',
-    textColor: '#FFFFFF',
-    divider: true,
-    spacing: 32,
-    links: {
-      tournament: [
-        { id: createId(), label: 'Over', link: '#about-section' },
-        { id: createId(), label: 'Schema', link: '#schedule-section' },
-        { id: createId(), label: 'Groepen', link: '#bracket-section' },
-        { id: createId(), label: 'Teams', link: '#teams-section' },
-      ],
-      info: [
-        { id: createId(), label: 'Inschrijven', link: '#register-section' },
-        { id: createId(), label: 'FAQ', link: '#faq-section' },
-        { id: createId(), label: 'Reglement', link: '#' },
-        { id: createId(), label: 'Contact', link: '#' },
-      ],
-    },
-    showSocials: true,
-  });
+  const [footerSettings, setFooterSettings] = useState(() => getDefaultFooterSettings());
+  const loadedFontsRef = useRef<Record<string, boolean>>({});
+
+  const ensureFontLoaded = useCallback((fontName: string) => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const trimmed = fontName?.trim();
+    if (!trimmed || loadedFontsRef.current[trimmed]) {
+      return;
+    }
+    const googleConfig = GOOGLE_FONT_CONFIG[trimmed];
+    if (!googleConfig) {
+      loadedFontsRef.current[trimmed] = true;
+      return;
+    }
+    if (document.querySelector(`link[data-font="${trimmed}"]`)) {
+      loadedFontsRef.current[trimmed] = true;
+      return;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${googleConfig}&display=swap`;
+    link.setAttribute('data-font', trimmed);
+    document.head.appendChild(link);
+    loadedFontsRef.current[trimmed] = true;
+  }, []);
+
+  const HeadingText = ({ level, children, className = '', color, align, style }: HeadingTextProps) => {
+    const Tag = level;
+    return (
+      <Tag
+        className={className}
+        style={{
+          color: color ?? colorPalette.headingText,
+          fontFamily: formatFontStack(fontSettings.headingFamily),
+          fontSize: `${fontSettings.sizes[HEADING_SIZE_MAP[level]]}px`,
+          fontWeight: fontSettings.weights.heading,
+          lineHeight: `${fontSettings.lineHeight}%`,
+          textAlign: align,
+          ...style,
+        }}
+      >
+        {children}
+      </Tag>
+    );
+  };
+
+  const BodyText = ({
+    children,
+    variant = 'body',
+    as = 'p',
+    className = '',
+    color,
+    align,
+    style,
+  }: BodyTextProps) => {
+    const Component = as as keyof JSX.IntrinsicElements;
+    return (
+      <Component
+        className={className}
+        style={{
+          color: color ?? colorPalette.bodyText,
+          fontFamily: formatFontStack(fontSettings.bodyFamily),
+          fontSize: `${fontSettings.sizes[BODY_SIZE_MAP[variant]]}px`,
+          fontWeight: fontSettings.weights.body,
+          lineHeight: `${fontSettings.lineHeight}%`,
+          textAlign: align,
+          ...style,
+        }}
+      >
+        {children}
+      </Component>
+    );
+  };
+
+  useEffect(() => {
+    ensureFontLoaded(fontSettings.headingFamily);
+    ensureFontLoaded(fontSettings.bodyFamily);
+  }, [fontSettings.headingFamily, fontSettings.bodyFamily, ensureFontLoaded]);
+
+  useEffect(() => {
+    const prevPalette = colorPaletteRef.current;
+
+    setNavigationSettings((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      if (prev.backgroundColor === prevPalette.navBackground && prev.backgroundColor !== colorPalette.navBackground) {
+        next.backgroundColor = colorPalette.navBackground;
+        changed = true;
+      }
+      if (prev.textColor === prevPalette.navText && prev.textColor !== colorPalette.navText) {
+        next.textColor = colorPalette.navText;
+        changed = true;
+      }
+      if (prev.hoverColor === prevPalette.navHover && prev.hoverColor !== colorPalette.navHover) {
+        next.hoverColor = colorPalette.navHover;
+        changed = true;
+      }
+      if (prev.activeColor === prevPalette.primary && prev.activeColor !== colorPalette.primary) {
+        next.activeColor = colorPalette.primary;
+        changed = true;
+      }
+
+      const nextCta = { ...next.cta };
+      let ctaChanged = false;
+      if (nextCta.background === prevPalette.buttonPrimary && nextCta.background !== colorPalette.buttonPrimary) {
+        nextCta.background = colorPalette.buttonPrimary;
+        ctaChanged = true;
+      }
+      if (nextCta.textColor === prevPalette.buttonPrimaryText && nextCta.textColor !== colorPalette.buttonPrimaryText) {
+        nextCta.textColor = colorPalette.buttonPrimaryText;
+        ctaChanged = true;
+      }
+      if (ctaChanged) {
+        next.cta = nextCta;
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
+
+    setHeroSettings((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      if (prev.overlayColor === prevPalette.overlay && prev.overlayColor !== colorPalette.overlay) {
+        next.overlayColor = colorPalette.overlay;
+        changed = true;
+      }
+
+      const nextPrimary = { ...next.primaryButton };
+      let primaryChanged = false;
+      if (nextPrimary.background === prevPalette.buttonPrimary && nextPrimary.background !== colorPalette.buttonPrimary) {
+        nextPrimary.background = colorPalette.buttonPrimary;
+        primaryChanged = true;
+      }
+      if (nextPrimary.textColor === prevPalette.buttonPrimaryText && nextPrimary.textColor !== colorPalette.buttonPrimaryText) {
+        nextPrimary.textColor = colorPalette.buttonPrimaryText;
+        primaryChanged = true;
+      }
+      if (primaryChanged) {
+        next.primaryButton = nextPrimary;
+        changed = true;
+      }
+
+      const nextSecondary = { ...next.secondaryButton };
+      let secondaryChanged = false;
+      if (nextSecondary.borderColor === prevPalette.buttonSecondary && nextSecondary.borderColor !== colorPalette.buttonSecondary) {
+        nextSecondary.borderColor = colorPalette.buttonSecondary;
+        secondaryChanged = true;
+      }
+      if (nextSecondary.textColor === prevPalette.buttonSecondaryText && nextSecondary.textColor !== colorPalette.buttonSecondaryText) {
+        nextSecondary.textColor = colorPalette.buttonSecondaryText;
+        secondaryChanged = true;
+      }
+      if (secondaryChanged) {
+        next.secondaryButton = nextSecondary;
+        changed = true;
+      }
+
+      return changed ? next : prev;
+    });
+
+    setAboutSettings((prev) => {
+      if (prev.backgroundColor === prevPalette.sectionBackground && prev.backgroundColor !== colorPalette.sectionBackground) {
+        return { ...prev, backgroundColor: colorPalette.sectionBackground };
+      }
+      return prev;
+    });
+
+    setProgramSettings((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      if (prev.backgroundColor === prevPalette.sectionBackground && prev.backgroundColor !== colorPalette.sectionBackground) {
+        next.backgroundColor = colorPalette.sectionBackground;
+        changed = true;
+      }
+      if (prev.borderColor === prevPalette.border && prev.borderColor !== colorPalette.border) {
+        next.borderColor = colorPalette.border;
+        changed = true;
+      }
+      if (prev.timeColor === prevPalette.primary && prev.timeColor !== colorPalette.primary) {
+        next.timeColor = colorPalette.primary;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+
+    setBracketSettings((prev) => {
+      let changed = false;
+      const next = { ...prev, style: { ...prev.style } };
+      if (prev.style.lineColor === prevPalette.primary && prev.style.lineColor !== colorPalette.primary) {
+        next.style.lineColor = colorPalette.primary;
+        changed = true;
+      }
+      if (prev.style.teamBlockColor === prevPalette.cardBackground && prev.style.teamBlockColor !== colorPalette.cardBackground) {
+        next.style.teamBlockColor = colorPalette.cardBackground;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+
+    setTwitchSettings((prev) => {
+      if (prev.background === prevPalette.sectionBackground && prev.background !== colorPalette.sectionBackground) {
+        return { ...prev, background: colorPalette.sectionBackground };
+      }
+      return prev;
+    });
+
+    setSponsorSettings((prev) => {
+      if (prev.backgroundColor === prevPalette.sectionBackground && prev.backgroundColor !== colorPalette.sectionBackground) {
+        return { ...prev, backgroundColor: colorPalette.sectionBackground };
+      }
+      return prev;
+    });
+
+    setFooterSettings((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      if (prev.backgroundColor === prevPalette.footerBackground && prev.backgroundColor !== colorPalette.footerBackground) {
+        next.backgroundColor = colorPalette.footerBackground;
+        changed = true;
+      }
+      if (prev.textColor === prevPalette.footerText && prev.textColor !== colorPalette.footerText) {
+        next.textColor = colorPalette.footerText;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+
+    colorPaletteRef.current = colorPalette;
+  }, [colorPalette]);
 
   const activeComponentLabel = useMemo(
     () => COMPONENTS.find((comp) => comp.id === activeComponent)?.label || 'Navigation',
@@ -1237,24 +1694,100 @@ export default function CustomTemplatePage() {
     return orderMap;
   }, [componentOrder]);
 
-  const handleColorChange = (key: ThemeColorKey, value: string) => {
-    setColorPalette((prev) => ({
+  const headingFontSelectValue = HEADING_FONT_OPTIONS.includes(fontSettings.headingFamily) ? fontSettings.headingFamily : 'custom';
+  const bodyFontSelectValue = BODY_FONT_OPTIONS.includes(fontSettings.bodyFamily) ? fontSettings.bodyFamily : 'custom';
+
+  const setBaseColorsAndPalette = (updater: (prev: Record<BaseColorKey, string>) => Record<BaseColorKey, string>) => {
+    setBaseColors((prev) => {
+      const next = updater(prev);
+      const palette = generateColorPalette(next);
+      setColorPalette(palette);
+      colorPaletteRef.current = palette;
+      return next;
+    });
+  };
+
+  const normalizeColorInput = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('#') || trimmed.startsWith('rgb') || trimmed.startsWith('hsl')) {
+      return trimmed;
+    }
+    const hexCandidate = trimmed.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
+    return hexCandidate ? `#${hexCandidate}` : trimmed;
+  };
+
+  const handleBaseColorChange = (key: BaseColorKey, value: string) => {
+    const normalized = normalizeColorInput(value);
+    if (!normalized) return;
+    setBaseColorsAndPalette((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: normalized,
     }));
+  };
+
+  const handleBaseColorTextInput = (key: BaseColorKey, value: string) => {
+    setBaseColorsAndPalette((prev) => ({
+      ...prev,
+      [key]: normalizeColorInput(value),
+    }));
+  };
+
+  const resetBaseColorValue = (key: BaseColorKey) => {
+    setBaseColorsAndPalette((prev) => ({
+      ...prev,
+      [key]: DEFAULT_BASE_COLORS[key],
+    }));
+  };
+
+  const baseColorIsDefault = (key: BaseColorKey) => baseColors[key] === DEFAULT_BASE_COLORS[key];
+
+  const copyBaseColorValue = async (key: BaseColorKey) => {
+    const colorValue = baseColors[key];
+    if (!colorValue || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(colorValue);
+      setCopiedColorKey(key);
+      setTimeout(() => {
+        setCopiedColorKey((current) => (current === key ? null : current));
+      }, 1500);
+    } catch (error) {
+      console.warn('Failed to copy color value:', error);
+    }
   };
 
   const applyPreset = (presetId: string) => {
     const preset = THEME_PRESETS.find((preset) => preset.id === presetId);
     if (!preset) return;
-    setColorPalette((prev) => ({
+    setBaseColorsAndPalette((prev) => ({
       ...prev,
-      ...preset.colors,
+      ...preset.baseColors,
     }));
   };
 
   const resetColors = () => {
-    setColorPalette(DEFAULT_COLORS);
+    setBaseColorsAndPalette(() => ({ ...DEFAULT_BASE_COLORS }));
+  };
+
+  const resetAllSettings = () => {
+    setComponentOrder(getDefaultComponentOrder());
+    setComponentState(getDefaultComponentVisibility());
+    setActiveComponent('navigation');
+    setNavFormat('default');
+    setBaseColorsAndPalette(() => ({ ...DEFAULT_BASE_COLORS }));
+    setOverlayOpacity(DEFAULT_OVERLAY_OPACITY);
+    setFontSettings(getDefaultFontSettings());
+    setUploads(getDefaultUploads());
+    setNavigationSettings(getDefaultNavigationSettings());
+    setHeroSettings(getDefaultHeroSettings());
+    setAboutSettings(getDefaultAboutSettings());
+    setProgramSettings(getDefaultProgramSettings());
+    setBracketSettings(getDefaultBracketSettings());
+    setTwitchSettings(getDefaultTwitchSettings());
+    setSponsorSettings(getDefaultSponsorSettings());
+    setSocialSettings(getDefaultSocialSettings());
+    setFooterSettings(getDefaultFooterSettings());
+    setCopiedColorKey(null);
   };
 
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
@@ -2235,14 +2768,23 @@ export default function CustomTemplatePage() {
       case 'twitch':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stream instellingen</h3>
-              <input
-                value={twitchSettings.channel}
-                onChange={(e) => setTwitchSettings((prev) => ({ ...prev, channel: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Kanaalnaam"
-              />
+              <div className="space-y-2">
+                <label className="block text-sm text-white/70">
+                  Twitch Stream Link
+                </label>
+                <input
+                  type="url"
+                  value={twitchSettings.channel}
+                  onChange={(e) => setTwitchSettings((prev) => ({ ...prev, channel: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="https://twitch.tv/roshlive of roshlive"
+                />
+                <p className="text-xs text-white/50">
+                  Voer een Twitch kanaalnaam (bijv. roshlive) of volledige URL in (bijv. https://twitch.tv/roshlive)
+                </p>
+              </div>
               <label className="flex items-center gap-2 text-sm text-white/70">
                 <input type="checkbox" checked={twitchSettings.autoplay} onChange={(e) => setTwitchSettings((prev) => ({ ...prev, autoplay: e.target.checked }))} />
                 Autoplay
@@ -2632,7 +3174,7 @@ export default function CustomTemplatePage() {
     }));
   };
 
-  const useImageInComponent = (componentId: string, imageUrl: string, uploadId: string) => {
+  const applyImageToComponent = (componentId: string, imageUrl: string, uploadId: string) => {
     // Update the appropriate component setting based on componentId
     switch (componentId) {
       case 'navigation':
@@ -2766,7 +3308,7 @@ export default function CustomTemplatePage() {
       <main className="flex-1 flex overflow-hidden relative pt-[85px]">
         {/* Left panel */}
         <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-y-auto z-10">
-          <div className="w-20 border-r border-white/10 flex flex-col items-center py-6 gap-4">
+          <div className="w-20 border-r border-white/10 flex flex-col items-center py-6 px-3 gap-4">
             {[
               { id: 'components', label: 'Components', icon: 'components' as IconName },
               { id: 'colors', label: 'Colors', icon: 'colors' as IconName },
@@ -2793,16 +3335,28 @@ export default function CustomTemplatePage() {
           </div>
 
           <div className="flex-1 flex flex-col">
-            <div className="px-6 py-5 border-b border-white/10">
-              <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">Editor</p>
-              <h2 className="text-lg font-semibold capitalize">
-                {activeTab === 'components' && 'Select and change your components'}
-                {activeTab === 'colors' && 'Global theme colors'}
-                {activeTab === 'fonts' && 'Typography system'}
-                {activeTab === 'uploads' && 'Asset library'}
-              </h2>
+            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">Editor</p>
+                <h2 className="text-lg font-semibold capitalize">
+                  {activeTab === 'components' && 'Select and change your components'}
+                  {activeTab === 'colors' && 'Global theme colors'}
+                  {activeTab === 'fonts' && 'Typography system'}
+                  {activeTab === 'uploads' && 'Asset library'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={resetAllSettings}
+                className="group text-[11px] uppercase tracking-[0.35em] text-white flex items-center gap-2 bg-gradient-to-r from-[#755DFF] to-[#4AD4FF] px-4 py-2 rounded-full shadow-[0_10px_25px_rgba(117,93,255,0.45)] hover:shadow-[0_12px_30px_rgba(117,93,255,0.65)] transition whitespace-nowrap"
+              >
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold">
+                  ↺
+                </span>
+                Reset
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+            <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-5 py-5 space-y-4">
               {activeTab === 'components' && (
                 <SortableContext
                   items={componentOrder}
@@ -2831,74 +3385,90 @@ export default function CustomTemplatePage() {
               )}
 
               {activeTab === 'colors' && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {(
-                      [
-                        ['primary', 'Primary'],
-                        ['secondary', 'Secondary'],
-                        ['accent', 'Accent'],
-                        ['link', 'Link'],
-                        ['linkHover', 'Link hover'],
-                        ['bodyText', 'Body text'],
-                        ['headingText', 'Headings'],
-                        ['mutedText', 'Muted'],
-                        ['pageBackground', 'Page background'],
-                        ['sectionBackground', 'Section background'],
-                        ['cardBackground', 'Card background'],
-                        ['navBackground', 'Navigation bg'],
-                        ['navText', 'Navigation text'],
-                        ['navHover', 'Navigation hover'],
-                        ['footerBackground', 'Footer bg'],
-                        ['footerText', 'Footer text'],
-                        ['footerLink', 'Footer link'],
-                        ['footerLinkHover', 'Footer link hover'],
-                        ['buttonPrimary', 'Button primary'],
-                        ['buttonPrimaryText', 'Button primary text'],
-                        ['buttonPrimaryHover', 'Button primary hover'],
-                        ['buttonSecondary', 'Button secondary'],
-                        ['buttonSecondaryText', 'Button secondary text'],
-                        ['buttonSecondaryHover', 'Button secondary hover'],
-                        ['border', 'Borders'],
-                        ['divider', 'Dividers'],
-                        ['overlay', 'Overlay'],
-                        ['shadow', 'Shadow'],
-                      ] as Array<[ThemeColorKey, string]>
-                    ).map(([key, label]) => (
-                      <label key={key} className="bg-[#11132A] border border-white/10 rounded-xl px-3 py-3 flex flex-col gap-3">
-                        <span className="text-xs uppercase tracking-[0.3em] text-white/40">{label}</span>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={colorPalette[key]}
-                            onChange={(e) => handleColorChange(key, e.target.value)}
-                            className="w-12 h-10 rounded-lg border border-white/10 bg-transparent cursor-pointer"
-                          />
-                          <input
-                            value={colorPalette[key]}
-                            onChange={(e) => handleColorChange(key, e.target.value)}
-                            className="flex-1 bg-[#0E1020] border border-white/10 rounded-lg px-3 py-2 text-xs tracking-[0.2em] uppercase focus:outline-none focus:border-[#755DFF]"
-                          />
-                        </div>
-                        {key === 'overlay' && (
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="range"
-                              min={0}
-                              max={100}
-                              value={Math.round(overlayOpacity * 100)}
-                              onChange={(e) => setOverlayOpacity(Number(e.target.value) / 100)}
-                              className="flex-1"
-                            />
-                            <span className="text-xs text-white/60 w-12 text-right">{Math.round(overlayOpacity * 100)}%</span>
+                <div className="space-y-5 w-full max-w-full min-w-0">
+                  <div className="flex flex-col gap-4 w-full max-w-full min-w-0">
+                    {BASE_COLOR_FIELDS.map(({ key, label, helper }) => {
+                      const value = baseColors[key] ?? DEFAULT_BASE_COLORS[key];
+                      const colorInputId = `base-color-input-${key}`;
+                      return (
+                        <div key={key} className="w-full min-w-0 rounded-2xl border border-white/10 bg-[#11132A] p-4 space-y-3 overflow-hidden">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.25em] text-white/50">{label}</p>
+                              {helper && <p className="text-[11px] text-white/40 mt-1">{helper}</p>}
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
+                              <button
+                                type="button"
+                                onClick={() => copyBaseColorValue(key)}
+                                className="px-2 py-1 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                              >
+                                {copiedColorKey === key ? 'Gekopieerd' : 'Copy'}
+                              </button>
+                              {!baseColorIsDefault(key) && (
+                                <button
+                                  type="button"
+                                  onClick={() => resetBaseColorValue(key)}
+                                  className="px-2 py-1 rounded-lg border border-white/10 text-white/60 hover:border-white/40 transition"
+                                >
+                                  Reset
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </label>
-                    ))}
+                          <div className="space-y-3">
+                            <div className="flex flex-col gap-3">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <label
+                                  htmlFor={colorInputId}
+                                  className="w-12 h-12 rounded-xl border border-white/10 shadow-inner cursor-pointer flex items-center justify-center"
+                                  style={{ background: value }}
+                                >
+                                  <span className="sr-only">Selecteer kleur voor {label}</span>
+                                </label>
+                                <input
+                                  id={colorInputId}
+                                  type="color"
+                                  value={value}
+                                  onChange={(e) => handleBaseColorChange(key, e.target.value)}
+                                  className="sr-only"
+                                />
+                                <div className="flex-1 min-w-[180px]">
+                                  <input
+                                    value={value}
+                                    onChange={(e) => handleBaseColorTextInput(key, e.target.value)}
+                                    className="w-full bg-[#0E1020] border border-white/10 rounded-lg px-3 py-2 font-mono text-sm uppercase tracking-[0.1em] focus:outline-none focus:border-[#755DFF]"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">Theme presets</p>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Hero overlay intensiteit</p>
+                        <p className="text-[11px] text-white/40 mt-1">Bepaalt hoe donker de hero achtergrond is</p>
+                      </div>
+                      <span className="text-sm font-semibold text-white/70">{Math.round(overlayOpacity * 100)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={Math.round(overlayOpacity * 100)}
+                      onChange={(e) => setOverlayOpacity(Number(e.target.value) / 100)}
+                    />
+                  </div>
+                  <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4 space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">Theme presets</p>
+                        <p className="text-xs text-white/50">Selecteer een palette als startpunt</p>
+                      </div>
                       <button
                         onClick={resetColors}
                         className="text-xs uppercase tracking-[0.3em] text-white/60 hover:text-white transition"
@@ -2906,22 +3476,22 @@ export default function CustomTemplatePage() {
                         Reset
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid gap-3 sm:grid-cols-3">
                       {THEME_PRESETS.map((preset) => (
                         <button
                           key={preset.id}
                           onClick={() => applyPreset(preset.id)}
-                          className="rounded-xl border border-white/10 hover:border-white/30 transition-all bg-[#0E1020] py-3 px-2"
+                          className="rounded-xl border border-white/10 hover:border-white/30 transition-all bg-[#0E1020] py-3 px-3 text-left"
                         >
                           <span className="text-xs uppercase tracking-[0.3em] block mb-2 text-white/60">
                             {preset.name}
                           </span>
                           <div className="flex gap-2">
-                            {Object.values(preset.colors).slice(0, 4).map((color, index) => (
+                            {BASE_COLOR_FIELDS.map(({ key }) => (
                               <span
-                                key={`${preset.id}-${index}`}
+                                key={`${preset.id}-${key}`}
                                 className="flex-1 h-4 rounded-full"
-                                style={{ background: color }}
+                                style={{ background: preset.baseColors[key] ?? baseColors[key] ?? DEFAULT_BASE_COLORS[key] }}
                               />
                             ))}
                           </div>
@@ -2937,19 +3507,61 @@ export default function CustomTemplatePage() {
                   <div className="grid grid-cols-2 gap-4">
                     <label className="flex flex-col gap-2">
                       <span className="text-xs uppercase tracking-[0.3em] text-white/40">Heading font</span>
-                      <input
-                        value={fontSettings.headingFamily}
-                        onChange={(e) => updateFontSetting('headingFamily', e.target.value)}
+                      <select
+                        value={headingFontSelectValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'custom') {
+                            return;
+                          }
+                          updateFontSetting('headingFamily', value);
+                        }}
                         className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
-                      />
+                      >
+                        <option value="custom">Custom font</option>
+                        {HEADING_FONT_OPTIONS.map((font) => (
+                          <option key={font} value={font}>
+                            {font}
+                          </option>
+                        ))}
+                      </select>
+                      {headingFontSelectValue === 'custom' && (
+                        <input
+                          value={fontSettings.headingFamily}
+                          onChange={(e) => updateFontSetting('headingFamily', e.target.value)}
+                          className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
+                          placeholder="Google Fonts naam (bijv. Lora)"
+                        />
+                      )}
                     </label>
                     <label className="flex flex-col gap-2">
                       <span className="text-xs uppercase tracking-[0.3em] text-white/40">Body font</span>
-                      <input
-                        value={fontSettings.bodyFamily}
-                        onChange={(e) => updateFontSetting('bodyFamily', e.target.value)}
+                      <select
+                        value={bodyFontSelectValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'custom') {
+                            return;
+                          }
+                          updateFontSetting('bodyFamily', value);
+                        }}
                         className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
-                      />
+                      >
+                        <option value="custom">Custom font</option>
+                        {BODY_FONT_OPTIONS.map((font) => (
+                          <option key={font} value={font}>
+                            {font}
+                          </option>
+                        ))}
+                      </select>
+                      {bodyFontSelectValue === 'custom' && (
+                        <input
+                          value={fontSettings.bodyFamily}
+                          onChange={(e) => updateFontSetting('bodyFamily', e.target.value)}
+                          className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
+                          placeholder="Google Fonts naam (bijv. Lato)"
+                        />
+                      )}
                     </label>
                   </div>
 
@@ -3054,7 +3666,7 @@ export default function CustomTemplatePage() {
                         item={asset}
                         onDelete={deleteUpload}
                         onRename={renameUpload}
-                        onUseInComponent={(componentId, imageUrl) => useImageInComponent(componentId, imageUrl, asset.id)}
+                        onUseInComponent={(componentId, imageUrl) => applyImageToComponent(componentId, imageUrl, asset.id)}
                       />
                     ))}
                   </div>
@@ -3062,7 +3674,7 @@ export default function CustomTemplatePage() {
                     <div className="text-center py-12 text-white/40 text-sm">
                       <Icon name="image" className="w-12 h-12 mx-auto mb-3 opacity-50" />
                       <p>No assets uploaded yet</p>
-                      <p className="text-xs mt-1">Click "Upload new asset" to get started</p>
+                      <p className="text-xs mt-1">Click &quot;Upload new asset&quot; to get started</p>
                     </div>
                   )}
                 </div>
@@ -3078,7 +3690,7 @@ export default function CustomTemplatePage() {
               className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
-                fontFamily: fontSettings.bodyFamily,
+                fontFamily: formatFontStack(fontSettings.bodyFamily),
                 color: colorPalette.bodyText
               }}
             >
@@ -3096,7 +3708,10 @@ export default function CustomTemplatePage() {
                     order: componentOrderMap['navigation'] ?? 0,
                   }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className={`container mx-auto px-6 flex relative z-20 ${navigationWrapperClass}`}>
                     <DroppableImageArea
                       id="preview-navigation-logo"
@@ -3112,9 +3727,12 @@ export default function CustomTemplatePage() {
                           className="object-contain"
                         />
                       ) : (
-                        <div className="text-xl font-bold" style={{ color: navigationSettings.textColor }}>
-                          Tournament
-                        </div>
+                        <span
+                          className="text-xl font-bold tracking-[0.3em]"
+                          style={{ color: navigationSettings.textColor, fontFamily: 'Space Grotesk, sans-serif' }}
+                        >
+                          H
+                        </span>
                       )}
                     </DroppableImageArea>
                     <ul className={`flex items-center ${navigationMenuGapClass} ${navigationMenuWrapperClass}`}>
@@ -3165,7 +3783,10 @@ export default function CustomTemplatePage() {
                       filter: heroSettings.blurOverlay ? 'blur(8px)' : 'none',
                     }}
                   />
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   {(() => {
                     const isSplitLayout = selectedHeroTemplate.layout === 'split';
                     const imageFirst = selectedHeroTemplate.imagePosition === 'left';
@@ -3190,31 +3811,31 @@ export default function CustomTemplatePage() {
                               : 'flex-start',
                         }}
                       >
-                        <div className="mb-2 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
+                        <HeadingText
+                          level="h2"
+                          className="mb-2 uppercase tracking-widest opacity-70"
+                          color={colorPalette.mutedText}
+                          align={textAlignment}
+                        >
                           Rocket League
-                        </div>
-                        <h1 
+                        </HeadingText>
+                        <HeadingText
+                          level="h1"
                           className="font-bold mb-4"
-                          style={{ 
-                            color: colorPalette.headingText,
-                            fontFamily: fontSettings.headingFamily,
-                            fontSize: `${fontSettings.sizes.h1}px`,
-                            fontWeight: fontSettings.weights.heading,
-                            lineHeight: `${fontSettings.lineHeight}%`
-                          }}
+                          align={textAlignment}
                         >
                           {heroSettings.title}
-                        </h1>
-                        <p
+                        </HeadingText>
+                        <BodyText
                           className="text-lg mb-6 opacity-90 max-w-3xl"
+                          align={textAlignment}
                           style={{
-                            color: colorPalette.bodyText,
                             marginLeft: textAlignment === 'center' ? 'auto' : undefined,
                             marginRight: textAlignment === 'center' ? 'auto' : undefined,
                           }}
                         >
                           {heroSettings.subtitle}
-                        </p>
+                        </BodyText>
                         <div className="flex flex-wrap gap-6 mb-8" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">📅</span>
@@ -3298,7 +3919,10 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: aboutSettings.backgroundColor, paddingTop: aboutSettings.padding.top, paddingBottom: aboutSettings.padding.bottom, order: componentOrderMap['about'] ?? 2 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl relative z-20">
                     <div className="grid gap-10 items-center md:grid-cols-2" style={{ flexDirection: aboutSettings.layout === 'stacked' ? 'column' : undefined }}>
                       {(aboutSettings.layout === 'image-left' || aboutSettings.layout === 'stacked') && (
@@ -3319,33 +3943,35 @@ export default function CustomTemplatePage() {
                         </DroppableImageArea>
                       )}
                       <div className="space-y-4">
-                        <p className="text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                          {aboutSettings.subtitle}
-                        </p>
-                        <h2 
-                          className="text-4xl font-bold"
-                          style={{ 
-                            color: colorPalette.headingText,
-                            fontFamily: fontSettings.headingFamily,
-                            fontSize: `${fontSettings.sizes.h2}px`
-                          }}
+                        <HeadingText
+                          level="h2"
+                          className="uppercase tracking-widest opacity-70"
+                          color={colorPalette.mutedText}
                         >
+                          {aboutSettings.subtitle}
+                        </HeadingText>
+                        <HeadingText level="h1" className="font-bold">
                           {aboutSettings.title}
-                        </h2>
-                        <p className="opacity-90" style={{ color: colorPalette.bodyText }}>
+                        </HeadingText>
+                        <BodyText className="opacity-90">
                           {aboutSettings.paragraph}
-                        </p>
+                        </BodyText>
                         <ul className="space-y-2">
                           {aboutSettings.bullets.map((bullet) => (
-                            <li key={bullet.id} className="flex items-start gap-2" style={{ color: colorPalette.bodyText }}>
-                              <span className="text-[#755DFF] mt-1">•</span>
-                              <span>{bullet.text}</span>
+                            <li key={bullet.id} className="flex items-start gap-2">
+                              <span className="mt-1" style={{ color: colorPalette.primary }}>•</span>
+                              <BodyText as="span">{bullet.text}</BodyText>
                             </li>
                           ))}
                         </ul>
                         <div className="flex flex-wrap gap-4">
                           {aboutSettings.buttons.map((button) => (
-                            <a key={button.id} href={button.link} className="px-5 py-3 rounded-lg border border-[#755DFF] text-sm font-medium transition-all hover:scale-105">
+                            <a
+                              key={button.id}
+                              href={button.link}
+                              className="px-5 py-3 rounded-lg border text-sm font-medium transition-all hover:scale-105"
+                              style={{ borderColor: colorPalette.primary, color: colorPalette.primary }}
+                            >
                               {button.label}
                             </a>
                           ))}
@@ -3382,21 +4008,21 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: programSettings.backgroundColor, order: componentOrderMap['program'] ?? 3 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-5xl relative z-20">
-                    <div className="text-center mb-4 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Planning
-                    </div>
-                    <h2 
-                      className="text-4xl font-bold text-center mb-12"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
                     >
+                      Planning
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-12">
                       Toernooi Schema
-                    </h2>
+                    </HeadingText>
                     {programSettings.layout === 'timeline' ? (
                       <div className="space-y-4">
                         {programSettings.items.map((item, idx) => (
@@ -3412,20 +4038,17 @@ export default function CustomTemplatePage() {
                               {item.time}
                             </div>
                             <div className="flex-1">
-                              <h3 
-                                className="text-xl font-semibold mb-2 flex items-center gap-2"
-                                style={{ 
-                                  color: colorPalette.headingText,
-                                  fontSize: `${fontSettings.sizes.h3}px`
-                                }}
+                              <HeadingText
+                                level="h2"
+                                className="mb-2 flex items-center gap-2"
                               >
                                 {item.icon && <span>{item.icon}</span>}
                                 {item.title}
-                              </h3>
+                              </HeadingText>
                               {item.description && (
-                                <p className="text-sm opacity-80" style={{ color: colorPalette.bodyText }}>
+                                <BodyText variant="small" className="opacity-80">
                                   {item.description}
-                                </p>
+                                </BodyText>
                               )}
                             </div>
                           </div>
@@ -3469,24 +4092,24 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['group-stage'] ?? 4 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
-                    <div className="text-center mb-4 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Competitie Formaat
-                    </div>
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
                     >
+                      Competitie Formaat
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-6">
                       Groepsfase Indeling
-                    </h2>
-                    <p className="text-center mb-12 opacity-90" style={{ color: colorPalette.bodyText }}>
+                    </HeadingText>
+                    <BodyText className="text-center mb-12 opacity-90">
                       16 teams verdeeld over 4 groepen. Top 2 van elke groep gaat door naar kwartfinales.
-                    </p>
+                    </BodyText>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {['A', 'B', 'C', 'D'].map((group) => (
                         <div 
@@ -3497,12 +4120,13 @@ export default function CustomTemplatePage() {
                             borderColor: colorPalette.border
                           }}
                         >
-                          <h3 
-                            className="text-2xl font-bold mb-4"
-                            style={{ color: colorPalette.primary }}
+                          <HeadingText
+                            level="h2"
+                            className="mb-4"
+                            color={colorPalette.primary}
                           >
                             Groep {group}
-                          </h3>
+                          </HeadingText>
                           <div className="space-y-2">
                             {[
                               { seed: '#1', name: 'Arctic Wolves', tag: 'ARCT' },
@@ -3518,12 +4142,12 @@ export default function CustomTemplatePage() {
                                 <div className="flex items-center gap-3">
                                   <span className="text-xs opacity-60">{team.seed}</span>
                                   <div>
-                                    <div className="font-semibold text-sm" style={{ color: colorPalette.headingText }}>
+                                    <HeadingText level="h3" className="text-sm" color={colorPalette.headingText}>
                                       {team.name}
-                                    </div>
-                                    <div className="text-xs opacity-60" style={{ color: colorPalette.bodyText }}>
+                                    </HeadingText>
+                                    <BodyText as="div" variant="small" className="opacity-60">
                                       {team.tag}
-                                    </div>
+                                    </BodyText>
                                   </div>
                                 </div>
                               </div>
@@ -3545,32 +4169,29 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['bracket'] ?? 5 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
-                    >
+                    <HeadingText level="h1" className="text-center mb-6">
                       Tournament Bracket
-                    </h2>
+                    </HeadingText>
                     {bracketSettings.source === 'api' && (
-                      <p className="text-center text-sm mb-4" style={{ color: colorPalette.bodyText }}>
+                      <BodyText className="text-center mb-4" variant="small">
                         Koppeling met {bracketSettings.apiEndpoint || 'extern API'} actief
-                      </p>
+                      </BodyText>
                     )}
                     <div className={`grid gap-4 ${bracketSettings.rounds.length < 3 ? 'md:grid-cols-2' : 'md:grid-cols-4'}`}>
                       {bracketSettings.rounds.map((round, roundIdx) => (
                         <div key={round.id} className="space-y-4">
-                          <h3 
-                            className="text-lg font-semibold mb-4 text-center"
-                            style={{ color: bracketSettings.style.lineColor }}
+                          <HeadingText
+                            level="h2"
+                            className="mb-4 text-center"
+                            color={bracketSettings.style.lineColor}
                           >
                             {round.name}
-                          </h3>
+                          </HeadingText>
                           {round.matches.map((match, matchIdx) => (
                             <div 
                               key={match.id}
@@ -3620,21 +4241,21 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
-                    <div className="text-center mb-4 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Deelnemers
-                    </div>
-                    <h2 
-                      className="text-4xl font-bold text-center mb-12"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
                     >
+                      Deelnemers
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-12">
                       Geregistreerde Teams
-                    </h2>
+                    </HeadingText>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {[
                         { initials: 'AR', name: 'Arctic Wolves', tag: 'ARCT', players: ['Player1', 'Player2', 'Player3'] },
@@ -3656,27 +4277,21 @@ export default function CustomTemplatePage() {
                           >
                             {team.initials}
                           </div>
-                          <h3 
-                            className="text-xl font-semibold text-center mb-2"
-                            style={{ 
-                              color: colorPalette.headingText,
-                              fontSize: `${fontSettings.sizes.h3}px`
-                            }}
-                          >
+                          <HeadingText level="h2" className="text-center mb-2">
                             {team.name}
-                          </h3>
-                          <p className="text-center text-sm opacity-60 mb-4" style={{ color: colorPalette.bodyText }}>
+                          </HeadingText>
+                          <BodyText className="text-center opacity-60 mb-4" variant="small">
                             {team.tag}
-                          </p>
+                          </BodyText>
                           <div className="space-y-1">
                             {team.players.map((player, pIdx) => (
-                              <div 
+                              <BodyText
                                 key={pIdx}
-                                className="text-sm text-center opacity-80"
-                                style={{ color: colorPalette.bodyText }}
+                                className="text-center opacity-80"
+                                variant="small"
                               >
                                 {player}
-                              </div>
+                              </BodyText>
                             ))}
                           </div>
                         </div>
@@ -3695,7 +4310,10 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['stats'] ?? 7 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                       {[
@@ -3712,15 +4330,12 @@ export default function CustomTemplatePage() {
                             borderColor: colorPalette.border
                           }}
                         >
-                          <div 
-                            className="text-4xl font-bold mb-2"
-                            style={{ color: colorPalette.primary }}
-                          >
+                          <HeadingText level="h1" className="mb-2" color={colorPalette.primary}>
                             {stat.value}
-                          </div>
-                          <div className="text-sm opacity-80" style={{ color: colorPalette.bodyText }}>
+                          </HeadingText>
+                          <BodyText className="opacity-80" variant="small">
                             {stat.label}
-                          </div>
+                          </BodyText>
                         </div>
                       ))}
                     </div>
@@ -3737,24 +4352,24 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['registration'] ?? 8 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-2xl">
-                    <div className="text-center mb-4 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Inschrijven
-                    </div>
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
                     >
+                      Inschrijven
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-6">
                       Doe mee aan Winter Championship
-                    </h2>
-                    <p className="text-center mb-8 opacity-90" style={{ color: colorPalette.bodyText }}>
+                    </HeadingText>
+                    <BodyText className="text-center mb-8 opacity-90">
                       Registratie sluit op 10 januari 2026. Wees er snel bij!
-                    </p>
+                    </BodyText>
                     <form 
                       className="space-y-6 p-8 rounded-xl border"
                       style={{ 
@@ -3852,21 +4467,21 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['faq'] ?? 9 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-4xl">
-                    <div className="text-center mb-4 text-sm uppercase tracking-widest opacity-70" style={{ color: colorPalette.mutedText }}>
-                      Veelgestelde vragen
-                    </div>
-                    <h2 
-                      className="text-4xl font-bold text-center mb-12"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
                     >
+                      Veelgestelde vragen
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-12">
                       FAQ
-                    </h2>
+                    </HeadingText>
                     <div className="space-y-4">
                       {[
                         { q: 'Wat is het inschrijfgeld?', a: 'Het inschrijfgeld bedraagt €150 per team. Dit dekt de volledige dag inclusief faciliteiten, setup en prijs contributions.' },
@@ -3881,18 +4496,12 @@ export default function CustomTemplatePage() {
                             borderColor: colorPalette.border
                           }}
                         >
-                          <h3 
-                            className="text-lg font-semibold mb-3"
-                            style={{ 
-                              color: colorPalette.headingText,
-                              fontSize: `${fontSettings.sizes.h3}px`
-                            }}
-                          >
+                          <HeadingText level="h2" className="mb-3">
                             {item.q}
-                          </h3>
-                          <p className="text-sm opacity-80" style={{ color: colorPalette.bodyText }}>
+                          </HeadingText>
+                          <BodyText className="opacity-80" variant="small">
                             {item.a}
-                          </p>
+                          </BodyText>
                         </div>
                       ))}
                     </div>
@@ -3909,55 +4518,53 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: twitchSettings.background, order: componentOrderMap['twitch'] ?? 10 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-5xl">
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
-                    >
+                    <HeadingText level="h1" className="text-center mb-6">
                       Live Stream
-                    </h2>
-                    <p className="text-center mb-8 opacity-90" style={{ color: colorPalette.bodyText }}>
+                    </HeadingText>
+                    <BodyText className="text-center mb-8 opacity-90">
                       Bekijk de wedstrijden live op Twitch
-                    </p>
-                    <div className={`flex ${twitchSettings.layout === 'side-by-side' ? 'flex-col md:flex-row gap-6' : 'flex-col gap-4'}`}>
+                    </BodyText>
+                    {twitchSettings.channel ? (
+                      <div 
+                        className="rounded-xl overflow-hidden p-4 md:p-6"
+                        style={{ 
+                          backgroundColor: colorPalette.cardBackground,
+                          borderColor: colorPalette.border,
+                          border: `1px solid ${colorPalette.border}`,
+                          minHeight: twitchSettings.height,
+                        }}
+                      >
+                        <LivestreamEmbed
+                          urlOverride={twitchSettings.channel.includes('://') || twitchSettings.channel.includes('.') 
+                            ? twitchSettings.channel 
+                            : `https://www.twitch.tv/${twitchSettings.channel}`}
+                          layoutOverride={twitchSettings.layout === 'side-by-side' ? 'row' : twitchSettings.layout === 'stream-only' ? 'row' : 'column'}
+                          chatEnabledOverride={twitchSettings.showChat && twitchSettings.layout !== 'stream-only'}
+                          enabledOverride={true}
+                        />
+                      </div>
+                    ) : (
                       <div 
                         className="rounded-xl border flex items-center justify-center"
                         style={{ 
                           backgroundColor: colorPalette.cardBackground,
                           borderColor: colorPalette.border,
-                          width: twitchSettings.layout === 'side-by-side' ? `${twitchSettings.width}%` : '100%',
                           minHeight: twitchSettings.height,
                         }}
                       >
                         <div className="text-center space-y-3">
                           <div className="text-4xl">📺</div>
-                          <p className="text-sm opacity-80" style={{ color: colorPalette.bodyText }}>
-                            Twitch kanaal: <span className="font-semibold text-white">{twitchSettings.channel}</span>
-                          </p>
-                          <div className="flex gap-3 justify-center text-xs uppercase tracking-widest text-white/60">
-                            {twitchSettings.autoplay && <span>Autoplay</span>}
-                            {twitchSettings.showChat && <span>Chat</span>}
-                          </div>
+                          <BodyText className="opacity-80" variant="small">
+                            Voer een Twitch kanaal of URL in om de stream te tonen
+                          </BodyText>
                         </div>
                       </div>
-                      {twitchSettings.showChat && twitchSettings.layout !== 'stream-only' && (
-                        <div 
-                          className="rounded-xl border p-4 text-sm"
-                          style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border,
-                            minHeight: twitchSettings.layout === 'side-by-side' ? twitchSettings.height : 240,
-                          }}
-                        >
-                          <p className="text-white/60">Chat placeholder voor #{twitchSettings.channel}</p>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </section>
               )}
@@ -3971,21 +4578,17 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: sponsorSettings.backgroundColor, order: componentOrderMap['sponsors'] ?? 11 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
-                    >
+                    <HeadingText level="h1" className="text-center mb-6">
                       Onze Sponsors
-                    </h2>
-                    <p className="text-center mb-12 opacity-90" style={{ color: colorPalette.bodyText }}>
+                    </HeadingText>
+                    <BodyText className="text-center mb-12 opacity-90">
                       Met dank aan onze partners
-                    </p>
+                    </BodyText>
                     <div
                       className={`${sponsorSettings.layout === 'carousel' ? 'flex overflow-x-auto gap-6 pb-4' : 'grid'} `}
                       style={
@@ -4031,21 +4634,17 @@ export default function CustomTemplatePage() {
                   className="py-20 px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['socials'] ?? 12 }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-4xl">
-                    <h2 
-                      className="text-4xl font-bold text-center mb-6"
-                      style={{ 
-                        color: colorPalette.headingText,
-                        fontFamily: fontSettings.headingFamily,
-                        fontSize: `${fontSettings.sizes.h2}px`
-                      }}
-                    >
+                    <HeadingText level="h1" className="text-center mb-6">
                       Volg Ons
-                    </h2>
-                    <p className="text-center mb-12 opacity-90" style={{ color: colorPalette.bodyText }}>
+                    </HeadingText>
+                    <BodyText className="text-center mb-12 opacity-90">
                       Blijf op de hoogte via social media
-                    </p>
+                    </BodyText>
                     <div className="flex flex-wrap justify-center gap-6">
                       {socialSettings.icons.filter((icon) => icon.enabled).map((iconItem) => (
                         <a
@@ -4081,7 +4680,10 @@ export default function CustomTemplatePage() {
                     order: componentOrderMap['footer'] ?? 13
                   }}
                 >
-                  <div className="absolute inset-0 border-2 border-[#755DFF] opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10" />
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
                   <div className="container mx-auto max-w-6xl">
                     <div
                       className="grid mb-8"
@@ -4106,22 +4708,23 @@ export default function CustomTemplatePage() {
                           {footerSettings.logoUrl ? (
                             <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 object-contain" />
                           ) : (
-                            <h3 
-                              className="text-xl font-bold"
-                              style={{ color: footerSettings.textColor }}
-                            >
+                            <HeadingText level="h1" color={footerSettings.textColor} className="text-xl font-bold">
                               Winter Championship 2026
-                            </h3>
+                            </HeadingText>
                           )}
                         </DroppableImageArea>
-                        <p className="text-sm opacity-80" style={{ color: footerSettings.textColor }}>
+                        <BodyText className="opacity-80" variant="small" color={footerSettings.textColor}>
                           {footerSettings.description}
-                        </p>
+                        </BodyText>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider" style={{ color: footerSettings.textColor }}>
+                        <HeadingText
+                          level="h2"
+                          className="mb-4 uppercase tracking-wider"
+                          color={footerSettings.textColor}
+                        >
                           Toernooi
-                        </h4>
+                        </HeadingText>
                         <ul className="space-y-2">
                           {footerSettings.links.tournament.map((link) => (
                             <li key={link.id}>
@@ -4137,9 +4740,13 @@ export default function CustomTemplatePage() {
                         </ul>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider" style={{ color: footerSettings.textColor }}>
+                        <HeadingText
+                          level="h2"
+                          className="mb-4 uppercase tracking-wider"
+                          color={footerSettings.textColor}
+                        >
                           Informatie
-                        </h4>
+                        </HeadingText>
                         <ul className="space-y-2">
                           {footerSettings.links.info.map((link) => (
                             <li key={link.id}>
@@ -4156,9 +4763,13 @@ export default function CustomTemplatePage() {
                       </div>
                       {footerSettings.showSocials && (
                         <div>
-                          <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider" style={{ color: footerSettings.textColor }}>
+                          <HeadingText
+                            level="h2"
+                            className="mb-4 uppercase tracking-wider"
+                            color={footerSettings.textColor}
+                          >
                             Social Media
-                          </h4>
+                          </HeadingText>
                           <ul className="space-y-2">
                             {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
                               <li key={icon.id}>
@@ -4171,9 +4782,14 @@ export default function CustomTemplatePage() {
                         </div>
                       )}
                     </div>
-                    <div className="pt-8 text-center text-sm opacity-60" style={{ borderTop: footerSettings.divider ? `1px solid ${colorPalette.border}` : 'none', color: footerSettings.textColor }}>
+                    <BodyText
+                      className="pt-8 text-center opacity-60"
+                      variant="small"
+                      color={footerSettings.textColor}
+                      style={{ borderTop: footerSettings.divider ? `1px solid ${colorPalette.border}` : 'none' }}
+                    >
                       {footerSettings.copyright}
-                    </div>
+                    </BodyText>
                   </div>
                 </footer>
               )}
@@ -4226,7 +4842,7 @@ export default function CustomTemplatePage() {
               className="bg-gradient-to-br from-[#0B0E1F] to-[#020308] w-full transition-all"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
-                fontFamily: fontSettings.bodyFamily,
+                fontFamily: formatFontStack(fontSettings.bodyFamily),
                 color: colorPalette.bodyText,
                 maxWidth: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
                 width: viewport === 'desktop' ? '100%' : 'auto',
@@ -4240,7 +4856,7 @@ export default function CustomTemplatePage() {
                 className="w-full flex flex-col"
                 style={{ 
                   backgroundColor: colorPalette.pageBackground,
-                  fontFamily: fontSettings.bodyFamily,
+                  fontFamily: formatFontStack(fontSettings.bodyFamily),
                   color: colorPalette.bodyText,
                   width: '100%',
                   minHeight: '100%',

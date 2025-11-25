@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase, Tournament, isSupabaseConfigured } from '../../../lib/supabase'
+import { mockTournaments } from '../../../data/mock-tournaments'
 
 // GET - Haal alle tournaments op (met optionele status filter)
 export async function GET(request: NextRequest) {
   try {
     // Check if Supabase is properly configured
     if (!isSupabaseConfigured()) {
-      console.error('Supabase not configured')
+      console.warn('Supabase not configured - serving mock tournaments')
       return NextResponse.json(
         { 
-          error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.',
-          tournaments: [] 
-        },
-        { status: 503 }
+          warning: 'Supabase is not configured. Showing lokale mock data.',
+          tournaments: mockTournaments 
+        }
       )
     }
 
