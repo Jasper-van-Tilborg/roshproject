@@ -100,10 +100,10 @@ const ICONS: Record<IconName, ReactNode> = {
     </svg>
   ),
   fonts: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 20h16" />
-      <path d="M6 20V4l6 12 6-12v16" />
-    </svg>
+    <div className="flex items-center justify-center gap-[2px] font-semibold text-lg">
+      <span style={{ fontSize: '1rem' }}>A</span>
+      <span style={{ fontSize: '0.75rem' }}>a</span>
+    </div>
   ),
   uploads: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -775,6 +775,21 @@ const BODY_FONT_OPTIONS = [
   'DM Sans',
 ];
 
+const WEIGHT_OPTIONS = [
+  { value: 300, label: 'Light (300)' },
+  { value: 400, label: 'Regular (400)' },
+  { value: 500, label: 'Medium (500)' },
+  { value: 600, label: 'Semi-bold (600)' },
+  { value: 700, label: 'Bold (700)' },
+  { value: 800, label: 'Extra-bold (800)' },
+];
+const LINE_HEIGHT_OPTIONS = [
+  { value: 120, label: 'Compact (120%)' },
+  { value: 135, label: 'Comfort (135%)' },
+  { value: 150, label: 'Ruim (150%)' },
+  { value: 165, label: 'Extra ruim (165%)' },
+];
+
 const GOOGLE_FONT_CONFIG: Record<string, string> = {
   'Space Grotesk': 'Space+Grotesk:wght@400;500;700',
   Montserrat: 'Montserrat:wght@400;500;600;700',
@@ -1019,11 +1034,42 @@ type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4';
 type BodyVariant = 'body' | 'small';
 type AboutLayout = 'image-left' | 'image-right' | 'stacked' | 'spotlight' | 'feature-grid';
 type TextElementTag = keyof JSX.IntrinsicElements;
+type ColorInputFieldProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  helper?: string;
+};
+
+function ColorInputField({ label, value, onChange, helper }: ColorInputFieldProps) {
+  return (
+    <div className="space-y-2">
+      <div className="text-xs uppercase tracking-[0.3em] text-white/50">
+        <span>{label}</span>
+        {helper && <p className="text-[11px] text-white/40 normal-case mt-0.5">{helper}</p>}
+      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-12 h-12 rounded-xl border border-white/15 bg-transparent cursor-pointer"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 min-w-[140px] bg-[#0B0E1F] border border-white/10 rounded-lg px-3 py-2 text-sm font-mono uppercase tracking-[0.1em] focus:outline-none focus:border-[#755DFF]"
+        />
+      </div>
+    </div>
+  );
+}
 
 const DEFAULT_FONT_SETTINGS: FontSettings = {
   headingFamily: 'Space Grotesk',
   bodyFamily: 'Inter',
-  sizes: { h1: 48, h2: 36, h3: 28, h4: 20, body: 16, small: 13 },
+  sizes: { h1: 48, h2: 36, h3: 22, h4: 20, body: 16, small: 13 },
   weights: { heading: 700, body: 400 },
   lineHeight: 140,
   letterSpacing: 2,
@@ -1279,6 +1325,7 @@ export default function CustomTemplatePage() {
   const [componentOrder, setComponentOrder] = useState<string[]>(() => getDefaultComponentOrder());
   const [componentState, setComponentState] = useState<Record<string, boolean>>(() => getDefaultComponentVisibility());
   const [activeComponent, setActiveComponent] = useState<string>('navigation');
+  const [isHydrated, setIsHydrated] = useState(false);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1391,6 +1438,10 @@ export default function CustomTemplatePage() {
       </Component>
     );
   };
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     ensureFontLoaded(fontSettings.headingFamily);
@@ -1746,6 +1797,13 @@ export default function CustomTemplatePage() {
     });
   };
 
+  const resetFontSizes = () => {
+    setFontSettings((prev) => ({
+      ...prev,
+      sizes: { ...DEFAULT_FONT_SETTINGS.sizes },
+    }));
+  };
+
   const normalizeColorInput = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return '';
@@ -2049,7 +2107,7 @@ export default function CustomTemplatePage() {
   };
 
   const renderSettingsPanel = () => {
-    const panelClass = 'flex-1 overflow-y-auto px-6 py-6 space-y-6';
+    const panelClass = 'flex-1 px-6 py-6 space-y-6';
     switch (activeComponent) {
       case 'navigation':
         return (
@@ -2235,23 +2293,27 @@ export default function CustomTemplatePage() {
 
             <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stijl</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="text-xs text-white/60 space-y-1">
-                  Tekstkleur
-                  <input type="color" value={navigationSettings.textColor} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, textColor: e.target.value }))} />
-                </label>
-                <label className="text-xs text-white/60 space-y-1">
-                  Hover kleur
-                  <input type="color" value={navigationSettings.hoverColor} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, hoverColor: e.target.value }))} />
-                </label>
-                <label className="text-xs text-white/60 space-y-1">
-                  Actieve kleur
-                  <input type="color" value={navigationSettings.activeColor} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, activeColor: e.target.value }))} />
-                </label>
-                <label className="text-xs text-white/60 space-y-1">
-                  Achtergrond
-                  <input type="color" value={navigationSettings.backgroundColor} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))} />
-                </label>
+              <div className="space-y-3">
+                <ColorInputField
+                  label="Tekstkleur"
+                  value={navigationSettings.textColor}
+                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, textColor: value }))}
+                />
+                <ColorInputField
+                  label="Hover kleur"
+                  value={navigationSettings.hoverColor}
+                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, hoverColor: value }))}
+                />
+                <ColorInputField
+                  label="Actieve kleur"
+                  value={navigationSettings.activeColor}
+                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, activeColor: value }))}
+                />
+                <ColorInputField
+                  label="Achtergrond"
+                  value={navigationSettings.backgroundColor}
+                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, backgroundColor: value }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
                 <label>
@@ -2311,15 +2373,17 @@ export default function CustomTemplatePage() {
                     className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
                     placeholder="Link"
                   />
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="text-xs text-white/60 space-y-1">
-                      Kleur
-                      <input type="color" value={navigationSettings.cta.background} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, cta: { ...prev.cta, background: e.target.value } }))} />
-                    </label>
-                    <label className="text-xs text-white/60 space-y-1">
-                      Tekstkleur
-                      <input type="color" value={navigationSettings.cta.textColor} onChange={(e) => setNavigationSettings((prev) => ({ ...prev, cta: { ...prev.cta, textColor: e.target.value } }))} />
-                    </label>
+                  <div className="space-y-2">
+                    <ColorInputField
+                      label="Kleur"
+                      value={navigationSettings.cta.background}
+                      onChange={(value) => setNavigationSettings((prev) => ({ ...prev, cta: { ...prev.cta, background: value } }))}
+                    />
+                    <ColorInputField
+                      label="Tekstkleur"
+                      value={navigationSettings.cta.textColor}
+                      onChange={(value) => setNavigationSettings((prev) => ({ ...prev, cta: { ...prev.cta, textColor: value } }))}
+                    />
                   </div>
                   <label className="text-xs text-white/60 flex flex-col gap-1">
                     Border radius ({navigationSettings.cta.radius}px)
@@ -2387,11 +2451,12 @@ export default function CustomTemplatePage() {
             </section>
             <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Overlay</h3>
-              <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
-                <label>
-                  Kleur
-                  <input type="color" value={heroSettings.overlayColor} onChange={(e) => setHeroSettings((prev) => ({ ...prev, overlayColor: e.target.value }))} />
-                </label>
+              <div className="space-y-3 text-xs text-white/60">
+                <ColorInputField
+                  label="Overlay kleur"
+                  value={heroSettings.overlayColor}
+                  onChange={(value) => setHeroSettings((prev) => ({ ...prev, overlayColor: value }))}
+                />
                 <label>
                   Opacity ({heroSettings.overlayOpacity}%)
                   <input type="range" min={0} max={100} value={heroSettings.overlayOpacity} onChange={(e) => setHeroSettings((prev) => ({ ...prev, overlayOpacity: Number(e.target.value) }))} />
@@ -2457,13 +2522,21 @@ export default function CustomTemplatePage() {
                     className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
                     placeholder="Link"
                   />
-                  <div className="flex gap-2 text-xs text-white/60">
-                    <span>
-                      <input type="color" value={heroSettings.primaryButton.background} onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, background: e.target.value } }))} />
-                    </span>
-                    <span>
-                      <input type="color" value={heroSettings.primaryButton.textColor} onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, textColor: e.target.value } }))} />
-                    </span>
+                  <div className="space-y-2">
+                    <ColorInputField
+                      label="Achtergrond"
+                      value={heroSettings.primaryButton.background}
+                      onChange={(value) =>
+                        setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, background: value } }))
+                      }
+                    />
+                    <ColorInputField
+                      label="Tekstkleur"
+                      value={heroSettings.primaryButton.textColor}
+                      onChange={(value) =>
+                        setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, textColor: value } }))
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -2480,13 +2553,21 @@ export default function CustomTemplatePage() {
                     className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
                     placeholder="Link"
                   />
-                  <div className="flex gap-2 text-xs text-white/60">
-                    <span>
-                      <input type="color" value={heroSettings.secondaryButton.borderColor} onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, borderColor: e.target.value } }))} />
-                    </span>
-                    <span>
-                      <input type="color" value={heroSettings.secondaryButton.textColor} onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, textColor: e.target.value } }))} />
-                    </span>
+                  <div className="space-y-2">
+                    <ColorInputField
+                      label="Randkleur"
+                      value={heroSettings.secondaryButton.borderColor}
+                      onChange={(value) =>
+                        setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, borderColor: value } }))
+                      }
+                    />
+                    <ColorInputField
+                      label="Tekstkleur"
+                      value={heroSettings.secondaryButton.textColor}
+                      onChange={(value) =>
+                        setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, textColor: value } }))
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -2697,14 +2778,11 @@ export default function CustomTemplatePage() {
             <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stijl</h3>
               <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3 text-xs text-white/60">
-                <label className="flex flex-col gap-1">
-                  Achtergrondkleur
-                  <input
-                    type="color"
-                    value={aboutSettings.backgroundColor}
-                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))}
-                  />
-                </label>
+                <ColorInputField
+                  label="Achtergrondkleur"
+                  value={aboutSettings.backgroundColor}
+                  onChange={(value) => setAboutSettings((prev) => ({ ...prev, backgroundColor: value }))}
+                />
                 <label className="flex flex-col gap-1">
                   Padding top ({aboutSettings.padding.top}px)
                   <input
@@ -2791,19 +2869,22 @@ export default function CustomTemplatePage() {
                 </label>
               )}
             </section>
-            <section className="space-y-2 text-xs text-white/60">
-              <label>
-                Achtergrondkleur
-                <input type="color" value={programSettings.backgroundColor} onChange={(e) => setProgramSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))} />
-              </label>
-              <label>
-                Border kleur
-                <input type="color" value={programSettings.borderColor} onChange={(e) => setProgramSettings((prev) => ({ ...prev, borderColor: e.target.value }))} />
-              </label>
-              <label>
-                Tijdkleur
-                <input type="color" value={programSettings.timeColor} onChange={(e) => setProgramSettings((prev) => ({ ...prev, timeColor: e.target.value }))} />
-              </label>
+            <section className="space-y-3 text-xs text-white/60">
+              <ColorInputField
+                label="Achtergrondkleur"
+                value={programSettings.backgroundColor}
+                onChange={(value) => setProgramSettings((prev) => ({ ...prev, backgroundColor: value }))}
+              />
+              <ColorInputField
+                label="Borderkleur"
+                value={programSettings.borderColor}
+                onChange={(value) => setProgramSettings((prev) => ({ ...prev, borderColor: value }))}
+              />
+              <ColorInputField
+                label="Tijdkleur"
+                value={programSettings.timeColor}
+                onChange={(value) => setProgramSettings((prev) => ({ ...prev, timeColor: value }))}
+              />
             </section>
           </div>
         );
@@ -2882,7 +2963,7 @@ export default function CustomTemplatePage() {
                 </button>
               </section>
             )}
-            <section className="space-y-2 text-xs text-white/60">
+            <section className="space-y-3 text-xs text-white/60">
               <label>
                 Weergave
                 <select
@@ -2912,19 +2993,24 @@ export default function CustomTemplatePage() {
                   onChange={(e) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, lineThickness: Number(e.target.value) } }))}
                 />
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <label>
-                  Lijn kleur
-                  <input type="color" value={bracketSettings.style.lineColor} onChange={(e) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, lineColor: e.target.value } }))} />
-                </label>
-                <label>
-                  Team block
-                  <input type="color" value={bracketSettings.style.teamBlockColor} onChange={(e) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, teamBlockColor: e.target.value } }))} />
-                </label>
-                <label>
-                  Winnaar kleur
-                  <input type="color" value={bracketSettings.style.winnerColor} onChange={(e) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, winnerColor: e.target.value } }))} />
-                </label>
+              <div className="space-y-3">
+                <ColorInputField
+                  label="Lijn kleur"
+                  value={bracketSettings.style.lineColor}
+                  onChange={(value) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, lineColor: value } }))}
+                />
+                <ColorInputField
+                  label="Team block"
+                  value={bracketSettings.style.teamBlockColor}
+                  onChange={(value) =>
+                    setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, teamBlockColor: value } }))
+                  }
+                />
+                <ColorInputField
+                  label="Winnaar kleur"
+                  value={bracketSettings.style.winnerColor}
+                  onChange={(value) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, winnerColor: value } }))}
+                />
               </div>
             </section>
           </div>
@@ -2979,10 +3065,11 @@ export default function CustomTemplatePage() {
                 Hoogte ({twitchSettings.height}px)
                 <input type="range" min={240} max={720} value={twitchSettings.height} onChange={(e) => setTwitchSettings((prev) => ({ ...prev, height: Number(e.target.value) }))} />
               </label>
-              <label className="text-xs text-white/60">
-                Achtergrondkleur
-                <input type="color" value={twitchSettings.background} onChange={(e) => setTwitchSettings((prev) => ({ ...prev, background: e.target.value }))} />
-              </label>
+              <ColorInputField
+                label="Achtergrondkleur"
+                value={twitchSettings.background}
+                onChange={(value) => setTwitchSettings((prev) => ({ ...prev, background: value }))}
+              />
             </section>
           </div>
         );
@@ -3048,10 +3135,11 @@ export default function CustomTemplatePage() {
                 <input type="checkbox" checked={sponsorSettings.divider} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
                 Divider lines
               </label>
-              <label>
-                Achtergrondkleur
-                <input type="color" value={sponsorSettings.backgroundColor} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))} />
-              </label>
+              <ColorInputField
+                label="Achtergrondkleur"
+                value={sponsorSettings.backgroundColor}
+                onChange={(value) => setSponsorSettings((prev) => ({ ...prev, backgroundColor: value }))}
+              />
             </section>
           </div>
         );
@@ -3196,14 +3284,16 @@ export default function CustomTemplatePage() {
                 Spacing ({footerSettings.spacing}px)
                 <input type="range" min={16} max={64} value={footerSettings.spacing} onChange={(e) => setFooterSettings((prev) => ({ ...prev, spacing: Number(e.target.value) }))} />
               </label>
-              <label>
-                Achtergrondkleur
-                <input type="color" value={footerSettings.backgroundColor} onChange={(e) => setFooterSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))} />
-              </label>
-              <label>
-                Tekstkleur
-                <input type="color" value={footerSettings.textColor} onChange={(e) => setFooterSettings((prev) => ({ ...prev, textColor: e.target.value }))} />
-              </label>
+              <ColorInputField
+                label="Achtergrondkleur"
+                value={footerSettings.backgroundColor}
+                onChange={(value) => setFooterSettings((prev) => ({ ...prev, backgroundColor: value }))}
+              />
+              <ColorInputField
+                label="Tekstkleur"
+                value={footerSettings.textColor}
+                onChange={(value) => setFooterSettings((prev) => ({ ...prev, textColor: value }))}
+              />
               <label className="flex items-center gap-2 text-sm text-white/70">
                 <input type="checkbox" checked={footerSettings.divider} onChange={(e) => setFooterSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
                 Divider
@@ -3471,7 +3561,7 @@ export default function CustomTemplatePage() {
 
       <main className="flex-1 flex overflow-hidden relative pt-[85px]">
         {/* Left panel */}
-        <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-y-auto z-10">
+        <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10">
           <div className="w-20 border-r border-white/10 flex flex-col items-center py-6 px-3 gap-4">
             {[
               { id: 'components', label: 'Components', icon: 'components' as IconName },
@@ -3498,7 +3588,7 @@ export default function CustomTemplatePage() {
             })}
           </div>
 
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col overflow-hidden">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">Editor</p>
@@ -3520,32 +3610,36 @@ export default function CustomTemplatePage() {
                 Reset
               </button>
             </div>
-            <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-5 py-5 space-y-4">
+            <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-5 py-5 pr-10 -mr-6 space-y-4">
               {activeTab === 'components' && (
-                <SortableContext
-                  items={componentOrder}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {sortedComponents.map((component) => {
-                    const isActive = activeComponent === component.id;
-                    return (
-                      <SortableComponentItem
-                        key={component.id}
-                        component={component}
-                        isActive={isActive}
-                        isVisible={componentState[component.id]}
-                        onSelect={() => handleComponentSelect(component.id)}
-                        onToggle={(e) => {
-                          e.stopPropagation();
-                          setComponentState((prev) => ({
-                            ...prev,
-                            [component.id]: !prev[component.id],
-                          }));
-                        }}
-                      />
-                    );
-                  })}
-                </SortableContext>
+                isHydrated ? (
+                  <SortableContext
+                    items={componentOrder}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {sortedComponents.map((component) => {
+                      const isActive = activeComponent === component.id;
+                      return (
+                        <SortableComponentItem
+                          key={component.id}
+                          component={component}
+                          isActive={isActive}
+                          isVisible={componentState[component.id]}
+                          onSelect={() => handleComponentSelect(component.id)}
+                          onToggle={(e) => {
+                            e.stopPropagation();
+                            setComponentState((prev) => ({
+                              ...prev,
+                              [component.id]: !prev[component.id],
+                            }));
+                          }}
+                        />
+                      );
+                    })}
+                  </SortableContext>
+                ) : (
+                  <div className="text-sm text-white/50">Componenten laden...</div>
+                )
               )}
 
               {activeTab === 'colors' && (
@@ -3729,9 +3823,18 @@ export default function CustomTemplatePage() {
                     </label>
                   </div>
 
-                  <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4">
-                    <p className="text-sm font-semibold mb-3">Font sizes</p>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <p className="text-sm font-semibold">Font sizes</p>
+                      <button
+                        type="button"
+                        onClick={resetFontSizes}
+                        className="text-[11px] uppercase tracking-[0.25em] px-3 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                      >
+                        Standaard
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
                       {Object.entries(fontSettings.sizes).map(([key, value]) => (
                         <label key={key} className="flex flex-col gap-2">
                           <span className="text-xs uppercase tracking-[0.3em] text-white/40">{key}</span>
@@ -3739,7 +3842,7 @@ export default function CustomTemplatePage() {
                             <input
                               type="range"
                               min={12}
-                              max={96}
+                              max={60}
                               value={value}
                               onChange={(e) => updateFontSetting(`sizes.${key}`, Number(e.target.value))}
                               className="flex-1"
@@ -3751,36 +3854,49 @@ export default function CustomTemplatePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs uppercase tracking-[0.3em] text-white/40">Heading weight</span>
-                      <input
-                        type="number"
-                        min={100}
-                        max={900}
-                        step={100}
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
+                        <span>Heading weight</span>
+                        <span className="text-white/70 tracking-[0.1em]">{fontSettings.weights.heading}</span>
+                      </div>
+                      <select
                         value={fontSettings.weights.heading}
                         onChange={(e) => updateFontSetting('weights.heading', Number(e.target.value))}
                         className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs uppercase tracking-[0.3em] text-white/40">Body weight</span>
-                      <input
-                        type="number"
-                        min={100}
-                        max={900}
-                        step={100}
+                      >
+                        {WEIGHT_OPTIONS.map((option) => (
+                          <option key={`heading-${option.value}`} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
+                        <span>Body weight</span>
+                        <span className="text-white/70 tracking-[0.1em]">{fontSettings.weights.body}</span>
+                      </div>
+                      <select
                         value={fontSettings.weights.body}
                         onChange={(e) => updateFontSetting('weights.body', Number(e.target.value))}
                         className="bg-[#11132A] border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#755DFF]"
-                      />
-                    </label>
+                      >
+                        {WEIGHT_OPTIONS.map((option) => (
+                          <option key={`body-${option.value}`} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs uppercase tracking-[0.3em] text-white/40">Line height</span>
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
+                        <span>Line height</span>
+                        <span className="text-white/70 tracking-[0.1em]">{fontSettings.lineHeight}%</span>
+                      </div>
                       <input
                         type="range"
                         min={110}
@@ -3788,10 +3904,12 @@ export default function CustomTemplatePage() {
                         value={fontSettings.lineHeight}
                         onChange={(e) => updateFontSetting('lineHeight', Number(e.target.value))}
                       />
-                      <span className="text-xs text-white/60">{fontSettings.lineHeight}%</span>
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-xs uppercase tracking-[0.3em] text-white/40">Letter spacing</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-white/50">
+                        <span>Letter spacing</span>
+                        <span className="text-white/70 tracking-[0.1em]">{fontSettings.letterSpacing}px</span>
+                      </div>
                       <input
                         type="range"
                         min={0}
@@ -3799,8 +3917,7 @@ export default function CustomTemplatePage() {
                         value={fontSettings.letterSpacing}
                         onChange={(e) => updateFontSetting('letterSpacing', Number(e.target.value))}
                       />
-                      <span className="text-xs text-white/60">{fontSettings.letterSpacing} px</span>
-                    </label>
+                    </div>
                   </div>
 
                   <button className="w-full mt-4 rounded-lg border border-white/10 bg-[#11132A] py-3 text-sm hover:border-white/30 transition">
@@ -3849,7 +3966,7 @@ export default function CustomTemplatePage() {
 
         {/* Middle preview area */}
         <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
-          <div className="flex-1 overflow-y-auto" data-preview-scroll-container>
+          <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
             <div 
               className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
               style={{ 
@@ -5135,12 +5252,14 @@ export default function CustomTemplatePage() {
         </section>
 
         {/* Right panel */}
-        <aside className="w-[360px] bg-[#0E1020] border-l border-white/10 flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-y-auto z-10">
+        <aside className="w-[360px] bg-[#0E1020] border-l border-white/10 flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10">
           <div className="px-6 py-5 border-b border-white/10">
             <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">{activeComponentLabel}</p>
             <h2 className="text-lg font-semibold">Configureer de {activeComponentLabel}</h2>
           </div>
-          {renderSettingsPanel()}
+          <div className="flex-1 overflow-y-auto pr-8 -mr-6">
+            {renderSettingsPanel()}
+          </div>
         </aside>
       </main>
 
@@ -5174,8 +5293,9 @@ export default function CustomTemplatePage() {
               Sluiten
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto bg-[#03040B] flex items-start justify-center">
-            <div 
+          <div className="flex-1 overflow-hidden bg-[#03040B] flex items-start justify-center">
+            <div className="w-full h-full overflow-y-auto flex items-start justify-center pr-10 -mr-6">
+              <div 
               className="bg-gradient-to-br from-[#0B0E1F] to-[#020308] w-full transition-all"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
@@ -5186,21 +5306,22 @@ export default function CustomTemplatePage() {
                 boxShadow: '0 0 0 1px rgba(255,255,255,0.1)',
                 minHeight: '100%'
               }}
-            >
-              {/* Preview content will be cloned here via useEffect */}
-              <div 
-                id="fullscreen-preview-container" 
-                className="w-full flex flex-col"
-                style={{ 
-                  backgroundColor: colorPalette.pageBackground,
-                  fontFamily: formatFontStack(fontSettings.bodyFamily),
-                  color: colorPalette.bodyText,
-                  width: '100%',
-                  minHeight: '100%',
-                  margin: 0,
-                  padding: 0
-                }} 
-              />
+              >
+                {/* Preview content will be cloned here via useEffect */}
+                <div 
+                  id="fullscreen-preview-container" 
+                  className="w-full flex flex-col"
+                  style={{ 
+                    backgroundColor: colorPalette.pageBackground,
+                    fontFamily: formatFontStack(fontSettings.bodyFamily),
+                    color: colorPalette.bodyText,
+                    width: '100%',
+                    minHeight: '100%',
+                    margin: 0,
+                    padding: 0
+                  }} 
+                />
+              </div>
             </div>
           </div>
         </div>
