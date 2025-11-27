@@ -158,8 +158,9 @@ Het Navigation component (header/navbar) moet volledig bewerkbaar zijn met de vo
        <ul class="nav-links" data-nav-links="true">
          <li><a href="#hero-section" data-nav-link-text="Home">Home</a></li>
          <li><a href="#bracket-section" data-nav-link-text="Bracket">Bracket</a></li>
-         <li><a href="#schedule-section" data-nav-link-text="Programma">Programma</a></li>
+         <li><a href="#program-section" data-nav-link-text="Programma">Programma</a></li>
          <li><a href="#about-section" data-nav-link-text="Over">Over</a></li>
+         <!-- Voor backward compatibility: ondersteun ook #schedule-section als link target -->
        </ul>
      </nav>
    </header>
@@ -302,10 +303,449 @@ Het Navigation component (header/navbar) moet volledig bewerkbaar zijn met de vo
      links: [
        { text: 'Home', href: '#hero-section' },
        { text: 'Bracket', href: '#bracket-section' },
-       { text: 'Programma', href: '#schedule-section' },
+       { text: 'Programma', href: '#program-section' },
        { text: 'Over', href: '#about-section' }
+       // Voor backward compatibility: ondersteun ook #schedule-section als link target
      ]
    }
+
+🎯 HERO COMPONENT SPECIFICATIES
+
+Het Hero component moet volledig bewerkbaar zijn met de volgende structuur:
+
+1. FORMAT SELECTIE
+   Het Hero component moet 5 verschillende formaten ondersteunen via data-attribute:
+   - data-hero-format="image-left" - Afbeelding links, tekst rechts
+   - data-hero-format="image-right" - Tekst links, afbeelding rechts
+   - data-hero-format="image-top" - Afbeelding boven, tekst onder
+   - data-hero-format="image-full" - Volledige breedte afbeelding
+   - data-hero-format="text-only" - Alleen tekst, geen afbeelding
+
+   HTML structuur:
+   <section id="hero-section" class="hero-section" data-component="hero" data-editable="true" data-hero-format="image-left">
+     <div class="hero-container">
+       <!-- Format image-left: image links, content rechts -->
+       <!-- Voor text-only format: hero-image-wrapper niet tonen -->
+       <div class="hero-image-wrapper">
+         <img id="hero-image" src="" alt="Hero image" data-editable-image="true" />
+       </div>
+       <div class="hero-content">
+         <h1 class="hero-title" data-editable-text="hero.text">Hero Text...</h1>
+         <div class="hero-tournament-info">
+           <!-- Tournament info boxes (max 4) -->
+           <div class="tournament-box" data-tournament-box="1">
+             <h3 class="tournament-box-title" data-editable-text="tournament.box1.title">Title Text</h3>
+             <p class="tournament-box-paragraph" data-editable-text="tournament.box1.paragraph">Paragraph Text</p>
+           </div>
+           <!-- Repeat voor box 2, 3, 4 -->
+         </div>
+       </div>
+     </div>
+   </section>
+   
+   BELANGRIJK voor text-only format:
+   - Voor data-hero-format="text-only" moet de hero-image-wrapper div NIET worden getoond
+   - Gebruik CSS om de hero-image-wrapper te verbergen voor text-only format
+
+   BELANGRIJK:
+   - Hero image moet id="hero-image" en data-editable-image="true" hebben
+   - Hero text moet data-editable-text="hero.text" hebben
+   - Tournament boxes moeten data-tournament-box attributen hebben (1, 2, 3, 4)
+   - Elke tournament box moet title en paragraph hebben met data-editable-text attributen
+   - Gebruik CSS classes voor format variaties: .hero-format-image-left, .hero-format-image-right, .hero-format-image-top, .hero-format-image-full
+   
+   CSS voor format variaties (VERPLICHT te implementeren):
+   
+   /* Image Left Format - Afbeelding links, content rechts */
+   [data-hero-format="image-left"] .hero-container,
+   .hero-format-image-left .hero-container {
+     display: flex;
+     align-items: center;
+     gap: 2rem;
+   }
+   [data-hero-format="image-left"] .hero-image-wrapper,
+   .hero-format-image-left .hero-image-wrapper {
+     flex: 0 0 40%;
+   }
+   [data-hero-format="image-left"] .hero-content,
+   .hero-format-image-left .hero-content {
+     flex: 1;
+   }
+   
+   /* Image Right Format - Content links, afbeelding rechts */
+   [data-hero-format="image-right"] .hero-container,
+   .hero-format-image-right .hero-container {
+     display: flex;
+     align-items: center;
+     gap: 2rem;
+     flex-direction: row-reverse;
+   }
+   [data-hero-format="image-right"] .hero-image-wrapper,
+   .hero-format-image-right .hero-image-wrapper {
+     flex: 0 0 40%;
+   }
+   [data-hero-format="image-right"] .hero-content,
+   .hero-format-image-right .hero-content {
+     flex: 1;
+   }
+   
+   /* Image Top Format - Afbeelding boven, content onder */
+   [data-hero-format="image-top"] .hero-container,
+   .hero-format-image-top .hero-container {
+     display: flex;
+     flex-direction: column;
+     gap: 2rem;
+   }
+   [data-hero-format="image-top"] .hero-image-wrapper,
+   .hero-format-image-top .hero-image-wrapper {
+     width: 100%;
+   }
+   [data-hero-format="image-top"] .hero-content,
+   .hero-format-image-top .hero-content {
+     width: 100%;
+   }
+   
+   /* Image Full Format - Volledige breedte afbeelding */
+   [data-hero-format="image-full"] .hero-container,
+   .hero-format-image-full .hero-container {
+     position: relative;
+   }
+   [data-hero-format="image-full"] .hero-image-wrapper,
+   .hero-format-image-full .hero-image-wrapper {
+     width: 100%;
+     height: 100%;
+     position: absolute;
+     top: 0;
+     left: 0;
+     z-index: 1;
+   }
+   [data-hero-format="image-full"] .hero-image-wrapper img,
+   .hero-format-image-full .hero-image-wrapper img {
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+   }
+   [data-hero-format="image-full"] .hero-content,
+   .hero-format-image-full .hero-content {
+     position: relative;
+     z-index: 2;
+     padding: 2rem;
+     background: rgba(0, 0, 0, 0.5);
+     color: white;
+   }
+   
+   /* Text Only Format - Alleen tekst, geen afbeelding */
+   [data-hero-format="text-only"] .hero-image-wrapper,
+   .hero-format-text-only .hero-image-wrapper {
+     display: none;
+   }
+   [data-hero-format="text-only"] .hero-container,
+   .hero-format-text-only .hero-container {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-align: center;
+   }
+   [data-hero-format="text-only"] .hero-content,
+   .hero-format-text-only .hero-content {
+     width: 100%;
+     max-width: 800px;
+   }
+
+2. IMAGE UPLOAD
+   - Hero image moet in een <img> element met id="hero-image" en data-editable-image="true"
+   - Standaard src kan leeg zijn of een placeholder
+   - Image moet responsive zijn en goed schalen
+   - Voor image-full format moet image object-fit: cover gebruiken
+   - Voor text-only format is image NIET nodig (hero-image-wrapper wordt verborgen)
+
+3. HERO TEXT
+   - Hero text moet in een <h1> element met class="hero-title" en data-editable-text="hero.text"
+   - Text moet bewerkbaar zijn via de editor
+   - Gebruik CSS variables voor styling
+
+4. TOURNAMENT INFO BOXES
+   - Maximaal 4 boxes ondersteunen
+   - Elke box moet data-tournament-box attribuut hebben (1, 2, 3, 4)
+   - Elke box heeft:
+     - Title: <h3> met class="tournament-box-title" en data-editable-text="tournament.box{N}.title"
+     - Paragraph: <p> met class="tournament-box-paragraph" en data-editable-text="tournament.box{N}.paragraph"
+   - Boxes moeten in een grid of flex layout worden weergegeven
+   - Responsive: op mobile stapelen, op desktop naast elkaar
+
+5. CSS VARIABLES
+   Gebruik CSS variables voor bewerkbare eigenschappen:
+   :root {
+     --hero-bg-color: #1a1a2e;
+     --hero-text-color: #ffffff;
+     --hero-title-size: 3rem;
+     --hero-title-weight: 700;
+     --hero-padding: 4rem;
+     --tournament-box-bg: rgba(255, 255, 255, 0.1);
+     --tournament-box-border: rgba(255, 255, 255, 0.2);
+   }
+
+6. JAVASCRIPT CONFIG
+   const heroConfig = {
+     format: 'image-left', // 'image-left', 'image-right', 'image-top', 'image-full', 'text-only'
+     image: {
+       src: '',
+       alt: 'Hero image'
+     },
+     text: 'Hero Text...',
+     tournamentBoxes: [
+       { title: 'Title Text', paragraph: 'Paragraph Text' },
+       { title: 'Title Text', paragraph: 'Paragraph Text' }
+       // Max 4 boxes
+     ]
+   }
+   
+   BELANGRIJK voor text-only format:
+   - Voor format 'text-only' is de image property optioneel (kan leeg blijven)
+   - De hero-image-wrapper div wordt niet getoond voor text-only format
+
+📖 ABOUT COMPONENT SPECIFICATIES
+
+Het About component moet volledig bewerkbaar zijn met de volgende structuur:
+
+1. FORMAT SELECTIE
+   Het About component moet 4 verschillende formaten ondersteunen via data-attribute:
+   - data-about-format="grid-2x2" - 4 boxes in 2x2 grid layout
+   - data-about-format="grid-2x1" - 2 boxes horizontaal naast elkaar
+   - data-about-format="grid-3x1" - 3 boxes horizontaal naast elkaar
+   - data-about-format="grid-4x1" - 4 boxes horizontaal naast elkaar
+
+   HTML structuur:
+   <section id="about-section" class="about-section" data-component="about" data-editable="true" data-about-format="grid-2x2">
+     <div class="about-container">
+       <h2 class="about-title" data-editable-text="about.title">Title Text...</h2>
+       <p class="about-text" data-editable-text="about.text">About Text...</p>
+       <div class="about-boxes">
+         <div class="about-box" data-about-box="1">
+           <h3 class="about-box-title" data-editable-text="about.box1.title">Title Text</h3>
+         </div>
+         <div class="about-box" data-about-box="2">
+           <h3 class="about-box-title" data-editable-text="about.box2.title">Title Text</h3>
+         </div>
+         <!-- Repeat voor box 3, 4 -->
+       </div>
+     </div>
+   </section>
+
+   BELANGRIJK:
+   - About title moet data-editable-text="about.title" hebben
+   - About text moet data-editable-text="about.text" hebben
+   - About boxes moeten data-about-box attributen hebben (1, 2, 3, 4)
+   - Elke about box moet title hebben met data-editable-text attributen
+   - Gebruik CSS classes voor format variaties: .about-format-grid-2x2, .about-format-grid-2x1, .about-format-grid-3x1, .about-format-grid-4x1
+   
+   CSS voor format variaties (VERPLICHT te implementeren):
+   
+   /* Grid 2x2 Format - 4 boxes in 2x2 grid */
+   [data-about-format="grid-2x2"] .about-boxes,
+   .about-format-grid-2x2 .about-boxes {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Grid 2x1 Format - 2 boxes horizontaal */
+   [data-about-format="grid-2x1"] .about-boxes,
+   .about-format-grid-2x1 .about-boxes {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Grid 3x1 Format - 3 boxes horizontaal */
+   [data-about-format="grid-3x1"] .about-boxes,
+   .about-format-grid-3x1 .about-boxes {
+     display: grid;
+     grid-template-columns: repeat(3, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Grid 4x1 Format - 4 boxes horizontaal */
+   [data-about-format="grid-4x1"] .about-boxes,
+   .about-format-grid-4x1 .about-boxes {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Responsive: op mobile stapelen alle formats */
+   @media (max-width: 768px) {
+     [data-about-format] .about-boxes,
+     .about-format-grid-2x2 .about-boxes,
+     .about-format-grid-2x1 .about-boxes,
+     .about-format-grid-3x1 .about-boxes,
+     .about-format-grid-4x1 .about-boxes {
+       grid-template-columns: 1fr;
+     }
+   }
+
+2. TITLE
+   - About title moet in een <h2> element met class="about-title" en data-editable-text="about.title"
+   - Title moet bewerkbaar zijn via de editor
+   - Gebruik CSS variables voor styling
+
+3. TEXT
+   - About text moet in een <p> element met class="about-text" en data-editable-text="about.text"
+   - Text moet bewerkbaar zijn via de editor
+   - Gebruik CSS variables voor styling
+
+4. ABOUT BOXES
+   - Maximaal 4 boxes ondersteunen
+   - Elke box moet data-about-box attribuut hebben (1, 2, 3, 4)
+   - Elke box heeft:
+     - Title: <h3> met class="about-box-title" en data-editable-text="about.box{N}.title"
+   - Boxes moeten in een grid layout worden weergegeven volgens het gekozen format
+   - Responsive: op mobile stapelen alle boxes verticaal
+
+5. CSS VARIABLES
+   Gebruik CSS variables voor bewerkbare eigenschappen:
+   :root {
+     --about-bg-color: #1a1a2e;
+     --about-text-color: #ffffff;
+     --about-title-size: 2rem;
+     --about-title-weight: 600;
+     --about-padding: 4rem;
+     --about-box-bg: rgba(255, 255, 255, 0.1);
+     --about-box-border: rgba(255, 255, 255, 0.2);
+     --about-box-padding: 1.5rem;
+   }
+
+6. JAVASCRIPT CONFIG
+   const aboutConfig = {
+     format: 'grid-2x2', // 'grid-2x2', 'grid-2x1', 'grid-3x1', 'grid-4x1'
+     title: 'Title Text...',
+     text: 'About Text...',
+     boxes: [
+       { title: 'Title Text' },
+       { title: 'Title Text' }
+       // Max 4 boxes
+     ]
+   }
+
+📅 PROGRAM COMPONENT SPECIFICATIES
+
+BELANGRIJK: Het Program component en Schedule component zijn HETZELFDE component, alleen in verschillende talen (program = Nederlands, schedule = Engels). 
+Gebruik altijd data-component="program" in de HTML, maar ondersteun ook schedule-specifieke selectors voor backward compatibility.
+
+Het Program component moet volledig bewerkbaar zijn met de volgende structuur:
+
+1. FORMAT SELECTIE
+   Het Program component moet 2 verschillende formaten ondersteunen via data-attribute:
+   - data-program-format="grid-2x1" - 2 boxes horizontaal naast elkaar
+   - data-program-format="grid-4x1" - 4 boxes horizontaal naast elkaar
+   
+   BELANGRIJK: Gebruik altijd data-program-format (niet data-schedule-format), maar zorg dat schedule-specifieke selectors ook werken.
+
+   HTML structuur:
+   <section id="program-section" class="program-section" data-component="program" data-editable="true" data-program-format="grid-2x1">
+     <div class="program-container">
+       <h2 class="program-title" data-editable-text="program.title">Title Text...</h2>
+       <p class="program-text" data-editable-text="program.text">Program Text...</p>
+       <div class="program-boxes">
+         <div class="program-box" data-program-box="1">
+           <h3 class="program-box-title" data-editable-text="program.box1.title">Title Text</h3>
+         </div>
+         <div class="program-box" data-program-box="2">
+           <h3 class="program-box-title" data-editable-text="program.box2.title">Title Text</h3>
+         </div>
+         <!-- Repeat voor box 3, 4 -->
+       </div>
+     </div>
+   </section>
+
+   BELANGRIJK:
+   - Gebruik ALTIJD data-component="program" (niet "schedule")
+   - Program title moet data-editable-text="program.title" hebben (maar ondersteun ook schedule.title voor backward compatibility)
+   - Program text moet data-editable-text="program.text" hebben (maar ondersteun ook schedule.text voor backward compatibility)
+   - Program boxes moeten data-program-box attributen hebben (1, 2, 3, 4) - ondersteun ook data-schedule-box voor backward compatibility
+   - Elke program box moet alleen title hebben met data-editable-text attributen (geen paragraph)
+   - Gebruik CSS classes voor format variaties: .program-format-grid-2x1, .program-format-grid-4x1
+   - Voor backward compatibility: ondersteun ook schedule-specifieke selectors (.schedule-title, .schedule-text, etc.) maar map deze naar program properties
+   
+   CSS voor format variaties (VERPLICHT te implementeren):
+   
+   /* Grid 2x1 Format - 2 boxes horizontaal */
+   [data-program-format="grid-2x1"] .program-boxes,
+   .program-format-grid-2x1 .program-boxes {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Grid 4x1 Format - 4 boxes horizontaal */
+   [data-program-format="grid-4x1"] .program-boxes,
+   .program-format-grid-4x1 .program-boxes {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 1.5rem;
+   }
+   
+   /* Responsive: op mobile stapelen alle formats */
+   @media (max-width: 768px) {
+     [data-program-format] .program-boxes,
+     .program-format-grid-2x1 .program-boxes,
+     .program-format-grid-4x1 .program-boxes {
+       grid-template-columns: 1fr;
+     }
+   }
+
+2. TITLE
+   - Program title moet in een <h2> element met class="program-title" en data-editable-text="program.title"
+   - Voor backward compatibility: ondersteun ook class="schedule-title" en data-editable-text="schedule.title"
+   - Title moet bewerkbaar zijn via de editor
+   - Gebruik CSS variables voor styling
+
+3. TEXT
+   - Program text moet in een <p> element met class="program-text" en data-editable-text="program.text"
+   - Voor backward compatibility: ondersteun ook class="schedule-text" en data-editable-text="schedule.text"
+   - Text moet bewerkbaar zijn via de editor
+   - Gebruik CSS variables voor styling
+
+4. PROGRAM BOXES
+   - Maximaal 4 boxes ondersteunen
+   - Elke box moet data-program-box attribuut hebben (1, 2, 3, 4)
+   - Voor backward compatibility: ondersteun ook data-schedule-box attributen
+   - Elke box heeft alleen:
+     - Title: <h3> met class="program-box-title" en data-editable-text="program.box{N}.title"
+     - Voor backward compatibility: ondersteun ook class="schedule-box-title" en data-editable-text="schedule.box{N}.title"
+   - Boxes moeten in een grid layout worden weergegeven volgens het gekozen format
+   - Responsive: op mobile stapelen alle boxes verticaal
+
+5. CSS VARIABLES
+   Gebruik CSS variables voor bewerkbare eigenschappen:
+   :root {
+     --program-bg-color: #1a1a2e;
+     --program-text-color: #ffffff;
+     --program-title-size: 2rem;
+     --program-title-weight: 600;
+     --program-padding: 4rem;
+     --program-box-bg: rgba(255, 255, 255, 0.1);
+     --program-box-border: rgba(255, 255, 255, 0.2);
+     --program-box-padding: 1.5rem;
+   }
+
+6. JAVASCRIPT CONFIG
+   const programConfig = {
+     format: 'grid-2x1', // 'grid-2x1', 'grid-4x1'
+     title: 'Title Text...',
+     text: 'Program Text...',
+     boxes: [
+       { title: 'Title Text' },
+       { title: 'Title Text' }
+       // Max 4 boxes
+     ]
+   }
+   
+   BELANGRIJK: 
+   - Gebruik ALTIJD "program" als component type en property namen
+   - Schedule en program zijn HETZELFDE - maak GEEN apart schedule component
+   - Voor backward compatibility: ondersteun schedule-specifieke selectors in CSS en HTML, maar het component type moet altijd "program" zijn
 
 📝 OUTPUT INSTRUCTIE
 Lever ALLEEN de drie code bestanden (HTML, CSS, JS) in code blocks.

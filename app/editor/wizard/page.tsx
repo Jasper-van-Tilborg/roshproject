@@ -1,11 +1,281 @@
 'use client'
 
-import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useState, useCallback, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
 import Link from 'next/link'
 import LoadingOverlay from '../../components/LoadingOverlay'
+
+// Inline Color Picker Component
+function InlineColorPicker({
+  color,
+  onChange,
+  label,
+  required
+}: {
+  color: string
+  onChange: (color: string) => void
+  label: string
+  required?: boolean
+}) {
+  // Convert hex to HSL
+  const hexToHsl = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255
+    const g = parseInt(hex.slice(3, 5), 16) / 255
+    const b = parseInt(hex.slice(5, 7), 16) / 255
+
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    let h = 0, s = 0, l = (max + min) / 2
+
+    if (max !== min) {
+      const d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+        case g: h = ((b - r) / d + 2) / 6; break
+        case b: h = ((r - g) / d + 4) / 6; break
+      }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 }
+  }
+
+  // Convert HSL to hex
+  const hslToHex = (h: number, s: number, l: number) => {
+    l /= 100
+    const a = s * Math.min(l, 1 - l) / 100
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+      return Math.round(255 * color).toString(16).padStart(2, '0')
+    }
+    return `#${f(0)}${f(8)}${f(4)}`
+  }
+
+  // Initialize HSL from color
+  const initializeFromColor = (hexColor: string) => {
+    if (!hexColor || !/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
+      return { h: 0, s: 100, l: 50 }
+    }
+    return hexToHsl(hexColor)
+  }
+
+  const initialValues = initializeFromColor(color)
+  const [hue, setHue] = useState(initialValues.h)
+  const [saturation, setSaturation] = useState(initialValues.s)
+  const [lightness, setLightness] = useState(initialValues.l)
+  const [isExpanded, setIsExpanded] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const hueRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const draggingType = useRef<'picker' | 'hue' | null>(null)
+
+  const lastColorRef = useRef<string>(color)
+  const isInternalUpdateRef = useRef(false)
+
+  // Update when color prop changes externally
+  useEffect(() => {
+    if (!color || !/^#[0-9A-Fa-f]{6}$/.test(color)) return
+    
+    // Only update if color changed externally (not from our internal updates)
+    if (color !== lastColorRef.current && !isInternalUpdateRef.current) {
+      const hsl = hexToHsl(color)
+      setHue(hsl.h)
+      setSaturation(hsl.s)
+      setLightness(hsl.l)
+      lastColorRef.current = color
+    }
+    isInternalUpdateRef.current = false
+  }, [color])
+
+  // Update color when HSL changes
+  useEffect(() => {
+    const newHex = hslToHex(hue, saturation, lightness)
+    if (newHex !== lastColorRef.current) {
+      lastColorRef.current = newHex
+      isInternalUpdateRef.current = true
+      onChange(newHex)
+    }
+  }, [hue, saturation, lightness, onChange])
+
+  // Handle saturation/lightness picker
+  const handlePickerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!pickerRef.current) return
+    const rect = pickerRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+    setSaturation(x * 100)
+    setLightness((1 - y) * 100)
+  }
+
+  const handlePickerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    isDragging.current = true
+    draggingType.current = 'picker'
+    handlePickerClick(e)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      
+      if (draggingType.current === 'picker' && pickerRef.current) {
+        const rect = pickerRef.current.getBoundingClientRect()
+        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+        const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+        setSaturation(x * 100)
+        setLightness((1 - y) * 100)
+      } else if (draggingType.current === 'hue' && hueRef.current) {
+        const rect = hueRef.current.getBoundingClientRect()
+        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+        setHue(x * 360)
+      }
+    }
+
+    const handleMouseUp = () => {
+      isDragging.current = false
+      draggingType.current = null
+    }
+
+    if (isExpanded) {
+      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove)
+        window.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isExpanded])
+
+  // Handle hue slider
+  const handleHueClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hueRef.current) return
+    const rect = hueRef.current.getBoundingClientRect()
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    setHue(x * 360)
+  }
+
+  const handleHueMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    isDragging.current = true
+    draggingType.current = 'hue'
+    handleHueClick(e)
+  }
+
+  const displayColor = hslToHex(hue, saturation, lightness)
+  const hueColor = `hsl(${hue}, 100%, 50%)`
+
+  // Handle hex input change
+  const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.trim().toUpperCase()
+    
+    // Add # if missing
+    if (value && !value.startsWith('#')) {
+      value = '#' + value
+    }
+    
+    // Normalize to 6 hex digits
+    if (value.startsWith('#')) {
+      const hex = value.slice(1).replace(/[^0-9A-F]/g, '').slice(0, 6)
+      if (hex.length === 6) {
+        value = '#' + hex
+        const hsl = hexToHsl(value)
+        setHue(hsl.h)
+        setSaturation(hsl.s)
+        setLightness(hsl.l)
+        // onChange will be called by useEffect
+      }
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Compact Color Display */}
+      <div className="flex items-center space-x-4">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="relative w-20 h-12 rounded-lg border-2 border-gray-700 hover:border-purple-500 transition-all cursor-pointer overflow-hidden group"
+          style={{ backgroundColor: displayColor }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+        <div className="relative floating-label-input flex-1">
+          <input
+            type="text"
+            value={displayColor.toUpperCase()}
+            onChange={handleHexChange}
+            placeholder="#000000"
+            className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all font-mono ${displayColor ? 'has-value' : ''}`}
+          />
+          <label className={`floating-label ${displayColor ? 'floating-label-active' : ''}`}>
+            {label}
+            {required && <span className="text-red-400 ml-1">*</span>}
+          </label>
+        </div>
+      </div>
+
+      {/* Expanded Color Picker */}
+      {isExpanded && (
+        <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg p-4 space-y-4">
+          {/* Saturation/Lightness Picker */}
+          <div>
+            <div
+              ref={pickerRef}
+              className="w-full h-48 rounded-lg cursor-crosshair relative overflow-hidden border border-gray-700"
+              style={{
+                background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, ${hueColor})`
+              }}
+              onMouseDown={handlePickerMouseDown}
+            >
+              <div
+                className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg pointer-events-none z-10"
+                style={{
+                  left: `${saturation}%`,
+                  top: `${100 - lightness}%`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Hue Slider and Color Preview */}
+          <div className="flex items-center space-x-4">
+            {/* Color Preview */}
+            <div className="flex-shrink-0">
+              <div
+                className="w-12 h-12 rounded-lg border-2 border-gray-600 shadow-lg"
+                style={{ backgroundColor: displayColor }}
+              />
+            </div>
+
+            {/* Hue Slider */}
+            <div className="flex-1">
+              <div
+                ref={hueRef}
+                className="w-full h-6 rounded-lg cursor-pointer relative overflow-hidden border border-gray-700"
+                style={{
+                  background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+                }}
+                onMouseDown={handleHueMouseDown}
+              >
+                <div
+                  className="absolute top-0 bottom-0 w-2 border-2 border-white shadow-lg pointer-events-none"
+                  style={{
+                    left: `${(hue / 360) * 100}%`,
+                    transform: 'translateX(-50%)'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface WizardStep {
   id: string
@@ -1126,28 +1396,12 @@ function WizardPageContent() {
                   )}
 
                   {question.type === 'color' && (
-                    <div>
-                      <div className="flex items-center space-x-4">
-                        <input
-                          type="color"
-                          value={String(answers[question.id] || '#3B82F6')}
-                          onChange={(e) => handleAnswer(question.id, e.target.value)}
-                          className="w-20 h-12 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg cursor-pointer transition-all hover:border-purple-500"
-                        />
-                        <div className="relative floating-label-input flex-1">
-                          <input
-                            type="text"
-                            value={String(answers[question.id] || '#3B82F6')}
-                            onChange={(e) => handleAnswer(question.id, e.target.value)}
-                            className={`w-full px-4 py-3 bg-gray-900 bg-opacity-60 backdrop-blur-sm border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all ${answers[question.id] ? 'has-value' : ''}`}
-                          />
-                          <label className={`floating-label ${answers[question.id] ? 'floating-label-active' : ''}`}>
-                            {question.question}
-                            {question.required && <span className="text-red-400 ml-1">*</span>}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <InlineColorPicker
+                      color={String(answers[question.id] || '#3B82F6')}
+                      onChange={(newColor) => handleAnswer(question.id, newColor)}
+                      label={question.question}
+                      required={question.required}
+                    />
                   )}
 
                   {question.type === 'checkbox' && (

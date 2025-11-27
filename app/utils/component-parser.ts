@@ -79,7 +79,11 @@ export function parseComponentsFromHTML(html: string, css: string): Component[] 
 function extractComponentType(element: HTMLElement, id: string): string {
   // Check data-component attribute
   const dataComponent = element.getAttribute('data-component')
-  if (dataComponent) return dataComponent
+  if (dataComponent) {
+    // Schedule en program zijn hetzelfde - converteer schedule naar program
+    if (dataComponent === 'schedule') return 'program'
+    return dataComponent
+  }
 
   // Check ID patterns
   if (id.includes('navigation') || id.includes('nav') || id.includes('header')) return 'navigation'
@@ -87,7 +91,9 @@ function extractComponentType(element: HTMLElement, id: string): string {
   if (id.includes('bracket') || id.includes('teams')) return 'bracket'
   if (id.includes('twitch') || id.includes('stream')) return 'twitch'
   if (id.includes('sponsor')) return 'sponsors'
-  if (id.includes('schedule') || id.includes('programma')) return 'schedule'
+  // Schedule en program zijn hetzelfde - beide worden behandeld als 'program'
+  if (id.includes('schedule') || id.includes('programma') || id.includes('program-section') || id.includes('schedule-section')) return 'program'
+  if (id.includes('program') && !id.includes('programma')) return 'program'
   if (id.includes('registration') || id.includes('inschrijving')) return 'registration'
   if (id.includes('contact')) return 'contact'
   if (id.includes('footer')) return 'footer'
@@ -100,6 +106,9 @@ function extractComponentType(element: HTMLElement, id: string): string {
   if (classes.includes('bracket') || classes.includes('team')) return 'bracket'
   if (classes.includes('twitch')) return 'twitch'
   if (classes.includes('sponsor')) return 'sponsors'
+  // Schedule en program zijn hetzelfde - beide worden behandeld als 'program'
+  if (classes.includes('schedule-section') || classes.includes('schedule') || classes.includes('program-section') || (classes.includes('program') && !classes.includes('programma'))) return 'program'
+  if (classes.includes('about-section') || classes.includes('about')) return 'about'
   
   // Check tag name
   if (element.tagName === 'HEADER' || element.tagName === 'NAV') return 'navigation'
@@ -115,7 +124,8 @@ function getComponentName(type: string, element: HTMLElement): string {
     bracket: 'Bracket / Teams',
     twitch: 'Twitch Stream',
     sponsors: 'Sponsors',
-    schedule: 'Programma',
+    schedule: 'Programma', // schedule wordt behandeld als program
+    program: 'Programma',
     registration: 'Inschrijving',
     contact: 'Contact',
     footer: 'Footer',
@@ -188,6 +198,91 @@ function extractProperties(element: HTMLElement): { [key: string]: unknown } {
       src: logoImg.getAttribute('src') || '',
       alt: logoImg.getAttribute('alt') || 'Logo'
     }
+  }
+
+  // Extract hero-specific properties
+  const heroFormat = element.getAttribute('data-hero-format')
+  if (heroFormat) {
+    props.heroFormat = heroFormat
+  }
+
+  const heroImage = element.querySelector('#hero-image')
+  if (heroImage) {
+    props.image = {
+      src: heroImage.getAttribute('src') || '',
+      alt: heroImage.getAttribute('alt') || 'Hero image'
+    }
+  }
+
+  const heroText = element.querySelector('[data-editable-text="hero.text"]')
+  if (heroText) {
+    props.heroText = heroText.textContent?.trim() || ''
+  }
+
+  // Extract tournament boxes
+  const tournamentBoxes = element.querySelectorAll('[data-tournament-box]')
+  if (tournamentBoxes.length > 0) {
+    props.tournamentBoxes = Array.from(tournamentBoxes).map(box => {
+      const boxNum = box.getAttribute('data-tournament-box') || '1'
+      const title = box.querySelector('[data-editable-text*="tournament.box' + boxNum + '.title"]')?.textContent?.trim() || ''
+      const paragraph = box.querySelector('[data-editable-text*="tournament.box' + boxNum + '.paragraph"]')?.textContent?.trim() || ''
+      return { title, paragraph }
+    })
+  }
+
+  // Extract about-specific properties
+  const aboutFormat = element.getAttribute('data-about-format')
+  if (aboutFormat) {
+    props.aboutFormat = aboutFormat
+  }
+
+  const aboutTitle = element.querySelector('[data-editable-text="about.title"], .about-title')
+  if (aboutTitle) {
+    props.aboutTitle = aboutTitle.textContent?.trim() || ''
+  }
+
+  const aboutText = element.querySelector('[data-editable-text="about.text"], .about-text')
+  if (aboutText) {
+    props.aboutText = aboutText.textContent?.trim() || ''
+  }
+
+  // Extract about boxes
+  const aboutBoxes = element.querySelectorAll('[data-about-box]')
+  if (aboutBoxes.length > 0) {
+    props.aboutBoxes = Array.from(aboutBoxes).map(box => {
+      const boxNum = box.getAttribute('data-about-box') || '1'
+      const title = box.querySelector('[data-editable-text*="about.box' + boxNum + '.title"]')?.textContent?.trim() || 
+                    box.querySelector('.about-box-title')?.textContent?.trim() || ''
+      return { title }
+    })
+  }
+
+  // Extract program/schedule-specific properties (schedule is hetzelfde als program, alleen andere taal)
+  const programFormat = element.getAttribute('data-program-format') || element.getAttribute('data-schedule-format')
+  if (programFormat) {
+    props.programFormat = programFormat
+  }
+
+  // Check both program and schedule selectors
+  const programTitle = element.querySelector('[data-editable-text="program.title"], [data-editable-text="schedule.title"], .program-title, .schedule-title')
+  if (programTitle) {
+    props.programTitle = programTitle.textContent?.trim() || ''
+  }
+
+  const programText = element.querySelector('[data-editable-text="program.text"], [data-editable-text="schedule.text"], .program-text, .schedule-text')
+  if (programText) {
+    props.programText = programText.textContent?.trim() || ''
+  }
+
+  // Extract program/schedule boxes (check both data-program-box and data-schedule-box)
+  const programBoxes = element.querySelectorAll('[data-program-box], [data-schedule-box]')
+  if (programBoxes.length > 0) {
+    props.programBoxes = Array.from(programBoxes).map(box => {
+      const boxNum = box.getAttribute('data-program-box') || box.getAttribute('data-schedule-box') || '1'
+      const title = box.querySelector('[data-editable-text*="program.box' + boxNum + '.title"], [data-editable-text*="schedule.box' + boxNum + '.title"]')?.textContent?.trim() || 
+                    box.querySelector('.program-box-title, .schedule-box-title')?.textContent?.trim() || ''
+      return { title }
+    })
   }
 
   // Extract data-attributes
@@ -313,6 +408,232 @@ export function updateComponentInHTML(
               link.setAttribute('data-nav-link-text', String(linkData.text))
               link.textContent = String(linkData.text)
             }
+          }
+        })
+      } else if (key === 'heroFormat') {
+        element.setAttribute('data-hero-format', String(value))
+        // Update CSS classes
+        element.classList.remove('hero-format-image-left', 'hero-format-image-right', 'hero-format-image-top', 'hero-format-image-full', 'hero-format-text-only')
+        const formatValue = String(value)
+        element.classList.add(`hero-format-${formatValue}`)
+      } else if (key === 'heroText') {
+        let heroTextEl = element.querySelector('[data-editable-text="hero.text"], .hero-title')
+        if (!heroTextEl) {
+          // Create hero text element if it doesn't exist
+          heroTextEl = doc.createElement('h1')
+          heroTextEl.className = 'hero-title'
+          heroTextEl.setAttribute('data-editable-text', 'hero.text')
+          const container = element.querySelector('.hero-content') || element.querySelector('.hero-container') || element
+          container.insertBefore(heroTextEl, container.firstChild)
+        }
+        heroTextEl.textContent = String(value)
+      } else if (key === 'image' && typeof value === 'object' && value !== null) {
+        const imageData = value as { src?: string; alt?: string }
+        let heroImage = element.querySelector('#hero-image')
+        if (!heroImage) {
+          // Create image element if it doesn't exist
+          const imageWrapper = element.querySelector('.hero-image-wrapper')
+          if (imageWrapper) {
+            heroImage = doc.createElement('img')
+            heroImage.id = 'hero-image'
+            heroImage.setAttribute('data-editable-image', 'true')
+            heroImage.setAttribute('alt', imageData.alt || 'Hero image')
+            imageWrapper.appendChild(heroImage)
+          }
+        }
+        if (heroImage) {
+          if (imageData.src !== undefined) {
+            heroImage.setAttribute('src', String(imageData.src))
+            if (heroImage.tagName === 'IMG') {
+              (heroImage as HTMLImageElement).src = String(imageData.src)
+            }
+          }
+          if (imageData.alt !== undefined) {
+            heroImage.setAttribute('alt', String(imageData.alt))
+          }
+        }
+      } else if (key === 'tournamentBoxes' && Array.isArray(value)) {
+        // Update tournament boxes
+        let boxesContainer = element.querySelector('.hero-tournament-info, .tournament-info')
+        if (!boxesContainer) {
+          // Create boxes container if it doesn't exist
+          boxesContainer = doc.createElement('div')
+          boxesContainer.className = 'hero-tournament-info'
+          const container = element.querySelector('.hero-content') || element.querySelector('.hero-container') || element
+          container.appendChild(boxesContainer)
+        }
+        
+        value.forEach((box: { title?: string; paragraph?: string }, index: number) => {
+          const boxNum = index + 1
+          let boxEl = boxesContainer.querySelector(`[data-tournament-box="${boxNum}"]`)
+          if (!boxEl) {
+            // Create box if it doesn't exist
+            boxEl = doc.createElement('div')
+            boxEl.className = 'tournament-box'
+            boxEl.setAttribute('data-tournament-box', String(boxNum))
+            const titleEl = doc.createElement('h3')
+            titleEl.className = 'tournament-box-title'
+            titleEl.setAttribute('data-editable-text', `tournament.box${boxNum}.title`)
+            const paragraphEl = doc.createElement('p')
+            paragraphEl.className = 'tournament-box-paragraph'
+            paragraphEl.setAttribute('data-editable-text', `tournament.box${boxNum}.paragraph`)
+            boxEl.appendChild(titleEl)
+            boxEl.appendChild(paragraphEl)
+            boxesContainer.appendChild(boxEl)
+          }
+          const titleEl = boxEl.querySelector(`[data-editable-text*="tournament.box${boxNum}.title"]`)
+          const paragraphEl = boxEl.querySelector(`[data-editable-text*="tournament.box${boxNum}.paragraph"]`)
+          if (titleEl && box.title !== undefined) titleEl.textContent = String(box.title)
+          if (paragraphEl && box.paragraph !== undefined) paragraphEl.textContent = String(box.paragraph)
+        })
+        
+        // Remove extra boxes if array is smaller
+        const existingBoxes = boxesContainer.querySelectorAll('[data-tournament-box]')
+        existingBoxes.forEach((box, index) => {
+          if (index >= value.length) {
+            box.remove()
+          }
+        })
+      } else if (key === 'aboutFormat') {
+        element.setAttribute('data-about-format', String(value))
+        // Update CSS classes
+        element.classList.remove('about-format-grid-2x2', 'about-format-grid-2x1', 'about-format-grid-3x1', 'about-format-grid-4x1')
+        element.classList.add(`about-format-${value}`)
+      } else if (key === 'aboutTitle') {
+        let aboutTitleEl = element.querySelector('[data-editable-text="about.title"], .about-title')
+        if (!aboutTitleEl) {
+          // Create title element if it doesn't exist
+          aboutTitleEl = doc.createElement('h2')
+          aboutTitleEl.className = 'about-title'
+          aboutTitleEl.setAttribute('data-editable-text', 'about.title')
+          const container = element.querySelector('.about-container') || element
+          container.insertBefore(aboutTitleEl, container.firstChild)
+        }
+        aboutTitleEl.textContent = String(value)
+      } else if (key === 'aboutText') {
+        let aboutTextEl = element.querySelector('[data-editable-text="about.text"], .about-text')
+        if (!aboutTextEl) {
+          // Create text element if it doesn't exist
+          aboutTextEl = doc.createElement('p')
+          aboutTextEl.className = 'about-text'
+          aboutTextEl.setAttribute('data-editable-text', 'about.text')
+          const container = element.querySelector('.about-container') || element
+          const titleEl = container.querySelector('.about-title')
+          if (titleEl && titleEl.nextSibling) {
+            container.insertBefore(aboutTextEl, titleEl.nextSibling)
+          } else {
+            container.appendChild(aboutTextEl)
+          }
+        }
+        aboutTextEl.textContent = String(value)
+      } else if (key === 'aboutBoxes' && Array.isArray(value)) {
+        // Update about boxes
+        let boxesContainer = element.querySelector('.about-boxes')
+        if (!boxesContainer) {
+          // Create boxes container if it doesn't exist
+          boxesContainer = doc.createElement('div')
+          boxesContainer.className = 'about-boxes'
+          const container = element.querySelector('.about-container') || element
+          container.appendChild(boxesContainer)
+        }
+        
+        value.forEach((box: { title?: string }, index: number) => {
+          const boxNum = index + 1
+          let boxEl = boxesContainer.querySelector(`[data-about-box="${boxNum}"]`)
+          if (!boxEl) {
+            // Create box if it doesn't exist
+            boxEl = doc.createElement('div')
+            boxEl.className = 'about-box'
+            boxEl.setAttribute('data-about-box', String(boxNum))
+            const titleEl = doc.createElement('h3')
+            titleEl.className = 'about-box-title'
+            titleEl.setAttribute('data-editable-text', `about.box${boxNum}.title`)
+            boxEl.appendChild(titleEl)
+            boxesContainer.appendChild(boxEl)
+          }
+          const titleEl = boxEl.querySelector(`[data-editable-text*="about.box${boxNum}.title"]`) || 
+                         boxEl.querySelector('.about-box-title')
+          if (titleEl && box.title !== undefined) titleEl.textContent = String(box.title)
+        })
+        
+        // Remove extra boxes if array is smaller
+        const existingBoxes = boxesContainer.querySelectorAll('[data-about-box]')
+        existingBoxes.forEach((box, index) => {
+          if (index >= value.length) {
+            box.remove()
+          }
+        })
+      } else if (key === 'programFormat') {
+        // Update both program and schedule format (schedule is hetzelfde als program)
+        element.setAttribute('data-program-format', String(value))
+        element.setAttribute('data-schedule-format', String(value))
+        // Update CSS classes
+        element.classList.remove('program-format-grid-2x1', 'program-format-grid-4x1')
+        element.classList.add(`program-format-${value}`)
+      } else if (key === 'programTitle') {
+        // Update both program and schedule title selectors
+        let programTitleEl = element.querySelector('[data-editable-text="program.title"], [data-editable-text="schedule.title"], .program-title, .schedule-title')
+        if (!programTitleEl) {
+          // Create title element if it doesn't exist
+          programTitleEl = doc.createElement('h2')
+          programTitleEl.className = 'program-title'
+          programTitleEl.setAttribute('data-editable-text', 'program.title')
+          const container = element.querySelector('.program-container') || element
+          container.insertBefore(programTitleEl, container.firstChild)
+        }
+        programTitleEl.textContent = String(value)
+      } else if (key === 'programText') {
+        // Update both program and schedule text selectors
+        let programTextEl = element.querySelector('[data-editable-text="program.text"], [data-editable-text="schedule.text"], .program-text, .schedule-text')
+        if (!programTextEl) {
+          // Create text element if it doesn't exist
+          programTextEl = doc.createElement('p')
+          programTextEl.className = 'program-text'
+          programTextEl.setAttribute('data-editable-text', 'program.text')
+          const container = element.querySelector('.program-container') || element
+          const titleEl = container.querySelector('.program-title, .schedule-title')
+          if (titleEl && titleEl.nextSibling) {
+            container.insertBefore(programTextEl, titleEl.nextSibling)
+          } else {
+            container.appendChild(programTextEl)
+          }
+        }
+        programTextEl.textContent = String(value)
+      } else if (key === 'programBoxes' && Array.isArray(value)) {
+        // Update program/schedule boxes (check both data-program-box and data-schedule-box)
+        let boxesContainer = element.querySelector('.program-boxes')
+        if (!boxesContainer) {
+          // Create boxes container if it doesn't exist
+          boxesContainer = doc.createElement('div')
+          boxesContainer.className = 'program-boxes'
+          const container = element.querySelector('.program-container') || element
+          container.appendChild(boxesContainer)
+        }
+        
+        value.forEach((box: { title?: string }, index: number) => {
+          const boxNum = index + 1
+          let boxEl = boxesContainer.querySelector(`[data-program-box="${boxNum}"], [data-schedule-box="${boxNum}"]`)
+          if (!boxEl) {
+            // Create box if it doesn't exist
+            boxEl = doc.createElement('div')
+            boxEl.className = 'program-box'
+            boxEl.setAttribute('data-program-box', String(boxNum))
+            const titleEl = doc.createElement('h3')
+            titleEl.className = 'program-box-title'
+            titleEl.setAttribute('data-editable-text', `program.box${boxNum}.title`)
+            boxEl.appendChild(titleEl)
+            boxesContainer.appendChild(boxEl)
+          }
+          const titleEl = boxEl.querySelector(`[data-editable-text*="program.box${boxNum}.title"], [data-editable-text*="schedule.box${boxNum}.title"]`) || 
+                         boxEl.querySelector('.program-box-title, .schedule-box-title')
+          if (titleEl && box.title !== undefined) titleEl.textContent = String(box.title)
+        })
+        
+        // Remove extra boxes if array is smaller
+        const existingBoxes = boxesContainer.querySelectorAll('[data-program-box], [data-schedule-box]')
+        existingBoxes.forEach((box, index) => {
+          if (index >= value.length) {
+            box.remove()
           }
         })
       } else {

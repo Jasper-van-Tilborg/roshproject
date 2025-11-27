@@ -108,6 +108,8 @@ export default function Dashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'template-selection', 'create-tournament', 'manage-tournament', 'template-wizard', 'wizard-result'
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
@@ -289,8 +291,13 @@ export default function Dashboard() {
 
   // Laad toernooien uit localStorage bij component mount - wordt later gedefinieerd na addCustomComponentsToLibrary
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError('');
+    
+    // Simuleer een kleine vertraging voor betere UX
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Simpele login check (in echte app zou je dit via een API doen)
     if (username === 'admin' && password === 'admin123') {
@@ -299,6 +306,8 @@ export default function Dashboard() {
     } else {
       setLoginError('Ongeldige gebruikersnaam of wachtwoord');
     }
+    
+    setIsLoggingIn(false);
   };
 
   const handleLogout = () => {
@@ -1317,19 +1326,50 @@ export default function Dashboard() {
 
               <button
                 type="submit"
-                className="w-full bg-white text-[#1A2335] py-3 px-6 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center justify-center space-x-2"
+                disabled={isLoggingIn}
+                className="w-full bg-white text-[#1A2335] py-3 px-6 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span>Log In</span>
+                {isLoggingIn ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Bezig met inloggen...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <span>Log In</span>
+                  </>
+                )}
               </button>
             </form>
 
             <div className="mt-6 pt-6 border-t border-white/20 text-center text-sm">
-              <p className="text-white mb-1 font-medium">Demo Credentials</p>
-              <p className="text-white">Username: Admin</p>
-              <p className="text-white">Password: Admin123</p>
+              <button
+                type="button"
+                onClick={() => setShowDemoCredentials(!showDemoCredentials)}
+                className="w-full flex items-center justify-center space-x-2 text-white hover:text-white/80 transition-colors"
+              >
+                <span className="font-medium">Demo Credentials</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform duration-200 ${showDemoCredentials ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showDemoCredentials && (
+                <div className="mt-3 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <p className="text-white">Username: admin</p>
+                  <p className="text-white">Password: admin123</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { parseComponentsFromHTML, Component, updateComponentInHTML } from '../utils/component-parser'
 
-// Color Picker Component
+// Color Picker Component - Volledig nieuw vanaf scratch
 function ColorPicker({ 
   color, 
   onColorChange, 
@@ -13,12 +13,11 @@ function ColorPicker({
   onColorChange: (color: string) => void
   onClose: () => void
 }) {
-  // Convert hex to HSL
+  // Helper functions
   const hexToHsl = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16) / 255
     const g = parseInt(hex.slice(3, 5), 16) / 255
     const b = parseInt(hex.slice(5, 7), 16) / 255
-
     const max = Math.max(r, g, b)
     const min = Math.min(r, g, b)
     let h = 0, s = 0, l = (max + min) / 2
@@ -32,11 +31,9 @@ function ColorPicker({
         case b: h = ((r - g) / d + 4) / 6; break
       }
     }
-
     return { h: h * 360, s: s * 100, l: l * 100 }
   }
 
-  // Convert HSL to hex
   const hslToHex = (h: number, s: number, l: number) => {
     l /= 100
     const a = s * Math.min(l, 1 - l) / 100
@@ -48,7 +45,6 @@ function ColorPicker({
     return `#${f(0)}${f(8)}${f(4)}`
   }
 
-  // Convert HSL to RGB
   const hslToRgb = (h: number, s: number, l: number) => {
     l /= 100
     const a = s * Math.min(l, 1 - l) / 100
@@ -60,29 +56,20 @@ function ColorPicker({
     return { r: f(0), g: f(8), b: f(4) }
   }
 
-  // Initialize HSL and RGB from color prop
-  const initializeFromColor = (hexColor: string) => {
-    if (!hexColor || !/^#[0-9A-Fa-f]{6}$/.test(hexColor)) {
-      return { h: 0, s: 100, l: 50, r: 0, g: 0, b: 0 }
-    }
-    const hsl = hexToHsl(hexColor)
-    const rgb = hslToRgb(hsl.h, hsl.s, hsl.l)
-    return { ...hsl, ...rgb }
-  }
+  // Initialize state
+  const initColor = color && /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '#ff0000'
+  const initHsl = hexToHsl(initColor)
+  const [hue, setHue] = useState(initHsl.h)
+  const [saturation, setSaturation] = useState(initHsl.s)
+  const [lightness, setLightness] = useState(initHsl.l)
+  const [rgb, setRgb] = useState(hslToRgb(initHsl.h, initHsl.s, initHsl.l))
 
-  const initialValues = initializeFromColor(color)
-  const [hue, setHue] = useState(initialValues.h)
-  const [saturation, setSaturation] = useState(initialValues.s)
-  const [lightness, setLightness] = useState(initialValues.l)
-  const [rgb, setRgb] = useState({ r: initialValues.r, g: initialValues.g, b: initialValues.b })
   const pickerRef = useRef<HTMLDivElement>(null)
   const hueRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
   const draggingType = useRef<'picker' | 'hue' | null>(null)
-
   const onColorChangeRef = useRef(onColorChange)
-  const lastPropColorRef = useRef<string>(color)
-  const lastInternalColorRef = useRef<string>(color)
+  const lastColorRef = useRef<string>('')
   const isInternalUpdateRef = useRef(false)
 
   // Keep ref updated
@@ -90,19 +77,15 @@ function ColorPicker({
     onColorChangeRef.current = onColorChange
   }, [onColorChange])
 
-  // Initialize from hex color only when color prop changes externally
+  // Sync with color prop
   useEffect(() => {
-    if (!color || !/^#[0-9A-Fa-f]{6}$/.test(color)) return
-    
-    // Only update if the color prop actually changed externally (not from our internal updates)
-    if (color !== lastPropColorRef.current && !isInternalUpdateRef.current) {
+    if (color && /^#[0-9A-Fa-f]{6}$/.test(color) && color !== lastColorRef.current && !isInternalUpdateRef.current) {
       const hsl = hexToHsl(color)
       setHue(hsl.h)
       setSaturation(hsl.s)
       setLightness(hsl.l)
       setRgb(hslToRgb(hsl.h, hsl.s, hsl.l))
-      lastPropColorRef.current = color
-      lastInternalColorRef.current = color
+      lastColorRef.current = color
     }
     isInternalUpdateRef.current = false
   }, [color])
@@ -110,91 +93,78 @@ function ColorPicker({
   // Update color when HSL changes
   useEffect(() => {
     const newHex = hslToHex(hue, saturation, lightness)
-    const newRgb = hslToRgb(hue, saturation, lightness)
-    setRgb(newRgb)
+    setRgb(hslToRgb(hue, saturation, lightness))
     
-    // Only call onColorChange if the color actually changed
-    if (newHex !== lastInternalColorRef.current) {
-      lastInternalColorRef.current = newHex
+    if (newHex !== lastColorRef.current) {
+      lastColorRef.current = newHex
       isInternalUpdateRef.current = true
       onColorChangeRef.current(newHex)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hue, saturation, lightness])
 
-  // Handle saturation/lightness picker
-  const handlePickerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Saturation/Lightness picker - STANDARD FORMULE
+  const updatePicker = (e: MouseEvent | React.MouseEvent<HTMLDivElement>) => {
     if (!pickerRef.current) return
     const rect = pickerRef.current.getBoundingClientRect()
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
     const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
+    
+    // STANDARD HSL: S = x * 100%, L = 100% - (y * 50%)
     setSaturation(x * 100)
-    setLightness((1 - y) * 100)
+    setLightness(100 - (y * 50))
   }
 
-  const handlePickerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handlePickerDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault()
     isDragging.current = true
     draggingType.current = 'picker'
-    handlePickerClick(e)
+    updatePicker(e)
   }
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return
-      
-      if (draggingType.current === 'picker' && pickerRef.current) {
-        const rect = pickerRef.current.getBoundingClientRect()
-        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
-        const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
-        setSaturation(x * 100)
-        setLightness((1 - y) * 100)
-      } else if (draggingType.current === 'hue' && hueRef.current) {
-        const rect = hueRef.current.getBoundingClientRect()
-        const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
-        setHue(x * 360)
-      }
-    }
-
-    const handleMouseUp = () => {
-      isDragging.current = false
-      draggingType.current = null
-    }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [])
-
-  // Handle hue slider
-  const handleHueClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Hue slider
+  const updateHue = (e: MouseEvent | React.MouseEvent<HTMLDivElement>) => {
     if (!hueRef.current) return
     const rect = hueRef.current.getBoundingClientRect()
     const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
     setHue(x * 360)
   }
 
-  const handleHueMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleHueDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault()
     isDragging.current = true
     draggingType.current = 'hue'
-    handleHueClick(e)
+    updateHue(e)
   }
 
-  // Update from RGB inputs
+  // Mouse events
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      if (!isDragging.current) return
+      e.preventDefault()
+      if (draggingType.current === 'picker') updatePicker(e)
+      else if (draggingType.current === 'hue') updateHue(e)
+    }
+
+    const handleUp = () => {
+      isDragging.current = false
+      draggingType.current = null
+    }
+
+    document.addEventListener('mousemove', handleMove, { passive: false })
+    document.addEventListener('mouseup', handleUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+    }
+  }, [])
+
+  // RGB input handler
   const handleRgbChange = (channel: 'r' | 'g' | 'b', value: number) => {
     const newRgb = { ...rgb, [channel]: Math.max(0, Math.min(255, value)) }
     setRgb(newRgb)
     
-    // Convert RGB to HSL
-    const r = newRgb.r / 255
-    const g = newRgb.g / 255
-    const b = newRgb.b / 255
-    const max = Math.max(r, g, b)
-    const min = Math.min(r, g, b)
+    const r = newRgb.r / 255, g = newRgb.g / 255, b = newRgb.b / 255
+    const max = Math.max(r, g, b), min = Math.min(r, g, b)
     let h = 0, s = 0, l = (max + min) / 2
 
     if (max !== min) {
@@ -213,20 +183,14 @@ function ColorPicker({
   }
 
   const displayColor = hslToHex(hue, saturation, lightness)
-  const hueColor = `hsl(${hue}, 100%, 50%)`
+  const indicatorTop = ((100 - lightness) / 50) * 100
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div 
-        className="glass-card rounded-xl p-6 w-96 max-w-[90vw] shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="glass-card rounded-xl p-6 w-96 max-w-[90vw] shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold text-lg">Kleur Kiezen</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -237,89 +201,94 @@ function ColorPicker({
         <div className="mb-4">
           <div
             ref={pickerRef}
-            className="w-full h-64 rounded-lg cursor-crosshair relative overflow-hidden border border-gray-700"
+            className="w-full h-64 rounded-lg cursor-crosshair relative overflow-hidden border border-gray-700 select-none"
             style={{
-              background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, ${hueColor})`
+              background: `
+                linear-gradient(to bottom, transparent, black),
+                linear-gradient(to right, white, hsl(${hue}, 100%, 50%))
+              `
             }}
-            onMouseDown={handlePickerMouseDown}
+            onMouseDown={handlePickerDown}
+            onClick={(e) => !isDragging.current && updatePicker(e)}
           >
             <div
-              className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg pointer-events-none"
+              className="absolute w-4 h-4 rounded-full border-2 border-white shadow-lg pointer-events-none z-10"
               style={{
                 left: `${saturation}%`,
-                top: `${100 - lightness}%`,
-                transform: 'translate(-50%, -50%)'
+                top: `${Math.max(0, Math.min(100, indicatorTop))}%`,
+                transform: 'translate(-50%, -50%)',
+                boxShadow: '0 0 0 1px rgba(0,0,0,0.3)'
               }}
             />
           </div>
         </div>
 
-        {/* Hue Slider and Color Preview */}
+        {/* Hue Slider */}
         <div className="flex items-center space-x-4 mb-4">
-          {/* Color Preview */}
-          <div className="flex-shrink-0">
-            <div
-              className="w-12 h-12 rounded-full border-2 border-gray-600 shadow-lg"
-              style={{ backgroundColor: displayColor }}
-            />
-          </div>
-
-          {/* Hue Slider */}
+          <div className="w-12 h-12 rounded-lg border-2 border-gray-600 shadow-lg flex-shrink-0" style={{ backgroundColor: displayColor }} />
           <div className="flex-1">
             <div
               ref={hueRef}
-              className="w-full h-6 rounded-lg cursor-pointer relative overflow-hidden border border-gray-700"
+              className="w-full h-6 rounded-lg cursor-pointer relative overflow-hidden border border-gray-700 select-none"
               style={{
                 background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
               }}
-              onMouseDown={handleHueMouseDown}
+              onMouseDown={handleHueDown}
+              onClick={(e) => !isDragging.current && updateHue(e)}
             >
               <div
-                className="absolute top-0 bottom-0 w-2 border-2 border-white shadow-lg pointer-events-none"
+                className="absolute top-0 bottom-0 w-2 border-2 border-white shadow-lg pointer-events-none z-10"
                 style={{
                   left: `${(hue / 360) * 100}%`,
-                  transform: 'translateX(-50%)'
+                  transform: 'translateX(-50%)',
+                  boxShadow: '0 0 0 1px rgba(0,0,0,0.3)'
                 }}
               />
             </div>
           </div>
         </div>
 
+        {/* Hex Input */}
+        <div className="mb-4">
+          <label className="block text-gray-400 text-xs mb-1">Hex Color</label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={displayColor.toUpperCase()}
+              onChange={(e) => {
+                let val = e.target.value.trim().toUpperCase()
+                if (val && !val.startsWith('#')) val = '#' + val
+                if (val.startsWith('#')) {
+                  const hex = val.slice(1).replace(/[^0-9A-F]/g, '').slice(0, 6)
+                  if (hex.length === 6) {
+                    const hsl = hexToHsl('#' + hex)
+                    setHue(hsl.h)
+                    setSaturation(hsl.s)
+                    setLightness(hsl.l)
+                  }
+                }
+              }}
+              className="flex-1 px-2 py-1.5 bg-gray-900/60 border border-gray-700 rounded-lg text-white text-sm font-mono focus:outline-none focus:border-[#482CFF]"
+              placeholder="#000000"
+            />
+          </div>
+        </div>
+
         {/* RGB Inputs */}
         <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="block text-gray-400 text-xs mb-1">R</label>
-            <input
-              type="number"
-              min="0"
-              max="255"
-              value={rgb.r}
-              onChange={(e) => handleRgbChange('r', parseInt(e.target.value) || 0)}
-              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-400 text-xs mb-1">G</label>
-            <input
-              type="number"
-              min="0"
-              max="255"
-              value={rgb.g}
-              onChange={(e) => handleRgbChange('g', parseInt(e.target.value) || 0)}
-              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-400 text-xs mb-1">B</label>
-            <input
-              type="number"
-              min="0"
-              max="255"
-              value={rgb.b}
-              onChange={(e) => handleRgbChange('b', parseInt(e.target.value) || 0)}
-              className="w-full px-2 py-1.5 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
-            />
-          </div>
+          {(['r', 'g', 'b'] as const).map((ch) => (
+            <div key={ch}>
+              <label className="block text-gray-400 text-xs mb-1">{ch.toUpperCase()}</label>
+              <input
+                type="number"
+                min="0"
+                max="255"
+                value={rgb[ch]}
+                onChange={(e) => handleRgbChange(ch, parseInt(e.target.value) || 0)}
+                className="w-full px-2 py-1.5 bg-gray-900/60 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF]"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1505,6 +1474,12 @@ export default function ComponentEditor({
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
+      // Program - list/calendar icon
+      program: (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      ),
       // Registration - clipboard/form icon
       registration: (
         <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -2091,6 +2066,641 @@ export default function ComponentEditor({
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Hero-specific properties */}
+              {selectedComponent.type === 'hero' && (
+                <>
+                  {/* Format Selection */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Format</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { 
+                          value: 'image-left', 
+                          label: 'Image Left', 
+                          desc: 'Image left, text right',
+                          preview: (
+                            <div className="flex items-center gap-2 h-12">
+                              <div className="w-8 h-8 bg-gray-600 rounded flex-shrink-0 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 space-y-1">
+                                <div className="h-2 bg-[#482CFF] rounded w-3/4"></div>
+                                <div className="h-2 bg-[#482CFF] rounded w-1/2"></div>
+                                <div className="flex gap-1">
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'image-right', 
+                          label: 'Image Right', 
+                          desc: 'Text left, image right',
+                          preview: (
+                            <div className="flex items-center gap-2 h-12">
+                              <div className="flex-1 space-y-1">
+                                <div className="h-2 bg-[#482CFF] rounded w-3/4"></div>
+                                <div className="h-2 bg-[#482CFF] rounded w-1/2"></div>
+                                <div className="flex gap-1">
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-6 bg-gray-600 rounded"></div>
+                                </div>
+                              </div>
+                              <div className="w-8 h-8 bg-gray-600 rounded flex-shrink-0 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'image-top', 
+                          label: 'Image Top', 
+                          desc: 'Image top, text bottom',
+                          preview: (
+                            <div className="space-y-2 h-12">
+                              <div className="w-full h-4 bg-gray-600 rounded flex items-center justify-center">
+                                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="h-1.5 bg-[#482CFF] rounded w-3/4"></div>
+                                <div className="h-1.5 bg-[#482CFF] rounded w-1/2"></div>
+                                <div className="flex gap-1">
+                                  <div className="h-1 w-5 bg-gray-600 rounded"></div>
+                                  <div className="h-1 w-5 bg-gray-600 rounded"></div>
+                                  <div className="h-1 w-5 bg-gray-600 rounded"></div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'image-full', 
+                          label: 'Image Full', 
+                          desc: 'Full width image',
+                          preview: (
+                            <div className="h-12 w-full bg-gray-600 rounded flex items-center justify-center">
+                              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'text-only', 
+                          label: 'Text Only', 
+                          desc: 'No image, text only',
+                          preview: (
+                            <div className="h-12 w-full relative flex items-center justify-center">
+                              <div className="w-full space-y-1.5 px-2">
+                                <div className="h-2.5 bg-[#482CFF] rounded w-full"></div>
+                                <div className="h-2 bg-[#482CFF]/80 rounded w-4/5 mx-auto"></div>
+                                <div className="flex gap-1.5 justify-center">
+                                  <div className="h-1.5 w-7 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-7 bg-gray-600 rounded"></div>
+                                  <div className="h-1.5 w-7 bg-gray-600 rounded"></div>
+                                </div>
+                              </div>
+                              <div className="absolute top-1 right-1 opacity-50">
+                                <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </div>
+                            </div>
+                          )
+                        }
+                      ].map((format) => {
+                        const isSelected = (selectedComponent.properties.heroFormat || 'image-left') === format.value
+                        return (
+                          <button
+                            key={format.value}
+                            onClick={() => updateComponent(selectedComponent.id, {
+                              properties: { heroFormat: format.value }
+                            })}
+                            className={`p-3 rounded-lg border transition-all text-left relative group ${
+                              isSelected
+                                ? 'border-[#482CFF] bg-[#482CFF]/20'
+                                : 'border-gray-700 bg-gray-900/60 hover:border-gray-600'
+                            }`}
+                          >
+                            <div className="text-white text-xs font-medium mb-2">{format.label}</div>
+                            <div className="mb-2">{format.preview}</div>
+                            <div className="text-gray-400 text-xs">{format.desc}</div>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-2 h-2 bg-[#482CFF] rounded-full"></div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Image Upload - Only show if format is not text-only */}
+                  {(selectedComponent.properties.heroFormat || 'image-left') !== 'text-only' && (
+                    <div>
+                      <h3 className="text-white font-semibold mb-3 text-sm">Image</h3>
+                      <div className="space-y-3">
+                      <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-gray-600 transition-colors cursor-pointer bg-gray-900/60">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              const reader = new FileReader()
+                              reader.onload = (event) => {
+                                const src = event.target?.result as string
+                                updateComponent(selectedComponent.id, {
+                                  properties: {
+                                    image: {
+                                      src: src,
+                                      alt: 'Hero image'
+                                    }
+                                  }
+                                })
+                              }
+                              reader.readAsDataURL(file)
+                            }
+                          }}
+                          className="hidden"
+                          id="hero-image-upload"
+                        />
+                        <label htmlFor="hero-image-upload" className="cursor-pointer">
+                          <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <p className="text-gray-300 text-xs mb-1">Klik om afbeelding te uploaden</p>
+                          <p className="text-gray-500 text-xs">PNG, JPG, SVG</p>
+                        </label>
+                      </div>
+                      {(selectedComponent.properties.image as { src?: string })?.src && (
+                        <div className="relative">
+                          <img
+                            src={(selectedComponent.properties.image as { src?: string }).src}
+                            alt={(selectedComponent.properties.image as { alt?: string })?.alt || 'Hero image'}
+                            className="w-full h-auto rounded-lg border border-gray-700"
+                          />
+                          <button
+                            onClick={() => {
+                              updateComponent(selectedComponent.id, {
+                                properties: {
+                                  image: {
+                                    src: '',
+                                    alt: 'Hero image'
+                                  }
+                                }
+                              })
+                            }}
+                            className="absolute top-2 right-2 p-1 bg-red-600/80 hover:bg-red-600 rounded text-white text-xs"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    </div>
+                  )}
+
+                  {/* Hero Text */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Text</h3>
+                    <textarea
+                      value={String(selectedComponent.properties.heroText || '')}
+                      onChange={(e) => updateComponent(selectedComponent.id, {
+                        properties: { heroText: e.target.value }
+                      })}
+                      placeholder="Hero Text..."
+                      rows={4}
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Tournament Info */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Tournament info</h3>
+                    
+                    {/* Boxes Count */}
+                    <div className="mb-4">
+                      <label className="block text-gray-300 text-xs mb-2">Boxes (max 4)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="4"
+                        value={Math.min(4, Math.max(1, Array.isArray(selectedComponent.properties.tournamentBoxes) ? selectedComponent.properties.tournamentBoxes.length : 1))}
+                        onChange={(e) => {
+                          const count = Math.min(4, Math.max(1, parseInt(e.target.value) || 1))
+                          const currentBoxes = Array.isArray(selectedComponent.properties.tournamentBoxes) 
+                            ? [...selectedComponent.properties.tournamentBoxes] 
+                            : []
+                          
+                          // Adjust array to match count
+                          const newBoxes = []
+                          for (let i = 0; i < count; i++) {
+                            newBoxes.push(currentBoxes[i] || { title: '', paragraph: '' })
+                          }
+                          
+                          updateComponent(selectedComponent.id, {
+                            properties: { tournamentBoxes: newBoxes }
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      />
+                    </div>
+
+                    {/* Tournament Boxes */}
+                    <div className="space-y-4">
+                      {Array.isArray(selectedComponent.properties.tournamentBoxes) && selectedComponent.properties.tournamentBoxes.length > 0 ? (
+                        selectedComponent.properties.tournamentBoxes.map((box: { title?: string; paragraph?: string }, index: number) => (
+                          <div key={index} className="space-y-3 p-3 bg-gray-900/40 rounded-lg border border-gray-700">
+                            <div className="text-white text-xs font-medium mb-2">Box {index + 1}</div>
+                            
+                            <div>
+                              <label className="block text-gray-300 text-xs mb-1">Title</label>
+                              <input
+                                type="text"
+                                value={box.title || ''}
+                                onChange={(e) => {
+                                  const updatedBoxes = [...(selectedComponent.properties.tournamentBoxes as Array<{ title?: string; paragraph?: string }>)]
+                                  updatedBoxes[index] = { ...updatedBoxes[index], title: e.target.value }
+                                  updateComponent(selectedComponent.id, {
+                                    properties: { tournamentBoxes: updatedBoxes }
+                                  })
+                                }}
+                                placeholder="Title Text"
+                                className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-gray-300 text-xs mb-1">Paragraph</label>
+                              <input
+                                type="text"
+                                value={box.paragraph || ''}
+                                onChange={(e) => {
+                                  const updatedBoxes = [...(selectedComponent.properties.tournamentBoxes as Array<{ title?: string; paragraph?: string }>)]
+                                  updatedBoxes[index] = { ...updatedBoxes[index], paragraph: e.target.value }
+                                  updateComponent(selectedComponent.id, {
+                                    properties: { tournamentBoxes: updatedBoxes }
+                                  })
+                                }}
+                                placeholder="Paragraph Text"
+                                className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400 text-xs text-center py-4">
+                          Geen boxes. Verhoog het aantal boxes hierboven.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* About-specific properties */}
+              {selectedComponent.type === 'about' && (
+                <>
+                  {/* Format Selection */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Format</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { 
+                          value: 'grid-2x2', 
+                          label: 'Grid 2x2', 
+                          desc: '4 boxes in 2x2 grid',
+                          preview: (
+                            <div className="grid grid-cols-2 gap-1 h-12">
+                              <div className="bg-gray-600 rounded"></div>
+                              <div className="bg-gray-600 rounded"></div>
+                              <div className="bg-gray-600 rounded"></div>
+                              <div className="bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'grid-2x1', 
+                          label: 'Grid 2x1', 
+                          desc: '2 boxes horizontal',
+                          preview: (
+                            <div className="flex gap-1 h-12">
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'grid-3x1', 
+                          label: 'Grid 3x1', 
+                          desc: '3 boxes horizontal',
+                          preview: (
+                            <div className="flex gap-1 h-12">
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'grid-4x1', 
+                          label: 'Grid 4x1', 
+                          desc: '4 boxes horizontal',
+                          preview: (
+                            <div className="flex gap-1 h-12">
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        }
+                      ].map((format) => {
+                        const isSelected = (selectedComponent.properties.aboutFormat || 'grid-2x2') === format.value
+                        return (
+                          <button
+                            key={format.value}
+                            onClick={() => updateComponent(selectedComponent.id, {
+                              properties: { aboutFormat: format.value }
+                            })}
+                            className={`p-3 rounded-lg border transition-all text-left relative group ${
+                              isSelected
+                                ? 'border-[#482CFF] bg-[#482CFF]/20'
+                                : 'border-gray-700 bg-gray-900/60 hover:border-gray-600'
+                            }`}
+                          >
+                            <div className="text-white text-xs font-medium mb-2">{format.label}</div>
+                            <div className="mb-2">{format.preview}</div>
+                            <div className="text-gray-400 text-xs">{format.desc}</div>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-2 h-2 bg-[#482CFF] rounded-full"></div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Title</h3>
+                    <input
+                      type="text"
+                      value={String(selectedComponent.properties.aboutTitle || '')}
+                      onChange={(e) => updateComponent(selectedComponent.id, {
+                        properties: { aboutTitle: e.target.value }
+                      })}
+                      placeholder="Title Text..."
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                    />
+                  </div>
+
+                  {/* Text */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Text</h3>
+                    <textarea
+                      value={String(selectedComponent.properties.aboutText || '')}
+                      onChange={(e) => updateComponent(selectedComponent.id, {
+                        properties: { aboutText: e.target.value }
+                      })}
+                      placeholder="About Text..."
+                      rows={4}
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* About Boxes */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">About Boxes</h3>
+                    
+                    {/* Boxes Count */}
+                    <div className="mb-4">
+                      <label className="block text-gray-300 text-xs mb-2">Boxes (max 4)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="4"
+                        value={Math.min(4, Math.max(1, Array.isArray(selectedComponent.properties.aboutBoxes) ? selectedComponent.properties.aboutBoxes.length : 1))}
+                        onChange={(e) => {
+                          const count = Math.min(4, Math.max(1, parseInt(e.target.value) || 1))
+                          const currentBoxes = Array.isArray(selectedComponent.properties.aboutBoxes) 
+                            ? [...selectedComponent.properties.aboutBoxes] 
+                            : []
+                          
+                          // Adjust array to match count
+                          const newBoxes = []
+                          for (let i = 0; i < count; i++) {
+                            newBoxes.push(currentBoxes[i] || { title: '' })
+                          }
+                          
+                          updateComponent(selectedComponent.id, {
+                            properties: { aboutBoxes: newBoxes }
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      />
+                    </div>
+
+                    {/* About Boxes */}
+                    <div className="space-y-4">
+                      {Array.isArray(selectedComponent.properties.aboutBoxes) && selectedComponent.properties.aboutBoxes.length > 0 ? (
+                        selectedComponent.properties.aboutBoxes.map((box: { title?: string }, index: number) => (
+                          <div key={index} className="space-y-3 p-3 bg-gray-900/40 rounded-lg border border-gray-700">
+                            <div className="text-white text-xs font-medium mb-2">Box {index + 1}</div>
+                            
+                            <div>
+                              <label className="block text-gray-300 text-xs mb-1">Title</label>
+                              <input
+                                type="text"
+                                value={box.title || ''}
+                                onChange={(e) => {
+                                  const updatedBoxes = [...(selectedComponent.properties.aboutBoxes as Array<{ title?: string }>)]
+                                  updatedBoxes[index] = { ...updatedBoxes[index], title: e.target.value }
+                                  updateComponent(selectedComponent.id, {
+                                    properties: { aboutBoxes: updatedBoxes }
+                                  })
+                                }}
+                                placeholder="Title Text"
+                                className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400 text-xs text-center py-4">
+                          Geen boxes. Verhoog het aantal boxes hierboven.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Program-specific properties (schedule is hetzelfde als program) */}
+              {(selectedComponent.type === 'program' || selectedComponent.type === 'schedule') && (
+                <>
+                  {/* Format Selection */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Format</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { 
+                          value: 'grid-2x1', 
+                          label: 'Grid 2x1', 
+                          desc: '2 boxes horizontal',
+                          preview: (
+                            <div className="flex gap-1 h-12">
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        },
+                        { 
+                          value: 'grid-4x1', 
+                          label: 'Grid 4x1', 
+                          desc: '4 boxes horizontal',
+                          preview: (
+                            <div className="flex gap-1 h-12">
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                              <div className="flex-1 bg-gray-600 rounded"></div>
+                            </div>
+                          )
+                        }
+                      ].map((format) => {
+                        const isSelected = (selectedComponent.properties.programFormat || 'grid-2x1') === format.value
+                        return (
+                          <button
+                            key={format.value}
+                            onClick={() => updateComponent(selectedComponent.id, {
+                              properties: { programFormat: format.value }
+                            })}
+                            className={`p-3 rounded-lg border transition-all text-left relative group ${
+                              isSelected
+                                ? 'border-[#482CFF] bg-[#482CFF]/20'
+                                : 'border-gray-700 bg-gray-900/60 hover:border-gray-600'
+                            }`}
+                          >
+                            <div className="text-white text-xs font-medium mb-2">{format.label}</div>
+                            <div className="mb-2">{format.preview}</div>
+                            <div className="text-gray-400 text-xs">{format.desc}</div>
+                            {isSelected && (
+                              <div className="absolute top-2 right-2 w-2 h-2 bg-[#482CFF] rounded-full"></div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Title</h3>
+                    <input
+                      type="text"
+                      value={String(selectedComponent.properties.programTitle || '')}
+                      onChange={(e) => updateComponent(selectedComponent.id, {
+                        properties: { programTitle: e.target.value }
+                      })}
+                      placeholder="Title Text..."
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                    />
+                  </div>
+
+                  {/* Text */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Text</h3>
+                    <textarea
+                      value={String(selectedComponent.properties.programText || '')}
+                      onChange={(e) => updateComponent(selectedComponent.id, {
+                        properties: { programText: e.target.value }
+                      })}
+                      placeholder="Program Text..."
+                      rows={4}
+                      className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Program Boxes */}
+                  <div>
+                    <h3 className="text-white font-semibold mb-3 text-sm">Program Boxes</h3>
+                    
+                    {/* Boxes Count */}
+                    <div className="mb-4">
+                      <label className="block text-gray-300 text-xs mb-2">Boxes (max 4)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="4"
+                        value={Math.min(4, Math.max(1, Array.isArray(selectedComponent.properties.programBoxes) ? selectedComponent.properties.programBoxes.length : 1))}
+                        onChange={(e) => {
+                          const count = Math.min(4, Math.max(1, parseInt(e.target.value) || 1))
+                          const currentBoxes = Array.isArray(selectedComponent.properties.programBoxes) 
+                            ? [...selectedComponent.properties.programBoxes] 
+                            : []
+                          
+                          // Adjust array to match count
+                          const newBoxes = []
+                          for (let i = 0; i < count; i++) {
+                            newBoxes.push(currentBoxes[i] || { title: '' })
+                          }
+                          
+                          updateComponent(selectedComponent.id, {
+                            properties: { programBoxes: newBoxes }
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                      />
+                    </div>
+
+                    {/* Program Boxes */}
+                    <div className="space-y-4">
+                      {Array.isArray(selectedComponent.properties.programBoxes) && selectedComponent.properties.programBoxes.length > 0 ? (
+                        selectedComponent.properties.programBoxes.map((box: { title?: string }, index: number) => (
+                          <div key={index} className="space-y-3 p-3 bg-gray-900/40 rounded-lg border border-gray-700">
+                            <div className="text-white text-xs font-medium mb-2">Box {index + 1}</div>
+                            
+                            <div>
+                              <label className="block text-gray-300 text-xs mb-1">Title</label>
+                              <input
+                                type="text"
+                                value={box.title || ''}
+                                onChange={(e) => {
+                                  const updatedBoxes = [...(selectedComponent.properties.programBoxes as Array<{ title?: string }>)]
+                                  updatedBoxes[index] = { ...updatedBoxes[index], title: e.target.value }
+                                  updateComponent(selectedComponent.id, {
+                                    properties: { programBoxes: updatedBoxes }
+                                  })
+                                }}
+                                placeholder="Title Text"
+                                className="w-full px-3 py-2 bg-gray-900/60 backdrop-blur-sm border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-[#482CFF] focus:ring-2 focus:ring-[#482CFF]/50 transition-all"
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-400 text-xs text-center py-4">
+                          Geen boxes. Verhoog het aantal boxes hierboven.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Navigation-specific properties */}
               {selectedComponent.type === 'navigation' && (
                 <>
