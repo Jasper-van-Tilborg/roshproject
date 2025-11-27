@@ -721,6 +721,38 @@ const HERO_TEMPLATES = [
   },
 ];
 
+const ABOUT_LAYOUT_OPTIONS: Array<{
+  id: AboutLayout;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: 'image-left',
+    label: 'Afbeelding links',
+    description: 'Visual aan de linkerkant met tekst rechts',
+  },
+  {
+    id: 'image-right',
+    label: 'Afbeelding rechts',
+    description: 'Tekst links en beeldmateriaal rechts',
+  },
+  {
+    id: 'stacked',
+    label: 'Stacked',
+    description: 'Afbeelding bovenaan, content gecentreerd daaronder',
+  },
+  {
+    id: 'spotlight',
+    label: 'Spotlight banner',
+    description: 'Volledige breedte hero met overlay en kaarten',
+  },
+  {
+    id: 'feature-grid',
+    label: 'Feature grid',
+    description: 'Tekst naast een kaart/grid presentatie',
+  },
+];
+
 const VIEWPORTS: Array<'desktop' | 'tablet' | 'mobile'> = ['desktop', 'tablet', 'mobile'];
 
 type EditorTab = 'components' | 'colors' | 'fonts' | 'uploads';
@@ -797,7 +829,7 @@ type ThemeColorKey =
   | 'overlay'
   | 'shadow';
 
-type BaseColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'text';
+type BaseColorKey = 'primary' | 'secondary' | 'accent' | 'background' | 'text' | 'surface' | 'surfaceAlt';
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
@@ -852,27 +884,31 @@ const DEFAULT_BASE_COLORS: Record<BaseColorKey, string> = {
   accent: '#FF5F8D',
   background: '#05060D',
   text: '#FFFFFF',
+  surface: '#090B18',
+  surfaceAlt: '#11132A',
 };
 
 const generateColorPalette = (baseColors: Record<BaseColorKey, string>): Record<ThemeColorKey, string> => {
-  const { primary, secondary, accent, background, text } = baseColors;
+  const { primary, secondary, accent, background, text, surface, surfaceAlt } = baseColors;
+  const resolvedSurface = surface ?? lightenColor(background, 0.07);
+  const resolvedSurfaceAlt = surfaceAlt ?? lightenColor(resolvedSurface, 0.08);
   const link = lightenColor(primary, 0.15);
   const linkHover = lightenColor(primary, 0.3);
-  const sectionBackground = lightenColor(background, 0.08);
-  const cardBackground = lightenColor(background, 0.15);
-  const navBackground = darkenColor(background, 0.1);
-  const footerBackground = darkenColor(background, 0.05);
+  const sectionBackground = resolvedSurface;
+  const cardBackground = resolvedSurfaceAlt;
+  const navBackground = resolvedSurfaceAlt;
+  const footerBackground = resolvedSurface;
   const footerText = lightenColor(text, 0.2);
   const footerLink = lightenColor(primary, 0.2);
   const footerLinkHover = lightenColor(primary, 0.35);
   const buttonPrimaryHover = lightenColor(primary, 0.15);
-  const buttonSecondary = lightenColor(background, 0.12);
-  const buttonSecondaryHover = lightenColor(background, 0.2);
+  const buttonSecondary = resolvedSurfaceAlt;
+  const buttonSecondaryHover = lightenColor(resolvedSurfaceAlt, 0.08);
   const mutedText = mixColors(text, background, 0.4);
-  const border = lightenColor(background, 0.25);
-  const divider = lightenColor(background, 0.18);
-  const overlay = darkenColor(background, 0.3);
-  const shadow = darkenColor(background, 0.45);
+  const border = lightenColor(resolvedSurfaceAlt, 0.18);
+  const divider = lightenColor(resolvedSurface, 0.15);
+  const overlay = darkenColor(resolvedSurface, 0.25);
+  const shadow = darkenColor(resolvedSurfaceAlt, 0.4);
 
   return {
     primary,
@@ -911,6 +947,8 @@ const BASE_COLOR_FIELDS: Array<{ key: BaseColorKey; label: string; helper?: stri
   { key: 'secondary', label: 'Secondary Accent', helper: 'Badges en secundaire CTA\'s' },
   { key: 'accent', label: 'Accent Detail', helper: 'Decoratieve accenten' },
   { key: 'background', label: 'Background', helper: 'Pagina- en kaartachtergrond' },
+  { key: 'surface', label: 'Surface Base', helper: 'Sectie-achtergrond en grote vlakken' },
+  { key: 'surfaceAlt', label: 'Surface Elevated', helper: 'Cards, panelen en blockquotes' },
   { key: 'text', label: 'Text', helper: 'Body- en headingtekst' },
 ];
 
@@ -979,6 +1017,7 @@ type UploadItem = {
 
 type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4';
 type BodyVariant = 'body' | 'small';
+type AboutLayout = 'image-left' | 'image-right' | 'stacked' | 'spotlight' | 'feature-grid';
 type TextElementTag = keyof JSX.IntrinsicElements;
 
 const DEFAULT_FONT_SETTINGS: FontSettings = {
@@ -1082,7 +1121,7 @@ const getDefaultHeroSettings = () => ({
 });
 
 const getDefaultAboutSettings = () => ({
-  layout: 'image-left' as 'image-left' | 'image-right' | 'stacked',
+  layout: 'image-left' as AboutLayout,
   imageUrl: 'https://images.rosh.gg/hero.jpg',
   imageRadius: 24,
   imageShadow: true,
@@ -2457,17 +2496,32 @@ export default function CustomTemplatePage() {
       case 'about':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Layout</h3>
-              <select
-                value={aboutSettings.layout}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, layout: e.target.value as typeof aboutSettings.layout }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-              >
-                <option value="image-left">Links afbeelding / rechts tekst</option>
-                <option value="image-right">Rechts afbeelding / links tekst</option>
-                <option value="stacked">Afbeelding boven / tekst onder</option>
-              </select>
+            <section className="space-y-3">
+              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Layouts</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {ABOUT_LAYOUT_OPTIONS.map((layout) => {
+                  const isSelected = aboutSettings.layout === layout.id;
+                  return (
+                    <button
+                      key={layout.id}
+                      onClick={() => setAboutSettings((prev) => ({ ...prev, layout: layout.id }))}
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                        isSelected
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
+                        </div>
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </section>
             <DroppableImageField
               id="about-image"
@@ -2475,93 +2529,203 @@ export default function CustomTemplatePage() {
               onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
               label="Afbeelding"
             >
-              <input
-                type="text"
-                value={aboutSettings.imageUrl}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Afbeelding URL"
-              />
-              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url })))} />
-              <label className="text-xs text-white/60 flex flex-col gap-1">
-                Ronde hoeken ({aboutSettings.imageRadius}px)
-                <input type="range" min={0} max={64} value={aboutSettings.imageRadius} onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageRadius: Number(e.target.value) }))} />
-              </label>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={aboutSettings.imageShadow} onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageShadow: e.target.checked }))} />
-                Shadow effect
-              </label>
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
+                <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
+                  {aboutSettings.imageUrl ? (
+                    <img
+                      src={aboutSettings.imageUrl}
+                      alt="About visual"
+                      className="w-full h-full object-cover"
+                      style={{ borderRadius: aboutSettings.imageRadius }}
+                    />
+                  ) : (
+                    <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Afbeelding URL
+                    <input
+                      type="text"
+                      value={aboutSettings.imageUrl}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="https://"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Upload bestand
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, (url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url })))}
+                      className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
+                    />
+                  </label>
+                </div>
+                <div className="grid gap-3 text-xs text-white/60">
+                  <label className="flex flex-col gap-1">
+                    Ronde hoeken ({aboutSettings.imageRadius}px)
+                    <input
+                      type="range"
+                      min={0}
+                      max={64}
+                      value={aboutSettings.imageRadius}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageRadius: Number(e.target.value) }))}
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-white/70">
+                    <input
+                      type="checkbox"
+                      checked={aboutSettings.imageShadow}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageShadow: e.target.checked }))}
+                    />
+                    Shadow effect
+                  </label>
+                </div>
+              </div>
             </DroppableImageField>
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Tekst</h3>
-              <input
-                value={aboutSettings.subtitle}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Subtitel"
-              />
-              <input
-                value={aboutSettings.title}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, title: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Titel"
-              />
-              <textarea
-                value={aboutSettings.paragraph}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, paragraph: e.target.value }))}
-                rows={4}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Paragraaf"
-              />
+              <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3">
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Subtitel
+                  <input
+                    value={aboutSettings.subtitle}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                    placeholder="Subtitel"
+                  />
+                </label>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Titel
+                  <input
+                    value={aboutSettings.title}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                    placeholder="Titel"
+                  />
+                </label>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Beschrijving
+                  <textarea
+                    value={aboutSettings.paragraph}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, paragraph: e.target.value }))}
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                    placeholder="Paragraaf"
+                  />
+                </label>
+              </div>
             </section>
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Bullet points</h3>
-              {aboutSettings.bullets.map((bullet) => (
-                <div key={bullet.id} className="flex gap-2">
-                  <input
-                    value={bullet.text}
-                    onChange={(e) => updateAboutList('bullets', bullet.id, 'text', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  />
-                  <button onClick={() => removeAboutItem('bullets', bullet.id)} className="text-xs px-2 py-1 border border-white/10 rounded-lg">–</button>
-                </div>
-              ))}
-              <button onClick={() => addAboutItem('bullets')} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">+ Punt toevoegen</button>
+              <div className="space-y-3">
+                {aboutSettings.bullets.map((bullet, index) => (
+                  <div key={bullet.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/50">
+                      <span>Bullet #{index + 1}</span>
+                      <button
+                        onClick={() => removeAboutItem('bullets', bullet.id)}
+                        className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
+                      >
+                        Verwijder
+                      </button>
+                    </div>
+                    <label className="text-xs text-white/60 flex flex-col gap-1">
+                      Tekst
+                      <input
+                        value={bullet.text}
+                        onChange={(e) => updateAboutList('bullets', bullet.id, 'text', e.target.value)}
+                        className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                      />
+                    </label>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addAboutItem('bullets')}
+                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                >
+                  + Punt toevoegen
+                </button>
+              </div>
             </section>
-            <section className="space-y-2">
+            <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Knoppen</h3>
-              {aboutSettings.buttons.map((button) => (
-                <div key={button.id} className="flex gap-2">
-                  <input
-                    value={button.label}
-                    onChange={(e) => updateAboutList('buttons', button.id, 'label', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Tekst"
-                  />
-                  <input
-                    value={button.link}
-                    onChange={(e) => updateAboutList('buttons', button.id, 'link', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Link"
-                  />
-                  <button onClick={() => removeAboutItem('buttons', button.id)} className="text-xs px-2 py-1 border border-white/10 rounded-lg">–</button>
-                </div>
-              ))}
-              <button onClick={() => addAboutItem('buttons')} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">+ Knop toevoegen</button>
+              <div className="space-y-3">
+                {aboutSettings.buttons.map((button, index) => (
+                  <div key={button.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/50">
+                      <span>Knop #{index + 1}</span>
+                      <button
+                        onClick={() => removeAboutItem('buttons', button.id)}
+                        className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
+                      >
+                        Verwijder
+                      </button>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Tekst
+                        <input
+                          value={button.label}
+                          onChange={(e) => updateAboutList('buttons', button.id, 'label', e.target.value)}
+                          className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="Tekst"
+                        />
+                      </label>
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Link
+                        <input
+                          value={button.link}
+                          onChange={(e) => updateAboutList('buttons', button.id, 'link', e.target.value)}
+                          className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="https://"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => addAboutItem('buttons')}
+                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                >
+                  + Knop toevoegen
+                </button>
+              </div>
             </section>
-            <section className="space-y-3 text-xs text-white/60">
-              <label>
-                Achtergrondkleur
-                <input type="color" value={aboutSettings.backgroundColor} onChange={(e) => setAboutSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))} />
-              </label>
-              <label>
-                Padding top ({aboutSettings.padding.top}px)
-                <input type="range" min={40} max={160} value={aboutSettings.padding.top} onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, top: Number(e.target.value) } }))} />
-              </label>
-              <label>
-                Padding bottom ({aboutSettings.padding.bottom}px)
-                <input type="range" min={40} max={160} value={aboutSettings.padding.bottom} onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, bottom: Number(e.target.value) } }))} />
-              </label>
+            <section className="space-y-3">
+              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stijl</h3>
+              <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3 text-xs text-white/60">
+                <label className="flex flex-col gap-1">
+                  Achtergrondkleur
+                  <input
+                    type="color"
+                    value={aboutSettings.backgroundColor}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, backgroundColor: e.target.value }))}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  Padding top ({aboutSettings.padding.top}px)
+                  <input
+                    type="range"
+                    min={40}
+                    max={160}
+                    value={aboutSettings.padding.top}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, top: Number(e.target.value) } }))}
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  Padding bottom ({aboutSettings.padding.bottom}px)
+                  <input
+                    type="range"
+                    min={40}
+                    max={160}
+                    value={aboutSettings.padding.bottom}
+                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, bottom: Number(e.target.value) } }))}
+                  />
+                </label>
+              </div>
             </section>
           </div>
         );
@@ -3924,77 +4088,250 @@ export default function CustomTemplatePage() {
                     style={{ borderColor: colorPalette.primary }}
                   />
                   <div className="container mx-auto max-w-6xl relative z-20">
-                    <div className="grid gap-10 items-center md:grid-cols-2" style={{ flexDirection: aboutSettings.layout === 'stacked' ? 'column' : undefined }}>
-                      {(aboutSettings.layout === 'image-left' || aboutSettings.layout === 'stacked') && (
-                        <DroppableImageArea
-                          id="preview-about-image-left"
-                          value={aboutSettings.imageUrl}
-                          onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
-                          className="w-full flex justify-center"
-                        >
-                          {aboutSettings.imageUrl && (
-                            <img
-                              src={aboutSettings.imageUrl}
-                              alt="About visual"
-                              className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
-                              style={{ borderRadius: aboutSettings.imageRadius }}
-                            />
-                          )}
-                        </DroppableImageArea>
-                      )}
-                      <div className="space-y-4">
-                        <HeadingText
-                          level="h2"
-                          className="uppercase tracking-widest opacity-70"
-                          color={colorPalette.mutedText}
-                        >
-                          {aboutSettings.subtitle}
-                        </HeadingText>
-                        <HeadingText level="h1" className="font-bold">
-                          {aboutSettings.title}
-                        </HeadingText>
-                        <BodyText className="opacity-90">
-                          {aboutSettings.paragraph}
-                        </BodyText>
-                        <ul className="space-y-2">
-                          {aboutSettings.bullets.map((bullet) => (
-                            <li key={bullet.id} className="flex items-start gap-2">
-                              <span className="mt-1" style={{ color: colorPalette.primary }}>•</span>
-                              <BodyText as="span">{bullet.text}</BodyText>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="flex flex-wrap gap-4">
-                          {aboutSettings.buttons.map((button) => (
-                            <a
-                              key={button.id}
-                              href={button.link}
-                              className="px-5 py-3 rounded-lg border text-sm font-medium transition-all hover:scale-105"
-                              style={{ borderColor: colorPalette.primary, color: colorPalette.primary }}
-                            >
-                              {button.label}
-                            </a>
-                          ))}
+                    {(() => {
+                      const renderAboutButtons = (align: 'left' | 'center' = 'left', tone: 'default' | 'inverted' = 'default') => {
+                        if (!aboutSettings.buttons.length) return null;
+                        const textColor = tone === 'inverted' ? '#F9FAFB' : colorPalette.primary;
+                        const borderColor = tone === 'inverted' ? 'rgba(255,255,255,0.55)' : colorPalette.primary;
+                        const backgroundColor = tone === 'inverted' ? 'rgba(255,255,255,0.08)' : 'transparent';
+
+                        return (
+                          <div className={`flex flex-wrap gap-4 ${align === 'center' ? 'justify-center' : ''}`}>
+                            {aboutSettings.buttons.map((button) => (
+                              <a
+                                key={button.id}
+                                href={button.link}
+                                className="px-5 py-3 rounded-lg border text-sm font-medium transition-all hover:scale-105"
+                                style={{ borderColor, color: textColor, backgroundColor }}
+                              >
+                                {button.label}
+                              </a>
+                            ))}
+                          </div>
+                        );
+                      };
+
+                      const renderAboutBullets = ({
+                        variant = 'list',
+                        align = 'left',
+                        tone = 'default',
+                      }: {
+                        variant?: 'list' | 'grid';
+                        align?: 'left' | 'center';
+                        tone?: 'default' | 'inverted';
+                      } = {}) => {
+                        if (aboutSettings.bullets.length === 0) return null;
+
+                        if (variant === 'grid') {
+                          return (
+                            <div className={`grid gap-4 ${aboutSettings.bullets.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+                              {aboutSettings.bullets.map((bullet) => (
+                                <div
+                                  key={bullet.id}
+                                  className="rounded-2xl border p-4 text-left"
+                                  style={{
+                                    borderColor: tone === 'inverted' ? 'rgba(255,255,255,0.35)' : colorPalette.border,
+                                    backgroundColor: tone === 'inverted' ? 'rgba(255,255,255,0.05)' : colorPalette.cardBackground,
+                                  }}
+                                >
+                                  <BodyText as="p" className="opacity-90" color={tone === 'inverted' ? '#F9FAFB' : undefined}>
+                                    {bullet.text}
+                                  </BodyText>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <ul className={`space-y-2 ${align === 'center' ? 'mx-auto max-w-2xl' : ''}`}>
+                            {aboutSettings.bullets.map((bullet) => (
+                              <li
+                                key={bullet.id}
+                                className={`flex items-start gap-2 ${align === 'center' ? 'justify-center text-left' : ''}`}
+                              >
+                                <span className="mt-1" style={{ color: tone === 'inverted' ? '#F9FAFB' : colorPalette.primary }}>•</span>
+                                <BodyText as="span" color={tone === 'inverted' ? '#F9FAFB' : undefined}>
+                                  {bullet.text}
+                                </BodyText>
+                              </li>
+                            ))}
+                          </ul>
+                        );
+                      };
+
+                      const renderAboutMainText = ({
+                        align = 'left',
+                        includeBullets = true,
+                        bulletVariant = 'list',
+                        includeButtons = true,
+                        subtitleColor,
+                        titleColor,
+                        bodyColor,
+                        bulletTone = 'default',
+                        buttonTone = 'default',
+                      }: {
+                        align?: 'left' | 'center';
+                        includeBullets?: boolean;
+                        bulletVariant?: 'list' | 'grid';
+                        includeButtons?: boolean;
+                        subtitleColor?: string;
+                        titleColor?: string;
+                        bodyColor?: string;
+                        bulletTone?: 'default' | 'inverted';
+                        buttonTone?: 'default' | 'inverted';
+                      } = {}) => (
+                        <div className={`space-y-4 ${align === 'center' ? 'text-center' : ''}`}>
+                          <HeadingText
+                            level="h2"
+                            className="uppercase tracking-widest opacity-70"
+                            color={subtitleColor ?? colorPalette.mutedText}
+                            align={align}
+                          >
+                            {aboutSettings.subtitle}
+                          </HeadingText>
+                          <HeadingText level="h1" className="font-bold" color={titleColor} align={align}>
+                            {aboutSettings.title}
+                          </HeadingText>
+                          <BodyText className="opacity-90" align={align} color={bodyColor}>
+                            {aboutSettings.paragraph}
+                          </BodyText>
+                          {includeBullets && renderAboutBullets({ variant: bulletVariant, align, tone: bulletTone })}
+                          {includeButtons && renderAboutButtons(align, buttonTone)}
                         </div>
-                      </div>
-                      {aboutSettings.layout === 'image-right' && (
+                      );
+
+                      const renderAboutImage = (
+                        idSuffix: string,
+                        options: {
+                          className?: string;
+                          minHeight?: string;
+                          imageClassName?: string;
+                          imageCover?: boolean;
+                        } = {}
+                      ) => {
+                        const minHeight = options.minHeight ?? '280px';
+                        return (
+                          <DroppableImageArea
+                            id={`preview-about-image-${idSuffix}`}
+                            value={aboutSettings.imageUrl}
+                            onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+                            className={`w-full flex justify-center items-center ${options.className ?? ''}`}
+                            style={{ minHeight }}
+                          >
+                            {aboutSettings.imageUrl ? (
+                              <img
+                                src={aboutSettings.imageUrl}
+                                alt="About visual"
+                                className={`w-full ${options.imageClassName ?? 'max-w-md'} ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
+                                style={{
+                                  borderRadius: aboutSettings.imageRadius,
+                                  objectFit: options.imageCover ? 'cover' : 'contain',
+                                  height: options.imageCover ? '100%' : undefined,
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className="w-full border border-dashed rounded-3xl flex items-center justify-center text-white/40 text-sm"
+                                style={{ minHeight, borderColor: colorPalette.border }}
+                              >
+                                Voeg een afbeelding toe
+                              </div>
+                            )}
+                          </DroppableImageArea>
+                        );
+                      };
+
+                      const renderSplitLayout = (position: 'left' | 'right') => (
+                        <div className="grid gap-10 items-center md:grid-cols-2">
+                          {position === 'left' && renderAboutImage('left')}
+                          {renderAboutMainText()}
+                          {position === 'right' && renderAboutImage('right')}
+                        </div>
+                      );
+
+                      const renderStackedLayout = () => (
+                        <div className="space-y-10">
+                          {renderAboutImage('stacked', { imageClassName: 'max-w-3xl rounded-3xl', minHeight: '320px' })}
+                          {renderAboutMainText({ align: 'center' })}
+                        </div>
+                      );
+
+                      const renderSpotlightLayout = () => (
                         <DroppableImageArea
-                          id="preview-about-image-right"
+                          id="preview-about-spotlight"
                           value={aboutSettings.imageUrl}
                           onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
-                          className="w-full flex justify-center"
+                          className="w-full"
+                          style={{ minHeight: '320px' }}
                         >
-                          {aboutSettings.imageUrl && (
-                            <img
-                              src={aboutSettings.imageUrl}
-                              alt="About visual"
-                              className={`w-full max-w-md ${aboutSettings.imageShadow ? 'shadow-2xl' : ''}`}
-                              style={{ borderRadius: aboutSettings.imageRadius }}
-                            />
-                          )}
+                          <div className="relative overflow-hidden rounded-3xl border border-white/10 min-h-[320px]">
+                            {aboutSettings.imageUrl ? (
+                              <img
+                                src={aboutSettings.imageUrl}
+                                alt="About visual"
+                                className="absolute inset-0 w-full h-full object-cover"
+                                style={{ filter: 'brightness(0.6)' }}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-r from-[#11132A] to-[#0A0C1B]" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+                            <div className="relative p-8 md:p-12 space-y-6">
+                              {renderAboutMainText({
+                                align: 'left',
+                                includeBullets: false,
+                                includeButtons: false,
+                                subtitleColor: '#E0E7FF',
+                                titleColor: '#FFFFFF',
+                                bodyColor: '#F3F4F6',
+                              })}
+                              <div className="space-y-6">
+                                {renderAboutBullets({ variant: 'grid', tone: 'inverted' })}
+                                {renderAboutButtons('left', 'inverted')}
+                              </div>
+                            </div>
+                          </div>
                         </DroppableImageArea>
-                      )}
-                    </div>
+                      );
+
+                      const renderFeatureGridLayout = () => (
+                        <div className="grid gap-8 lg:grid-cols-2 items-start">
+                          {renderAboutMainText({ align: 'left', includeBullets: false })}
+                          <div className="space-y-5">
+                            {renderAboutBullets({ variant: 'grid', align: 'left' })}
+                            {renderAboutImage('feature', {
+                              className: 'justify-center',
+                              minHeight: '240px',
+                              imageClassName: 'w-full h-60 object-cover rounded-3xl',
+                              imageCover: true,
+                            })}
+                          </div>
+                        </div>
+                      );
+
+                      let aboutLayoutContent: ReactNode;
+
+                      switch (aboutSettings.layout) {
+                        case 'image-right':
+                          aboutLayoutContent = renderSplitLayout('right');
+                          break;
+                        case 'stacked':
+                          aboutLayoutContent = renderStackedLayout();
+                          break;
+                        case 'spotlight':
+                          aboutLayoutContent = renderSpotlightLayout();
+                          break;
+                        case 'feature-grid':
+                          aboutLayoutContent = renderFeatureGridLayout();
+                          break;
+                        case 'image-left':
+                        default:
+                          aboutLayoutContent = renderSplitLayout('left');
+                      }
+
+                      return aboutLayoutContent;
+                    })()}
                   </div>
                 </section>
               )}
