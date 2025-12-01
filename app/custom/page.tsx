@@ -1318,6 +1318,119 @@ const resetGroupStageColors = () => {
   };
 };
 
+type StatsLayout = 'grid' | 'list' | 'cards' | 'minimal';
+
+const STATS_LAYOUT_OPTIONS: { id: StatsLayout; label: string; description: string }[] = [
+  { id: 'grid', label: 'Grid', description: '4-kolom grid layout' },
+  { id: 'list', label: 'Lijst', description: 'Verticale lijst weergave' },
+  { id: 'cards', label: 'Cards', description: 'Grote card weergave' },
+  { id: 'minimal', label: 'Minimaal', description: 'Compacte weergave' },
+];
+
+const getDefaultStatsSettings = () => ({
+  layout: 'grid' as StatsLayout,
+  title: 'Live Statistieken',
+  subtitle: 'Real-time toernooi overzicht',
+  stats: [
+    { id: createId(), value: '16', label: 'Teams', icon: '' },
+    { id: createId(), value: '€25.000', label: 'Prijzenpot (€)', icon: '' },
+    { id: createId(), value: '48', label: 'Spelers', icon: '' },
+    { id: createId(), value: '1.2K', label: 'Live Toeschouwers', icon: '' },
+  ],
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    statValue: 32,
+    statLabel: 14,
+  },
+  colors: {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    statValueColor: '#755DFF',
+    statLabelColor: '#FFFFFF',
+  },
+});
+
+const resetStatsFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+    statValue: 32,
+    statLabel: 14,
+  };
+};
+
+const resetStatsColors = () => {
+  return {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    statValueColor: '#755DFF',
+    statLabelColor: '#FFFFFF',
+  };
+};
+
+type FAQLayout = 'accordion' | 'cards' | 'list' | 'minimal';
+
+const FAQ_LAYOUT_OPTIONS: { id: FAQLayout; label: string; description: string }[] = [
+  { id: 'accordion', label: 'Accordion', description: 'Uitklapbare items' },
+  { id: 'cards', label: 'Cards', description: 'Card weergave' },
+  { id: 'list', label: 'Lijst', description: 'Verticale lijst' },
+  { id: 'minimal', label: 'Minimaal', description: 'Compacte weergave' },
+];
+
+const getDefaultFAQSettings = () => ({
+  layout: 'accordion' as FAQLayout,
+  title: 'FAQ',
+  subtitle: 'Veelgestelde vragen',
+  items: [
+    { id: createId(), question: 'Wat is het inschrijfgeld?', answer: 'Het inschrijfgeld bedraagt €150 per team. Dit dekt de volledige dag inclusief faciliteiten, setup en prijs contributions.' },
+    { id: createId(), question: 'Wat zijn de rank requirements?', answer: 'Minimaal één speler moet Champion I of hoger zijn. De gemiddelde team rank moet minimaal Diamond III zijn.' },
+    { id: createId(), question: 'Is een substitute speler toegestaan?', answer: 'Ja, elk team mag één officiële substitute registreren. Deze moet bij inschrijving worden opgegeven.' },
+  ],
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    question: 20,
+    answer: 14,
+  },
+  colors: {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    questionColor: '#FFFFFF',
+    answerColor: '#FFFFFF',
+  },
+});
+
+const resetFAQFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+    question: 20,
+    answer: 14,
+  };
+};
+
+const resetFAQColors = () => {
+  return {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    questionColor: '#FFFFFF',
+    answerColor: '#FFFFFF',
+  };
+};
+
 const getDefaultTwitchSettings = () => ({
   channel: 'roshlive',
   autoplay: false,
@@ -1328,8 +1441,20 @@ const getDefaultTwitchSettings = () => ({
   background: '#05060D',
 });
 
+type SponsorLayout = 'grid' | 'carousel' | 'rows' | 'centered' | 'minimal';
+
+const SPONSOR_LAYOUT_OPTIONS: { id: SponsorLayout; label: string; description: string }[] = [
+  { id: 'grid', label: 'Grid', description: 'Raster weergave' },
+  { id: 'carousel', label: 'Carousel', description: 'Horizontale scroll' },
+  { id: 'rows', label: 'Rijen', description: 'Verticale rijen' },
+  { id: 'centered', label: 'Gecentreerd', description: 'Gecentreerde weergave' },
+  { id: 'minimal', label: 'Minimaal', description: 'Compacte weergave' },
+];
+
 const getDefaultSponsorSettings = () => ({
-  layout: 'grid' as 'grid' | 'carousel',
+  layout: 'grid' as SponsorLayout,
+  title: 'Onze Sponsors',
+  subtitle: 'Met dank aan onze partners',
   columns: 3,
   logoSize: 80,
   gap: 20,
@@ -1342,7 +1467,35 @@ const getDefaultSponsorSettings = () => ({
     { id: createId(), name: 'NVIDIA', url: 'https://images.rosh.gg/nvidia.png', link: '#' },
     { id: createId(), name: 'Red Bull', url: 'https://images.rosh.gg/redbull.png', link: '#' },
   ],
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+  },
+  colors: {
+    backgroundColor: '#0E1020',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+  },
 });
+
+const resetSponsorFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+  };
+};
+
+const resetSponsorColors = () => {
+  return {
+    backgroundColor: '#0E1020',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+  };
+};
 
 const getDefaultSocialSettings = () => ({
   display: 'icon-text' as 'icon' | 'icon-text',
@@ -1437,6 +1590,7 @@ export default function CustomTemplatePage() {
   const [overlayOpacity, setOverlayOpacity] = useState(DEFAULT_OVERLAY_OPACITY);
   const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
+  const sponsorLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
   const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
@@ -1451,6 +1605,70 @@ export default function CustomTemplatePage() {
   const [bracketSettings, setBracketSettings] = useState(() => getDefaultBracketSettings());
 
   const [groupStageSettings, setGroupStageSettings] = useState(() => getDefaultGroupStageSettings());
+  const [statsSettings, setStatsSettings] = useState(() => getDefaultStatsSettings());
+  const [faqSettings, setFaqSettings] = useState(() => getDefaultFAQSettings());
+  const [expandedStatsSections, setExpandedStatsSections] = useState<Record<string, boolean>>({
+    layout: true,
+    text: true,
+    stats: true,
+    fontSizes: false,
+    colors: false,
+  });
+  const [expandedNavSections, setExpandedNavSections] = useState<Record<string, boolean>>({
+    format: true,
+    logo: true,
+    menu: true,
+    style: false,
+    cta: false,
+  });
+  const [expandedHeroSections, setExpandedHeroSections] = useState<Record<string, boolean>>({
+    template: true,
+    content: true,
+    image: true,
+    style: false,
+  });
+  const [expandedAboutSections, setExpandedAboutSections] = useState<Record<string, boolean>>({
+    layout: true,
+    content: true,
+    image: true,
+    style: false,
+  });
+  const [expandedProgramSections, setExpandedProgramSections] = useState<Record<string, boolean>>({
+    items: true,
+    layout: true,
+    colors: false,
+  });
+  const [expandedBracketSections, setExpandedBracketSections] = useState<Record<string, boolean>>({
+    source: true,
+    rounds: true,
+    style: false,
+  });
+  const [expandedTwitchSections, setExpandedTwitchSections] = useState<Record<string, boolean>>({
+    settings: true,
+    layout: true,
+  });
+  const [expandedSponsorSections, setExpandedSponsorSections] = useState<Record<string, boolean>>({
+    layout: true,
+    logos: true,
+    layoutOptions: false,
+    fontSizes: false,
+    colors: false,
+  });
+  const [expandedSocialSections, setExpandedSocialSections] = useState<Record<string, boolean>>({
+    links: true,
+    style: false,
+  });
+  const [expandedFooterSections, setExpandedFooterSections] = useState<Record<string, boolean>>({
+    content: true,
+    links: true,
+    style: false,
+  });
+  const [expandedFAQSections, setExpandedFAQSections] = useState<Record<string, boolean>>({
+    layout: true,
+    content: true,
+    fontSizes: false,
+    colors: false,
+  });
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     const defaultSettings = getDefaultGroupStageSettings();
@@ -1985,6 +2203,8 @@ export default function CustomTemplatePage() {
     setProgramSettings(getDefaultProgramSettings());
     setBracketSettings(getDefaultBracketSettings());
     setGroupStageSettings(getDefaultGroupStageSettings());
+    setStatsSettings(getDefaultStatsSettings());
+    setFaqSettings(getDefaultFAQSettings());
     setTwitchSettings(getDefaultTwitchSettings());
     setSponsorSettings(getDefaultSponsorSettings());
     setSocialSettings(getDefaultSocialSettings());
@@ -2120,6 +2340,34 @@ export default function CustomTemplatePage() {
 
   const moveProgramItem = (from: number, to: number) => {
     setProgramSettings((prev) => ({
+      ...prev,
+      items: moveItem(prev.items, from, to),
+    }));
+  };
+
+  const updateFAQItem = (id: string, field: 'question' | 'answer', value: string) => {
+    setFaqSettings((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    }));
+  };
+
+  const addFAQItem = () => {
+    setFaqSettings((prev) => ({
+      ...prev,
+      items: [...prev.items, { id: createId(), question: 'Nieuwe vraag?', answer: 'Antwoord hier...' }],
+    }));
+  };
+
+  const removeFAQItem = (id: string) => {
+    setFaqSettings((prev) => ({
+      ...prev,
+      items: prev.items.filter((item) => item.id !== id),
+    }));
+  };
+
+  const moveFAQItem = (from: number, to: number) => {
+    setFaqSettings((prev) => ({
       ...prev,
       items: moveItem(prev.items, from, to),
     }));
@@ -2348,14 +2596,47 @@ export default function CustomTemplatePage() {
     });
   };
 
+  const renderCollapsibleSection = (
+    id: string,
+    title: string,
+    isExpanded: boolean,
+    onToggle: () => void,
+    children: React.ReactNode,
+    badge?: string
+  ) => (
+    <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+      >
+        <div className="flex items-center gap-3">
+          <svg
+            className={`w-4 h-4 text-white/60 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-sm font-semibold text-white">{title}</span>
+          {badge && <span className="text-xs text-white/40">({badge})</span>}
+        </div>
+      </button>
+      {isExpanded && <div className="px-4 pb-4">{children}</div>}
+    </div>
+  );
+
   const renderSettingsPanel = () => {
-    const panelClass = 'flex-1 px-6 py-6 space-y-6';
+    const panelClass = 'flex-1 px-6 py-6 space-y-3';
     switch (activeComponent) {
       case 'navigation':
         return (
           <div className={panelClass}>
-            <section>
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40 mb-3">Format</h3>
+            {renderCollapsibleSection(
+              'nav-format',
+              'Format',
+              expandedNavSections.format,
+              () => setExpandedNavSections((prev) => ({ ...prev, format: !prev.format })),
               <div className="space-y-2">
                 {NAVIGATION_FORMATS.map((format) => (
                   <button
@@ -2380,9 +2661,14 @@ export default function CustomTemplatePage() {
                   </button>
                 ))}
               </div>
-            </section>
+            )}
 
-            <DroppableImageField
+            {renderCollapsibleSection(
+              'nav-logo',
+              'Logo',
+              expandedNavSections.logo,
+              () => setExpandedNavSections((prev) => ({ ...prev, logo: !prev.logo })),
+              <DroppableImageField
               id="navigation-logo"
               value={navigationSettings.logoUrl}
               onChange={(url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url }))}
@@ -2452,11 +2738,16 @@ export default function CustomTemplatePage() {
                   onChange={(e) => setNavigationSettings((prev) => ({ ...prev, logoWidth: Number(e.target.value) }))}
                 />
               </label>
-            </DroppableImageField>
+              </DroppableImageField>
+            )}
 
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Menu-items</h3>
-              <div className="flex gap-4 text-sm text-white/70">
+            {renderCollapsibleSection(
+              'nav-menu',
+              'Menu-items',
+              expandedNavSections.menu,
+              () => setExpandedNavSections((prev) => ({ ...prev, menu: !prev.menu })),
+              <div className="space-y-3">
+                <div className="flex gap-4 text-sm text-white/70">
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
@@ -2523,74 +2814,85 @@ export default function CustomTemplatePage() {
                       <button onClick={() => removeNavigationMenuItem(item.id)}>Verwijder</button>
                     </div>
                   </div>
-                ))}
-                <button
-                  onClick={addNavigationMenuItem}
-                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
-                >
-                  + Voeg menu-item toe
-                </button>
-              </div>
-            </section>
+                  ))}
+                  <button
+                    onClick={addNavigationMenuItem}
+                    className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                  >
+                    + Voeg menu-item toe
+                  </button>
+                </div>
+              </div>,
+              `${navigationSettings.menuItems.length} items`
+            )}
 
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stijl</h3>
+            {renderCollapsibleSection(
+              'nav-style',
+              'Stijl',
+              expandedNavSections.style,
+              () => setExpandedNavSections((prev) => ({ ...prev, style: !prev.style })),
               <div className="space-y-3">
-                <ColorInputField
-                  label="Tekstkleur"
-                  value={navigationSettings.textColor}
-                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, textColor: value }))}
-                />
-                <ColorInputField
-                  label="Hover kleur"
-                  value={navigationSettings.hoverColor}
-                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, hoverColor: value }))}
-                />
-                <ColorInputField
-                  label="Actieve kleur"
-                  value={navigationSettings.activeColor}
-                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, activeColor: value }))}
-                />
-                <ColorInputField
-                  label="Achtergrond"
-                  value={navigationSettings.backgroundColor}
-                  onChange={(value) => setNavigationSettings((prev) => ({ ...prev, backgroundColor: value }))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
-                <label>
-                  Padding top ({navigationSettings.padding.top}px)
-                  <input
-                    type="range"
-                    min={8}
-                    max={48}
-                    value={navigationSettings.padding.top}
-                    onChange={(e) => setNavigationSettings((prev) => ({ ...prev, padding: { ...prev.padding, top: Number(e.target.value) } }))}
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Tekstkleur"
+                    value={navigationSettings.textColor}
+                    onChange={(value) => setNavigationSettings((prev) => ({ ...prev, textColor: value }))}
                   />
-                </label>
-                <label>
-                  Padding bottom ({navigationSettings.padding.bottom}px)
-                  <input
-                    type="range"
-                    min={8}
-                    max={48}
-                    value={navigationSettings.padding.bottom}
-                    onChange={(e) => setNavigationSettings((prev) => ({ ...prev, padding: { ...prev.padding, bottom: Number(e.target.value) } }))}
+                  <ColorInputField
+                    label="Hover kleur"
+                    value={navigationSettings.hoverColor}
+                    onChange={(value) => setNavigationSettings((prev) => ({ ...prev, hoverColor: value }))}
                   />
+                  <ColorInputField
+                    label="Actieve kleur"
+                    value={navigationSettings.activeColor}
+                    onChange={(value) => setNavigationSettings((prev) => ({ ...prev, activeColor: value }))}
+                  />
+                  <ColorInputField
+                    label="Achtergrond"
+                    value={navigationSettings.backgroundColor}
+                    onChange={(value) => setNavigationSettings((prev) => ({ ...prev, backgroundColor: value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs text-white/60">
+                  <label>
+                    Padding top ({navigationSettings.padding.top}px)
+                    <input
+                      type="range"
+                      min={8}
+                      max={48}
+                      value={navigationSettings.padding.top}
+                      onChange={(e) => setNavigationSettings((prev) => ({ ...prev, padding: { ...prev.padding, top: Number(e.target.value) } }))}
+                    />
+                  </label>
+                  <label>
+                    Padding bottom ({navigationSettings.padding.bottom}px)
+                    <input
+                      type="range"
+                      min={8}
+                      max={48}
+                      value={navigationSettings.padding.bottom}
+                      onChange={(e) => setNavigationSettings((prev) => ({ ...prev, padding: { ...prev.padding, bottom: Number(e.target.value) } }))}
+                    />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-white/70">
+                  <input
+                    type="checkbox"
+                    checked={navigationSettings.sticky}
+                    onChange={(e) => setNavigationSettings((prev) => ({ ...prev, sticky: e.target.checked }))}
+                  />
+                  Sticky navigation
                 </label>
               </div>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input
-                  type="checkbox"
-                  checked={navigationSettings.sticky}
-                  onChange={(e) => setNavigationSettings((prev) => ({ ...prev, sticky: e.target.checked }))}
-                />
-                Sticky navigation
-              </label>
-            </section>
+            )}
 
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">CTA-knop</h3>
+            {renderCollapsibleSection(
+              'nav-cta',
+              'CTA-knop',
+              expandedNavSections.cta,
+              () => setExpandedNavSections((prev) => ({ ...prev, cta: !prev.cta })),
+              <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm text-white/70">
                 <input
                   type="checkbox"
@@ -2639,14 +2941,18 @@ export default function CustomTemplatePage() {
                   </label>
                 </div>
               )}
-            </section>
+              </div>
+            )}
           </div>
         );
       case 'hero':
         return (
           <div className={panelClass}>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Templates</h3>
+            {renderCollapsibleSection(
+              'hero-template',
+              'Templates',
+              expandedHeroSections.template,
+              () => setExpandedHeroSections((prev) => ({ ...prev, template: !prev.template })),
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {HERO_TEMPLATES.map((template) => {
                   const isSelected = heroSettings.template === template.id;
@@ -2673,9 +2979,14 @@ export default function CustomTemplatePage() {
                   );
                 })}
               </div>
-            </section>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Content</h3>
+            )}
+
+            {renderCollapsibleSection(
+              'hero-content',
+              'Content',
+              expandedHeroSections.content,
+              () => setExpandedHeroSections((prev) => ({ ...prev, content: !prev.content })),
+              <div className="space-y-2">
               <input
                 type="text"
                 value={heroSettings.title}
@@ -2690,137 +3001,156 @@ export default function CustomTemplatePage() {
                 rows={3}
                 placeholder="Subtitel"
               />
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Overlay</h3>
-              <div className="space-y-3 text-xs text-white/60">
-                <ColorInputField
-                  label="Overlay kleur"
-                  value={heroSettings.overlayColor}
-                  onChange={(value) => setHeroSettings((prev) => ({ ...prev, overlayColor: value }))}
-                />
-                <label>
-                  Opacity ({heroSettings.overlayOpacity}%)
-                  <input type="range" min={0} max={100} value={heroSettings.overlayOpacity} onChange={(e) => setHeroSettings((prev) => ({ ...prev, overlayOpacity: Number(e.target.value) }))} />
-                </label>
               </div>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={heroSettings.blurOverlay} onChange={(e) => setHeroSettings((prev) => ({ ...prev, blurOverlay: e.target.checked }))} />
-                Blur overlay
-              </label>
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Uitlijning</h3>
-              <select
-                value={heroSettings.alignment}
-                onChange={(e) => setHeroSettings((prev) => ({ ...prev, alignment: e.target.value as typeof heroSettings.alignment }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-              >
-                <option value="left">Links</option>
-                <option value="center">Midden</option>
-                <option value="right">Rechts</option>
-              </select>
-              <select
-                value={heroSettings.verticalAlignment}
-                onChange={(e) => setHeroSettings((prev) => ({ ...prev, verticalAlignment: e.target.value as typeof heroSettings.verticalAlignment }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-              >
-                <option value="top">Boven</option>
-                <option value="center">Midden</option>
-                <option value="bottom">Onder</option>
-              </select>
-            </section>
-            {selectedHeroTemplate.requiresImage && (
-              <DroppableImageField
-                id="hero-image"
-                value={heroSettings.heroImageUrl}
-                onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
-                label="Hero afbeelding"
-              >
-                <input
-                  type="text"
-                  value={heroSettings.heroImageUrl}
-                  onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  placeholder="Afbeelding URL"
-                />
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
-              </DroppableImageField>
             )}
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Knoppen</h3>
-              <div className="grid grid-cols-2 gap-3">
+
+            {renderCollapsibleSection(
+              'hero-image',
+              'Afbeelding',
+              expandedHeroSections.image,
+              () => setExpandedHeroSections((prev) => ({ ...prev, image: !prev.image })),
+              <div className="space-y-3">
+                {selectedHeroTemplate.requiresImage && (
+                  <DroppableImageField
+                    id="hero-image"
+                    value={heroSettings.heroImageUrl}
+                    onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
+                    label="Hero afbeelding"
+                  >
+                    <input
+                      type="text"
+                      value={heroSettings.heroImageUrl}
+                      onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Afbeelding URL"
+                    />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
+                  </DroppableImageField>
+                )}
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'hero-style',
+              'Stijl',
+              expandedHeroSections.style,
+              () => setExpandedHeroSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-3">
+                <div className="space-y-3 text-xs text-white/60">
+                  <ColorInputField
+                    label="Overlay kleur"
+                    value={heroSettings.overlayColor}
+                    onChange={(value) => setHeroSettings((prev) => ({ ...prev, overlayColor: value }))}
+                  />
+                  <label>
+                    Opacity ({heroSettings.overlayOpacity}%)
+                    <input type="range" min={0} max={100} value={heroSettings.overlayOpacity} onChange={(e) => setHeroSettings((prev) => ({ ...prev, overlayOpacity: Number(e.target.value) }))} />
+                  </label>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-white/70">
+                  <input type="checkbox" checked={heroSettings.blurOverlay} onChange={(e) => setHeroSettings((prev) => ({ ...prev, blurOverlay: e.target.checked }))} />
+                  Blur overlay
+                </label>
                 <div className="space-y-2">
-                  <h4 className="text-xs uppercase text-white/50">Primaire knop</h4>
-                  <input
-                    value={heroSettings.primaryButton.label}
-                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, label: e.target.value } }))}
+                  <h4 className="text-xs uppercase text-white/50">Uitlijning</h4>
+                  <select
+                    value={heroSettings.alignment}
+                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, alignment: e.target.value as typeof heroSettings.alignment }))}
                     className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Tekst"
-                  />
-                  <input
-                    value={heroSettings.primaryButton.link}
-                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, link: e.target.value } }))}
+                  >
+                    <option value="left">Links</option>
+                    <option value="center">Midden</option>
+                    <option value="right">Rechts</option>
+                  </select>
+                  <select
+                    value={heroSettings.verticalAlignment}
+                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, verticalAlignment: e.target.value as typeof heroSettings.verticalAlignment }))}
                     className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Link"
-                  />
-                  <div className="space-y-2">
-                    <ColorInputField
-                      label="Achtergrond"
-                      value={heroSettings.primaryButton.background}
-                      onChange={(value) =>
-                        setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, background: value } }))
-                      }
-                    />
-                    <ColorInputField
-                      label="Tekstkleur"
-                      value={heroSettings.primaryButton.textColor}
-                      onChange={(value) =>
-                        setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, textColor: value } }))
-                      }
-                    />
-                  </div>
+                  >
+                    <option value="top">Boven</option>
+                    <option value="center">Midden</option>
+                    <option value="bottom">Onder</option>
+                  </select>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xs uppercase text-white/50">Secundaire knop</h4>
-                  <input
-                    value={heroSettings.secondaryButton.label}
-                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, label: e.target.value } }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Tekst"
-                  />
-                  <input
-                    value={heroSettings.secondaryButton.link}
-                    onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, link: e.target.value } }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Link"
-                  />
-                  <div className="space-y-2">
-                    <ColorInputField
-                      label="Randkleur"
-                      value={heroSettings.secondaryButton.borderColor}
-                      onChange={(value) =>
-                        setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, borderColor: value } }))
-                      }
-                    />
-                    <ColorInputField
-                      label="Tekstkleur"
-                      value={heroSettings.secondaryButton.textColor}
-                      onChange={(value) =>
-                        setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, textColor: value } }))
-                      }
-                    />
+                  <h4 className="text-xs uppercase text-white/50">Knoppen</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <h4 className="text-xs uppercase text-white/50">Primaire knop</h4>
+                      <input
+                        value={heroSettings.primaryButton.label}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, label: e.target.value } }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Tekst"
+                      />
+                      <input
+                        value={heroSettings.primaryButton.link}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, link: e.target.value } }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Link"
+                      />
+                      <div className="space-y-2">
+                        <ColorInputField
+                          label="Achtergrond"
+                          value={heroSettings.primaryButton.background}
+                          onChange={(value) =>
+                            setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, background: value } }))
+                          }
+                        />
+                        <ColorInputField
+                          label="Tekstkleur"
+                          value={heroSettings.primaryButton.textColor}
+                          onChange={(value) =>
+                            setHeroSettings((prev) => ({ ...prev, primaryButton: { ...prev.primaryButton, textColor: value } }))
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-xs uppercase text-white/50">Secundaire knop</h4>
+                      <input
+                        value={heroSettings.secondaryButton.label}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, label: e.target.value } }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Tekst"
+                      />
+                      <input
+                        value={heroSettings.secondaryButton.link}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, link: e.target.value } }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Link"
+                      />
+                      <div className="space-y-2">
+                        <ColorInputField
+                          label="Randkleur"
+                          value={heroSettings.secondaryButton.borderColor}
+                          onChange={(value) =>
+                            setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, borderColor: value } }))
+                          }
+                        />
+                        <ColorInputField
+                          label="Tekstkleur"
+                          value={heroSettings.secondaryButton.textColor}
+                          onChange={(value) =>
+                            setHeroSettings((prev) => ({ ...prev, secondaryButton: { ...prev.secondaryButton, textColor: value } }))
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </section>
+            )}
           </div>
         );
       case 'about':
         return (
           <div className={panelClass}>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Layouts</h3>
+            {renderCollapsibleSection(
+              'about-layout',
+              'Layouts',
+              expandedAboutSections.layout,
+              () => setExpandedAboutSections((prev) => ({ ...prev, layout: !prev.layout })),
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ABOUT_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = aboutSettings.layout === layout.id;
@@ -2845,13 +3175,19 @@ export default function CustomTemplatePage() {
                   );
                 })}
               </div>
-            </section>
-            <DroppableImageField
-              id="about-image"
-              value={aboutSettings.imageUrl}
-              onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
-              label="Afbeelding"
-            >
+            )}
+
+            {renderCollapsibleSection(
+              'about-image',
+              'Afbeelding',
+              expandedAboutSections.image,
+              () => setExpandedAboutSections((prev) => ({ ...prev, image: !prev.image })),
+              <DroppableImageField
+                id="about-image"
+                value={aboutSettings.imageUrl}
+                onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+                label="Afbeelding"
+              >
               <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
                 <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
                   {aboutSettings.imageUrl ? (
@@ -2868,15 +3204,15 @@ export default function CustomTemplatePage() {
                 <div className="space-y-2">
                   <label className="text-xs text-white/60 flex flex-col gap-1">
                     Afbeelding URL
-                    <input
-                      type="text"
-                      value={aboutSettings.imageUrl}
-                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+              <input
+                type="text"
+                value={aboutSettings.imageUrl}
+                onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
                       placeholder="https://"
-                    />
+              />
                   </label>
-                  <label className="text-xs text-white/60 flex flex-col gap-1">
+              <label className="text-xs text-white/60 flex flex-col gap-1">
                     Upload bestand
                     <input
                       type="file"
@@ -2888,7 +3224,7 @@ export default function CustomTemplatePage() {
                 </div>
                 <div className="grid gap-3 text-xs text-white/60">
                   <label className="flex flex-col gap-1">
-                    Ronde hoeken ({aboutSettings.imageRadius}px)
+                Ronde hoeken ({aboutSettings.imageRadius}px)
                     <input
                       type="range"
                       min={0}
@@ -2896,88 +3232,93 @@ export default function CustomTemplatePage() {
                       value={aboutSettings.imageRadius}
                       onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageRadius: Number(e.target.value) }))}
                     />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-white/70">
+              </label>
+              <label className="flex items-center gap-2 text-sm text-white/70">
                     <input
                       type="checkbox"
                       checked={aboutSettings.imageShadow}
                       onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageShadow: e.target.checked }))}
                     />
-                    Shadow effect
-                  </label>
+                Shadow effect
+              </label>
                 </div>
               </div>
-            </DroppableImageField>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Tekst</h3>
-              <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3">
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Subtitel
-                  <input
-                    value={aboutSettings.subtitle}
-                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                    placeholder="Subtitel"
-                  />
-                </label>
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Titel
-                  <input
-                    value={aboutSettings.title}
-                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                    placeholder="Titel"
-                  />
-                </label>
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Beschrijving
-                  <textarea
-                    value={aboutSettings.paragraph}
-                    onChange={(e) => setAboutSettings((prev) => ({ ...prev, paragraph: e.target.value }))}
-                    rows={4}
-                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                    placeholder="Paragraaf"
-                  />
-                </label>
-              </div>
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Bullet points</h3>
+              </DroppableImageField>
+            )}
+
+            {renderCollapsibleSection(
+              'about-content',
+              'Content',
+              expandedAboutSections.content,
+              () => setExpandedAboutSections((prev) => ({ ...prev, content: !prev.content })),
               <div className="space-y-3">
-                {aboutSettings.bullets.map((bullet, index) => (
-                  <div key={bullet.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
-                    <div className="flex items-center justify-between text-xs text-white/50">
-                      <span>Bullet #{index + 1}</span>
-                      <button
-                        onClick={() => removeAboutItem('bullets', bullet.id)}
-                        className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
-                      >
-                        Verwijder
-                      </button>
-                    </div>
-                    <label className="text-xs text-white/60 flex flex-col gap-1">
-                      Tekst
-                      <input
-                        value={bullet.text}
-                        onChange={(e) => updateAboutList('bullets', bullet.id, 'text', e.target.value)}
-                        className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                      />
-                    </label>
+                <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Subtitel
+                    <input
+                      value={aboutSettings.subtitle}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                      placeholder="Subtitel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      value={aboutSettings.title}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Beschrijving
+                    <textarea
+                      value={aboutSettings.paragraph}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, paragraph: e.target.value }))}
+                      rows={4}
+                      className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                      placeholder="Paragraaf"
+                    />
+                  </label>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-xs uppercase text-white/50">Bullet points</h4>
+                  <div className="space-y-3">
+                    {aboutSettings.bullets.map((bullet, index) => (
+                      <div key={bullet.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                        <div className="flex items-center justify-between text-xs text-white/50">
+                          <span>Bullet #{index + 1}</span>
+                          <button
+                            onClick={() => removeAboutItem('bullets', bullet.id)}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
+                          >
+                            Verwijder
+                          </button>
+                        </div>
+                        <label className="text-xs text-white/60 flex flex-col gap-1">
+                          Tekst
+                          <input
+                            value={bullet.text}
+                            onChange={(e) => updateAboutList('bullets', bullet.id, 'text', e.target.value)}
+                            className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          />
+                        </label>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => addAboutItem('bullets')}
+                      className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                    >
+                      + Punt toevoegen
+                    </button>
                   </div>
-                ))}
-                <button
-                  onClick={() => addAboutItem('bullets')}
-                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
-                >
-                  + Punt toevoegen
-                </button>
-              </div>
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Knoppen</h3>
-              <div className="space-y-3">
-                {aboutSettings.buttons.map((button, index) => (
-                  <div key={button.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-xs uppercase text-white/50">Knoppen</h4>
+                  <div className="space-y-3">
+                    {aboutSettings.buttons.map((button, index) => (
+                      <div key={button.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
                     <div className="flex items-center justify-between text-xs text-white/50">
                       <span>Knop #{index + 1}</span>
                       <button
@@ -2990,43 +3331,50 @@ export default function CustomTemplatePage() {
                     <div className="grid gap-2 sm:grid-cols-2">
                       <label className="text-xs text-white/60 flex flex-col gap-1">
                         Tekst
-                        <input
-                          value={button.label}
-                          onChange={(e) => updateAboutList('buttons', button.id, 'label', e.target.value)}
+                  <input
+                    value={button.label}
+                    onChange={(e) => updateAboutList('buttons', button.id, 'label', e.target.value)}
                           className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                          placeholder="Tekst"
-                        />
+                    placeholder="Tekst"
+                  />
                       </label>
                       <label className="text-xs text-white/60 flex flex-col gap-1">
                         Link
-                        <input
-                          value={button.link}
-                          onChange={(e) => updateAboutList('buttons', button.id, 'link', e.target.value)}
+                  <input
+                    value={button.link}
+                    onChange={(e) => updateAboutList('buttons', button.id, 'link', e.target.value)}
                           className="px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
                           placeholder="https://"
-                        />
+                  />
                       </label>
                     </div>
-                  </div>
-                ))}
+                </div>
+              ))}
                 <button
                   onClick={() => addAboutItem('buttons')}
                   className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
                 >
                   + Knop toevoegen
                 </button>
+                  </div>
+                </div>
               </div>
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stijl</h3>
-              <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3 text-xs text-white/60">
+            )}
+
+            {renderCollapsibleSection(
+              'about-style',
+              'Stijl',
+              expandedAboutSections.style,
+              () => setExpandedAboutSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-white/10 bg-[#11132A]/40 p-4 space-y-3 text-xs text-white/60">
                 <ColorInputField
                   label="Achtergrondkleur"
                   value={aboutSettings.backgroundColor}
                   onChange={(value) => setAboutSettings((prev) => ({ ...prev, backgroundColor: value }))}
                 />
                 <label className="flex flex-col gap-1">
-                  Padding top ({aboutSettings.padding.top}px)
+                Padding top ({aboutSettings.padding.top}px)
                   <input
                     type="range"
                     min={40}
@@ -3034,9 +3382,9 @@ export default function CustomTemplatePage() {
                     value={aboutSettings.padding.top}
                     onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, top: Number(e.target.value) } }))}
                   />
-                </label>
+              </label>
                 <label className="flex flex-col gap-1">
-                  Padding bottom ({aboutSettings.padding.bottom}px)
+                Padding bottom ({aboutSettings.padding.bottom}px)
                   <input
                     type="range"
                     min={40}
@@ -3044,17 +3392,22 @@ export default function CustomTemplatePage() {
                     value={aboutSettings.padding.bottom}
                     onChange={(e) => setAboutSettings((prev) => ({ ...prev, padding: { ...prev.padding, bottom: Number(e.target.value) } }))}
                   />
-                </label>
+              </label>
               </div>
-            </section>
+              </div>
+            )}
           </div>
         );
       case 'program':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Items in schema</h3>
-              {programSettings.items.map((item, index) => (
+            {renderCollapsibleSection(
+              'program-items',
+              'Items in schema',
+              expandedProgramSections.items,
+              () => setExpandedProgramSections((prev) => ({ ...prev, items: !prev.items })),
+              <div className="space-y-2">
+                {programSettings.items.map((item, index) => (
                 <div key={item.id} className="rounded-xl border border-white/10 p-3 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <input
@@ -3091,11 +3444,18 @@ export default function CustomTemplatePage() {
                     <button onClick={() => removeProgramItem(item.id)}>Verwijder</button>
                   </div>
                 </div>
-              ))}
-              <button onClick={addProgramItem} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">+ Voeg programma-item toe</button>
-            </section>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Layout</h3>
+                ))}
+                <button onClick={addProgramItem} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">+ Voeg programma-item toe</button>
+              </div>,
+              `${programSettings.items.length} items`
+            )}
+
+            {renderCollapsibleSection(
+              'program-layout',
+              'Layout',
+              expandedProgramSections.layout,
+              () => setExpandedProgramSections((prev) => ({ ...prev, layout: !prev.layout })),
+              <div className="space-y-3">
               <select
                 value={programSettings.layout}
                 onChange={(e) => setProgramSettings((prev) => ({ ...prev, layout: e.target.value as typeof programSettings.layout }))}
@@ -3110,50 +3470,68 @@ export default function CustomTemplatePage() {
                   <input type="range" min={20} max={60} value={programSettings.columnWidth} onChange={(e) => setProgramSettings((prev) => ({ ...prev, columnWidth: Number(e.target.value) }))} />
                 </label>
               )}
-            </section>
-            <section className="space-y-3 text-xs text-white/60">
-              <ColorInputField
-                label="Achtergrondkleur"
-                value={programSettings.backgroundColor}
-                onChange={(value) => setProgramSettings((prev) => ({ ...prev, backgroundColor: value }))}
-              />
-              <ColorInputField
-                label="Borderkleur"
-                value={programSettings.borderColor}
-                onChange={(value) => setProgramSettings((prev) => ({ ...prev, borderColor: value }))}
-              />
-              <ColorInputField
-                label="Tijdkleur"
-                value={programSettings.timeColor}
-                onChange={(value) => setProgramSettings((prev) => ({ ...prev, timeColor: value }))}
-              />
-            </section>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'program-colors',
+              'Kleuren',
+              expandedProgramSections.colors,
+              () => setExpandedProgramSections((prev) => ({ ...prev, colors: !prev.colors })),
+              <div className="space-y-3 text-xs text-white/60">
+                <ColorInputField
+                  label="Achtergrondkleur"
+                  value={programSettings.backgroundColor}
+                  onChange={(value) => setProgramSettings((prev) => ({ ...prev, backgroundColor: value }))}
+                />
+                <ColorInputField
+                  label="Borderkleur"
+                  value={programSettings.borderColor}
+                  onChange={(value) => setProgramSettings((prev) => ({ ...prev, borderColor: value }))}
+                />
+                <ColorInputField
+                  label="Tijdkleur"
+                  value={programSettings.timeColor}
+                  onChange={(value) => setProgramSettings((prev) => ({ ...prev, timeColor: value }))}
+                />
+              </div>
+            )}
           </div>
         );
       case 'bracket':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Bron</h3>
-              <select
-                value={bracketSettings.source}
-                onChange={(e) => setBracketSettings((prev) => ({ ...prev, source: e.target.value as typeof bracketSettings.source }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-              >
-                <option value="manual">Handmatig</option>
-                <option value="api">API</option>
-              </select>
-              {bracketSettings.source === 'api' && (
-                <input
-                  value={bracketSettings.apiEndpoint}
-                  onChange={(e) => setBracketSettings((prev) => ({ ...prev, apiEndpoint: e.target.value }))}
+            {renderCollapsibleSection(
+              'bracket-source',
+              'Bron',
+              expandedBracketSections.source,
+              () => setExpandedBracketSections((prev) => ({ ...prev, source: !prev.source })),
+              <div className="space-y-2">
+                <select
+                  value={bracketSettings.source}
+                  onChange={(e) => setBracketSettings((prev) => ({ ...prev, source: e.target.value as typeof bracketSettings.source }))}
                   className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  placeholder="https://api.challonge.com/..."
-                />
-              )}
-            </section>
-            {bracketSettings.source === 'manual' && (
-              <section className="space-y-3">
+                >
+                  <option value="manual">Handmatig</option>
+                  <option value="api">API</option>
+                </select>
+                {bracketSettings.source === 'api' && (
+                  <input
+                    value={bracketSettings.apiEndpoint}
+                    onChange={(e) => setBracketSettings((prev) => ({ ...prev, apiEndpoint: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                    placeholder="https://api.challonge.com/..."
+                  />
+                )}
+              </div>
+            )}
+
+            {bracketSettings.source === 'manual' && renderCollapsibleSection(
+              'bracket-rounds',
+              'Rondes',
+              expandedBracketSections.rounds,
+              () => setExpandedBracketSections((prev) => ({ ...prev, rounds: !prev.rounds })),
+              <div className="space-y-3">
                 {bracketSettings.rounds.map((round) => (
                   <div key={round.id} className="rounded-xl border border-white/10 p-3 space-y-3 bg-[#11132A]/50">
                     <input
@@ -3203,11 +3581,18 @@ export default function CustomTemplatePage() {
                 <button onClick={addBracketRound} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">
                   + Voeg ronde toe
                 </button>
-              </section>
+              </div>,
+              `${bracketSettings.rounds.length} rondes`
             )}
-            <section className="space-y-3 text-xs text-white/60">
-              <label>
-                Weergave
+
+            {renderCollapsibleSection(
+              'bracket-style',
+              'Stijl',
+              expandedBracketSections.style,
+              () => setExpandedBracketSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-3 text-xs text-white/60">
+                <label>
+                  Weergave
                 <select
                   value={bracketSettings.style.mode}
                   onChange={(e) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, mode: e.target.value as typeof bracketSettings.style.mode } }))}
@@ -3254,7 +3639,8 @@ export default function CustomTemplatePage() {
                   onChange={(value) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, winnerColor: value } }))}
                 />
               </div>
-            </section>
+              </div>
+            )}
           </div>
         );
       case 'group-stage':
@@ -3275,7 +3661,7 @@ export default function CustomTemplatePage() {
                   />
                   <span className="text-sm text-white/70 w-10 text-right">{groupStageSettings.numberOfGroups}</span>
                 </div>
-              </label>
+                </label>
               <label className="flex flex-col gap-2">
                 <span className="text-xs uppercase tracking-[0.3em] text-white/50">Teams per groep</span>
                 <div className="flex items-center gap-3">
@@ -3289,7 +3675,7 @@ export default function CustomTemplatePage() {
                   />
                   <span className="text-sm text-white/70 w-10 text-right">{groupStageSettings.teamsPerGroup}</span>
                 </div>
-              </label>
+                </label>
             </section>
             <section className="space-y-3">
               <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Groepen en teams</h3>
@@ -3325,7 +3711,7 @@ export default function CustomTemplatePage() {
                               className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm font-semibold focus:outline-none focus:border-[#755DFF]"
                               placeholder="A"
                             />
-                          </label>
+                </label>
                           <div className="space-y-2">
                             {group.teams.map((team, teamIdx) => {
                               const isTeamExpanded = expandedTeams[team.id] ?? false;
@@ -3565,22 +3951,356 @@ export default function CustomTemplatePage() {
             </section>
           </div>
         );
+      case 'stats':
+        return (
+          <div className={panelClass}>
+            <div className="space-y-3">
+              {/* Layout Section */}
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                <button
+                  onClick={() => setExpandedStatsSections((prev) => ({ ...prev, layout: !prev.layout }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-white/60 transition-transform ${expandedStatsSections.layout ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-white">Layout</span>
+                  </div>
+                </button>
+                {expandedStatsSections.layout && (
+                  <div className="px-4 pb-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {STATS_LAYOUT_OPTIONS.map((layout) => (
+                        <button
+                          key={layout.id}
+                          onClick={() => setStatsSettings((prev) => ({ ...prev, layout: layout.id }))}
+                          className={`p-3 rounded-xl border text-left transition ${
+                            statsSettings.layout === layout.id
+                              ? 'border-[#755DFF] bg-[#755DFF]/10'
+                              : 'border-white/10 bg-[#11132A] hover:border-white/20'
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-white mb-1">{layout.label}</div>
+                          <div className="text-xs text-white/50">{layout.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Text Section */}
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                <button
+                  onClick={() => setExpandedStatsSections((prev) => ({ ...prev, text: !prev.text }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-white/60 transition-transform ${expandedStatsSections.text ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-white">Tekst</span>
+                  </div>
+                </button>
+                {expandedStatsSections.text && (
+                  <div className="px-4 pb-4 space-y-3">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">Titel</span>
+                      <input
+                        value={statsSettings.title}
+                        onChange={(e) => setStatsSettings((prev) => ({ ...prev, title: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                        placeholder="Live Statistieken"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">Ondertitel</span>
+                      <input
+                        value={statsSettings.subtitle}
+                        onChange={(e) => setStatsSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                        placeholder="Real-time toernooi overzicht"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats Section */}
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                <button
+                  onClick={() => setExpandedStatsSections((prev) => ({ ...prev, stats: !prev.stats }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-white/60 transition-transform ${expandedStatsSections.stats ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-white">Statistieken</span>
+                    <span className="text-xs text-white/40">({statsSettings.stats.length})</span>
+                  </div>
+                </button>
+                {expandedStatsSections.stats && (
+                  <div className="px-4 pb-4 space-y-3">
+                    {statsSettings.stats.map((stat, idx) => (
+                      <div key={stat.id} className="rounded-xl border border-white/5 bg-[#11132A]/50 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs uppercase tracking-[0.2em] text-white/50">Stat {idx + 1}</span>
+                          {statsSettings.stats.length > 1 && (
+                            <button
+                              onClick={() => setStatsSettings((prev) => ({ ...prev, stats: prev.stats.filter((s) => s.id !== stat.id) }))}
+                              className="px-2 py-1 border border-white/10 rounded-lg text-xs text-white/70 hover:border-white/40 transition"
+                            >
+                              Verwijder
+                            </button>
+                          )}
+                        </div>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-xs text-white/50">Waarde</span>
+                          <input
+                            value={stat.value}
+                            onChange={(e) =>
+                              setStatsSettings((prev) => ({
+                                ...prev,
+                                stats: prev.stats.map((s) => (s.id === stat.id ? { ...s, value: e.target.value } : s)),
+                              }))
+                            }
+                            className="w-full px-3 py-2 rounded-lg bg-[#0E1020] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                            placeholder="16"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-xs text-white/50">Label</span>
+                          <input
+                            value={stat.label}
+                            onChange={(e) =>
+                              setStatsSettings((prev) => ({
+                                ...prev,
+                                stats: prev.stats.map((s) => (s.id === stat.id ? { ...s, label: e.target.value } : s)),
+                              }))
+                            }
+                            className="w-full px-3 py-2 rounded-lg bg-[#0E1020] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                            placeholder="Teams"
+                          />
+                        </label>
+                      </div>
+                    ))}
+                    {statsSettings.stats.length < 8 && (
+                      <button
+                        onClick={() =>
+                          setStatsSettings((prev) => ({
+                            ...prev,
+                            stats: [...prev.stats, { id: createId(), value: '', label: '', icon: '' }],
+                          }))
+                        }
+                        className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white transition"
+                      >
+                        + Stat toevoegen
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Font Sizes Section */}
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                <button
+                  onClick={() => setExpandedStatsSections((prev) => ({ ...prev, fontSizes: !prev.fontSizes }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-white/60 transition-transform ${expandedStatsSections.fontSizes ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-white">Tekst grootte</span>
+                  </div>
+                </button>
+                {expandedStatsSections.fontSizes && (
+                  <div className="px-4 pb-4 space-y-3">
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setStatsSettings((prev) => ({ ...prev, fontSizes: resetStatsFontSizes() }))}
+                        className="text-[11px] uppercase tracking-[0.25em] px-3 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                      >
+                        Standaard
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-[0.3em] text-white/40">Titel (H1)</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min={20}
+                            max={60}
+                            value={statsSettings.fontSizes.title}
+                            onChange={(e) => setStatsSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, title: Number(e.target.value) } }))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-white/70 w-10 text-right">{statsSettings.fontSizes.title}px</span>
+                        </div>
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-[0.3em] text-white/40">Ondertitel (H2)</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min={12}
+                            max={40}
+                            value={statsSettings.fontSizes.subtitle}
+                            onChange={(e) => setStatsSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) } }))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-white/70 w-10 text-right">{statsSettings.fontSizes.subtitle}px</span>
+                        </div>
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-[0.3em] text-white/40">Stat waarde</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min={16}
+                            max={60}
+                            value={statsSettings.fontSizes.statValue}
+                            onChange={(e) => setStatsSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, statValue: Number(e.target.value) } }))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-white/70 w-10 text-right">{statsSettings.fontSizes.statValue}px</span>
+                        </div>
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-xs uppercase tracking-[0.3em] text-white/40">Stat label</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="range"
+                            min={10}
+                            max={24}
+                            value={statsSettings.fontSizes.statLabel}
+                            onChange={(e) => setStatsSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, statLabel: Number(e.target.value) } }))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-white/70 w-10 text-right">{statsSettings.fontSizes.statLabel}px</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Colors Section */}
+              <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                <button
+                  onClick={() => setExpandedStatsSections((prev) => ({ ...prev, colors: !prev.colors }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className={`w-4 h-4 text-white/60 transition-transform ${expandedStatsSections.colors ? 'rotate-90' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-sm font-semibold text-white">Kleuren</span>
+                  </div>
+                </button>
+                {expandedStatsSections.colors && (
+                  <div className="px-4 pb-4 space-y-3">
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setStatsSettings((prev) => ({ ...prev, colors: resetStatsColors() }))}
+                        className="text-[11px] uppercase tracking-[0.25em] px-3 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                      >
+                        Standaard
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      <ColorInputField
+                        label="Achtergrondkleur"
+                        value={statsSettings.colors.backgroundColor}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
+                      />
+                      <ColorInputField
+                        label="Titel kleur"
+                        value={statsSettings.colors.titleColor}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
+                      />
+                      <ColorInputField
+                        label="Ondertitel kleur"
+                        value={statsSettings.colors.subtitleColor}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
+                      />
+                      <ColorInputField
+                        label="Card achtergrond"
+                        value={statsSettings.colors.cardBackground}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
+                      />
+                      <ColorInputField
+                        label="Card border"
+                        value={statsSettings.colors.cardBorder}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
+                      />
+                      <ColorInputField
+                        label="Stat waarde kleur"
+                        value={statsSettings.colors.statValueColor}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, statValueColor: value } }))}
+                      />
+                      <ColorInputField
+                        label="Stat label kleur"
+                        value={statsSettings.colors.statLabelColor}
+                        onChange={(value) => setStatsSettings((prev) => ({ ...prev, colors: { ...prev.colors, statLabelColor: value } }))}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
       case 'twitch':
         return (
           <div className={panelClass}>
-            <section className="space-y-3">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Stream instellingen</h3>
+            {renderCollapsibleSection(
+              'twitch-settings',
+              'Stream instellingen',
+              expandedTwitchSections.settings,
+              () => setExpandedTwitchSections((prev) => ({ ...prev, settings: !prev.settings })),
+              <div className="space-y-3">
               <div className="space-y-2">
                 <label className="block text-sm text-white/70">
                   Twitch Stream Link
                 </label>
-                <input
+              <input
                   type="url"
-                  value={twitchSettings.channel}
-                  onChange={(e) => setTwitchSettings((prev) => ({ ...prev, channel: e.target.value }))}
+                value={twitchSettings.channel}
+                onChange={(e) => setTwitchSettings((prev) => ({ ...prev, channel: e.target.value }))}
                   className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="https://twitch.tv/roshlive of roshlive"
-                />
+              />
                 <p className="text-xs text-white/50">
                   Voer een Twitch kanaalnaam (bijv. roshlive) of volledige URL in (bijv. https://twitch.tv/roshlive)
                 </p>
@@ -3593,9 +4313,15 @@ export default function CustomTemplatePage() {
                 <input type="checkbox" checked={twitchSettings.showChat} onChange={(e) => setTwitchSettings((prev) => ({ ...prev, showChat: e.target.checked }))} />
                 Chat tonen
               </label>
-            </section>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Layout</h3>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'twitch-layout',
+              'Layout',
+              expandedTwitchSections.layout,
+              () => setExpandedTwitchSections((prev) => ({ ...prev, layout: !prev.layout })),
+              <div className="space-y-2">
               <select
                 value={twitchSettings.layout}
                 onChange={(e) => setTwitchSettings((prev) => ({ ...prev, layout: e.target.value as typeof twitchSettings.layout }))}
@@ -3620,84 +4346,284 @@ export default function CustomTemplatePage() {
                 value={twitchSettings.background}
                 onChange={(value) => setTwitchSettings((prev) => ({ ...prev, background: value }))}
               />
-            </section>
+              </div>
+            )}
           </div>
         );
       case 'sponsors':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Sponsorlogo’s</h3>
-              {sponsorSettings.logos.map((logo) => (
-                <div key={logo.id} className="flex gap-2 items-center">
-                  <input
-                    value={logo.name}
-                    onChange={(e) => updateSponsorLogo(logo.id, 'name', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Naam"
-                  />
-                  <input
-                    value={logo.url}
-                    onChange={(e) => updateSponsorLogo(logo.id, 'url', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Logo URL"
-                  />
-                  <input
-                    value={logo.link}
-                    onChange={(e) => updateSponsorLogo(logo.id, 'link', e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Link"
-                  />
-                  <button onClick={() => removeSponsorLogo(logo.id)} className="text-xs px-2 py-1 border border-white/10 rounded-lg">–</button>
-                </div>
-              ))}
-              <button onClick={addSponsorLogo} className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70">+ Voeg sponsor toe</button>
-            </section>
-            <section className="space-y-2 text-xs text-white/60">
-              <label>
-                Weergave
-                <select
-                  value={sponsorSettings.layout}
-                  onChange={(e) => setSponsorSettings((prev) => ({ ...prev, layout: e.target.value as typeof sponsorSettings.layout }))}
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+            {renderCollapsibleSection(
+              'sponsor-layout',
+              'Layout',
+              expandedSponsorSections.layout,
+              () => setExpandedSponsorSections((prev) => ({ ...prev, layout: !prev.layout })),
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {SPONSOR_LAYOUT_OPTIONS.map((layout) => {
+                  const isSelected = sponsorSettings.layout === layout.id;
+                  return (
+                    <button
+                      key={layout.id}
+                      onClick={() => setSponsorSettings((prev) => ({ ...prev, layout: layout.id }))}
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                        isSelected
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
+                        </div>
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'sponsor-logos',
+              'Sponsorlogos',
+              expandedSponsorSections.logos,
+              () => setExpandedSponsorSections((prev) => ({ ...prev, logos: !prev.logos })),
+              <div className="space-y-3">
+                {sponsorSettings.logos.map((logo, index) => (
+                  <div key={logo.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/50">
+                      <span>Logo #{index + 1}</span>
+                      <button
+                        onClick={() => removeSponsorLogo(logo.id)}
+                        className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300"
+                      >
+                        Verwijder
+                      </button>
+                    </div>
+                    <DroppableImageField
+                      id={`sponsor-logo-${logo.id}`}
+                      value={logo.url}
+                      onChange={(url) => updateSponsorLogo(logo.id, 'url', url)}
+                      label="Logo afbeelding"
+                    >
+                      <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-3">
+                        <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[120px] flex items-center justify-center overflow-hidden">
+                          {logo.url ? (
+                            <img
+                              src={logo.url}
+                              alt={logo.name || 'Logo preview'}
+                              className="max-w-full max-h-[100px] object-contain"
+                            />
+                          ) : (
+                            <div className="text-sm text-white/50 text-center px-4">Sleep een logo hierheen of kies een optie hieronder.</div>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-white/60 flex flex-col gap-1">
+                            Logo URL
+                            <input
+                              type="text"
+                              value={logo.url}
+                              onChange={(e) => updateSponsorLogo(logo.id, 'url', e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                              placeholder="https://"
+                            />
+                          </label>
+                          <label className="text-xs text-white/60 flex flex-col gap-1">
+                            Upload bestand
+                            <input
+                              ref={(el) => { sponsorLogoInputRefs.current[logo.id] = el; }}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleImageUpload(e, (url) => updateSponsorLogo(logo.id, 'url', url))}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => sponsorLogoInputRefs.current[logo.id]?.click()}
+                              className="w-full px-3 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                            >
+                              Kies bestand
+                            </button>
+                          </label>
+                        </div>
+                      </div>
+                    </DroppableImageField>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Naam
+                        <input
+                          value={logo.name}
+                          onChange={(e) => updateSponsorLogo(logo.id, 'name', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="Sponsor naam"
+                        />
+                      </label>
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Link
+                        <input
+                          value={logo.link}
+                          onChange={(e) => updateSponsorLogo(logo.id, 'link', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="https://"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={addSponsorLogo}
+                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
                 >
-                  <option value="grid">Raster</option>
-                  <option value="carousel">Carousel</option>
-                </select>
-              </label>
-              <label>
-                Logos per rij ({sponsorSettings.columns})
-                <input type="range" min={2} max={6} value={sponsorSettings.columns} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))} />
-              </label>
-              <label>
-                Logo-grootte ({sponsorSettings.logoSize}px)
-                <input type="range" min={40} max={140} value={sponsorSettings.logoSize} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, logoSize: Number(e.target.value) }))} />
-              </label>
-              <label>
-                Afstand ({sponsorSettings.gap}px)
-                <input type="range" min={8} max={40} value={sponsorSettings.gap} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, gap: Number(e.target.value) }))} />
-              </label>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={sponsorSettings.grayscaleHover} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, grayscaleHover: e.target.checked }))} />
-                Grayscale hover
-              </label>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={sponsorSettings.divider} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
-                Divider lines
-              </label>
-              <ColorInputField
-                label="Achtergrondkleur"
-                value={sponsorSettings.backgroundColor}
-                onChange={(value) => setSponsorSettings((prev) => ({ ...prev, backgroundColor: value }))}
-              />
-            </section>
+                  + Voeg sponsor toe
+                </button>
+              </div>,
+              `${sponsorSettings.logos.length} logos`
+            )}
+
+            {renderCollapsibleSection(
+              'sponsor-content',
+              'Content',
+              expandedSponsorSections.layoutOptions,
+              () => setExpandedSponsorSections((prev) => ({ ...prev, layoutOptions: !prev.layoutOptions })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      value={sponsorSettings.title}
+                      onChange={(e) => setSponsorSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Ondertitel
+                    <input
+                      value={sponsorSettings.subtitle}
+                      onChange={(e) => setSponsorSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Ondertitel"
+                    />
+                  </label>
+                </div>
+                <div className="space-y-3 text-xs text-white/60">
+                  {(sponsorSettings.layout === 'grid' || sponsorSettings.layout === 'rows') && (
+                    <label>
+                      Logos per rij ({sponsorSettings.columns})
+                      <input type="range" min={2} max={6} value={sponsorSettings.columns} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))} />
+                    </label>
+                  )}
+                  <label>
+                    Logo-grootte ({sponsorSettings.logoSize}px)
+                    <input type="range" min={40} max={140} value={sponsorSettings.logoSize} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, logoSize: Number(e.target.value) }))} />
+                  </label>
+                  <label>
+                    Afstand ({sponsorSettings.gap}px)
+                    <input type="range" min={8} max={40} value={sponsorSettings.gap} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, gap: Number(e.target.value) }))} />
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-white/70">
+                    <input type="checkbox" checked={sponsorSettings.grayscaleHover} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, grayscaleHover: e.target.checked }))} />
+                    Grayscale hover
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-white/70">
+                    <input type="checkbox" checked={sponsorSettings.divider} onChange={(e) => setSponsorSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
+                    Divider lines
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'sponsor-fontSizes',
+              'Tekst grootte',
+              expandedSponsorSections.fontSizes,
+              () => setExpandedSponsorSections((prev) => ({ ...prev, fontSizes: !prev.fontSizes })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Titel (H1) ({sponsorSettings.fontSizes.title}px)
+                    <input
+                      type="range"
+                      min={20}
+                      max={60}
+                      value={sponsorSettings.fontSizes.title}
+                      onChange={(e) => setSponsorSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, title: Number(e.target.value) } }))}
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Ondertitel (H2) ({sponsorSettings.fontSizes.subtitle}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={24}
+                      value={sponsorSettings.fontSizes.subtitle}
+                      onChange={(e) => setSponsorSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) } }))}
+                    />
+                  </label>
+                </div>
+                <button
+                  onClick={() => setSponsorSettings((prev) => ({ ...prev, fontSizes: resetSponsorFontSizes() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'sponsor-colors',
+              'Kleuren',
+              expandedSponsorSections.colors,
+              () => setExpandedSponsorSections((prev) => ({ ...prev, colors: !prev.colors })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={sponsorSettings.colors.backgroundColor}
+                    onChange={(value) => setSponsorSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={sponsorSettings.colors.titleColor}
+                    onChange={(value) => setSponsorSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={sponsorSettings.colors.subtitleColor}
+                    onChange={(value) => setSponsorSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={sponsorSettings.colors.cardBackground}
+                    onChange={(value) => setSponsorSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={sponsorSettings.colors.cardBorder}
+                    onChange={(value) => setSponsorSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
+                  />
+                </div>
+                <button
+                  onClick={() => setSponsorSettings((prev) => ({ ...prev, colors: resetSponsorColors() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
           </div>
         );
       case 'socials':
         return (
           <div className={panelClass}>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Social opties</h3>
+            {renderCollapsibleSection(
+              'social-links',
+              'Social opties',
+              expandedSocialSections.links,
+              () => setExpandedSocialSections((prev) => ({ ...prev, links: !prev.links })),
+              <div className="space-y-2">
               {socialSettings.icons.map((icon) => (
                 <div key={icon.id} className="flex gap-2 items-center">
                   <label className="flex items-center gap-2 text-sm text-white/70">
@@ -3726,10 +4652,17 @@ export default function CustomTemplatePage() {
                   />
                 </div>
               ))}
-            </section>
-            <section className="space-y-2 text-xs text-white/60">
-              <label>
-                Weergave
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'social-style',
+              'Stijl',
+              expandedSocialSections.style,
+              () => setExpandedSocialSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-2 text-xs text-white/60">
+                <label>
+                  Weergave
                 <select
                   value={socialSettings.display}
                   onChange={(e) => setSocialSettings((prev) => ({ ...prev, display: e.target.value as typeof socialSettings.display }))}
@@ -3753,45 +4686,57 @@ export default function CustomTemplatePage() {
               </label>
               <label>
                 Grootte ({socialSettings.size}px)
-                <input type="range" min={12} max={32} value={socialSettings.size} onChange={(e) => setSocialSettings((prev) => ({ ...prev, size: Number(e.target.value) }))} />
+                <input type="range" min={12} max={32} value={socialSettings.size}                 onChange={(e) => setSocialSettings((prev) => ({ ...prev, size: Number(e.target.value) }))} />
               </label>
-            </section>
+              </div>
+            )}
           </div>
         );
       case 'footer':
         return (
           <div className={panelClass}>
-            <DroppableImageField
-              id="footer-logo"
-              value={footerSettings.logoUrl}
-              onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
-              label="Footer content"
-            >
+            {renderCollapsibleSection(
+              'footer-content',
+              'Content',
+              expandedFooterSections.content,
+              () => setExpandedFooterSections((prev) => ({ ...prev, content: !prev.content })),
+              <div className="space-y-3">
+                <DroppableImageField
+                  id="footer-logo"
+                  value={footerSettings.logoUrl}
+                  onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+                  label="Footer content"
+                >
               <input
                 value={footerSettings.logoUrl}
                 onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
                 className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
                 placeholder="Logo URL"
               />
-              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))} />
-            </DroppableImageField>
-            <section className="space-y-2">
-              <textarea
-                value={footerSettings.description}
-                onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                rows={2}
-                placeholder="Beschrijving"
-              />
-              <input
-                value={footerSettings.copyright}
-                onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Copyright tekst"
-              />
-            </section>
-            <section className="space-y-2">
-              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Navigatie links</h3>
+                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))} />
+                </DroppableImageField>
+                <textarea
+                  value={footerSettings.description}
+                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  rows={2}
+                  placeholder="Beschrijving"
+                />
+                <input
+                  value={footerSettings.copyright}
+                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  placeholder="Copyright tekst"
+                />
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'footer-links',
+              'Navigatie links',
+              expandedFooterSections.links,
+              () => setExpandedFooterSections((prev) => ({ ...prev, links: !prev.links })),
+              <div className="space-y-2">
               {['tournament', 'info'].map((section) => (
                 <div key={section} className="space-y-2">
                   <p className="text-xs uppercase text-white/50">{section === 'tournament' ? 'Toernooi' : 'Informatie'}</p>
@@ -3816,10 +4761,17 @@ export default function CustomTemplatePage() {
                   </button>
                 </div>
               ))}
-            </section>
-            <section className="space-y-2 text-xs text-white/60">
-              <label>
-                Layout
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'footer-style',
+              'Stijl',
+              expandedFooterSections.style,
+              () => setExpandedFooterSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-2 text-xs text-white/60">
+                <label>
+                  Layout
                 <select
                   value={footerSettings.layout}
                   onChange={(e) => setFooterSettings((prev) => ({ ...prev, layout: e.target.value as typeof footerSettings.layout }))}
@@ -3852,7 +4804,239 @@ export default function CustomTemplatePage() {
                 <input type="checkbox" checked={footerSettings.showSocials} onChange={(e) => setFooterSettings((prev) => ({ ...prev, showSocials: e.target.checked }))} />
                 Socials
               </label>
-            </section>
+              </div>
+            )}
+          </div>
+        );
+      case 'faq':
+        return (
+          <div className={panelClass}>
+            {renderCollapsibleSection(
+              'faq-layout',
+              'Layout',
+              expandedFAQSections.layout,
+              () => setExpandedFAQSections((prev) => ({ ...prev, layout: !prev.layout })),
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {FAQ_LAYOUT_OPTIONS.map((layout) => {
+                  const isSelected = faqSettings.layout === layout.id;
+                  return (
+                    <button
+                      key={layout.id}
+                      onClick={() => setFaqSettings((prev) => ({ ...prev, layout: layout.id }))}
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                        isSelected
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
+                        </div>
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'faq-content',
+              'Content',
+              expandedFAQSections.content,
+              () => setExpandedFAQSections((prev) => ({ ...prev, content: !prev.content })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      value={faqSettings.title}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Ondertitel
+                    <input
+                      value={faqSettings.subtitle}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Ondertitel"
+                    />
+                  </label>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="text-xs uppercase text-white/50">FAQ Items</h4>
+                  {faqSettings.items.map((item, index) => (
+                    <div key={item.id} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                      <div className="flex items-center justify-between text-xs text-white/50">
+                        <span>Item #{index + 1}</span>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={index === 0}
+                            onClick={() => moveFAQItem(index, index - 1)}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            disabled={index === faqSettings.items.length - 1}
+                            onClick={() => moveFAQItem(index, index + 1)}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            onClick={() => removeFAQItem(item.id)}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300"
+                          >
+                            Verwijder
+                          </button>
+                        </div>
+                      </div>
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Vraag
+                        <input
+                          value={item.question}
+                          onChange={(e) => updateFAQItem(item.id, 'question', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="Vraag"
+                        />
+                      </label>
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Antwoord
+                        <textarea
+                          value={item.answer}
+                          onChange={(e) => updateFAQItem(item.id, 'answer', e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                          placeholder="Antwoord"
+                        />
+                      </label>
+                    </div>
+                  ))}
+                  <button
+                    onClick={addFAQItem}
+                    className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                  >
+                    + Voeg FAQ item toe
+                  </button>
+                </div>
+              </div>,
+              `${faqSettings.items.length} items`
+            )}
+
+            {renderCollapsibleSection(
+              'faq-fontSizes',
+              'Tekst grootte',
+              expandedFAQSections.fontSizes,
+              () => setExpandedFAQSections((prev) => ({ ...prev, fontSizes: !prev.fontSizes })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Titel (H1) ({faqSettings.fontSizes.title}px)
+                    <input
+                      type="range"
+                      min={20}
+                      max={60}
+                      value={faqSettings.fontSizes.title}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, title: Number(e.target.value) } }))}
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Ondertitel (H2) ({faqSettings.fontSizes.subtitle}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={24}
+                      value={faqSettings.fontSizes.subtitle}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) } }))}
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Vraag ({faqSettings.fontSizes.question}px)
+                    <input
+                      type="range"
+                      min={14}
+                      max={32}
+                      value={faqSettings.fontSizes.question}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, question: Number(e.target.value) } }))}
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Antwoord ({faqSettings.fontSizes.answer}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={20}
+                      value={faqSettings.fontSizes.answer}
+                      onChange={(e) => setFaqSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, answer: Number(e.target.value) } }))}
+                    />
+                  </label>
+                </div>
+                <button
+                  onClick={() => setFaqSettings((prev) => ({ ...prev, fontSizes: resetFAQFontSizes() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'faq-colors',
+              'Kleuren',
+              expandedFAQSections.colors,
+              () => setExpandedFAQSections((prev) => ({ ...prev, colors: !prev.colors })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={faqSettings.colors.backgroundColor}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={faqSettings.colors.titleColor}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={faqSettings.colors.subtitleColor}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={faqSettings.colors.cardBackground}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={faqSettings.colors.cardBorder}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
+                  />
+                  <ColorInputField
+                    label="Vraag kleur"
+                    value={faqSettings.colors.questionColor}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, questionColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Antwoord kleur"
+                    value={faqSettings.colors.answerColor}
+                    onChange={(value) => setFaqSettings((prev) => ({ ...prev, colors: { ...prev.colors, answerColor: value } }))}
+                  />
+                </div>
+                <button
+                  onClick={() => setFaqSettings((prev) => ({ ...prev, colors: resetFAQColors() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
           </div>
         );
       default:
@@ -4163,30 +5347,30 @@ export default function CustomTemplatePage() {
             <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-5 py-5 pr-10 -mr-6 space-y-4">
               {activeTab === 'components' && (
                 isHydrated ? (
-                  <SortableContext
-                    items={componentOrder}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {sortedComponents.map((component) => {
-                      const isActive = activeComponent === component.id;
-                      return (
-                        <SortableComponentItem
-                          key={component.id}
-                          component={component}
-                          isActive={isActive}
-                          isVisible={componentState[component.id]}
-                          onSelect={() => handleComponentSelect(component.id)}
-                          onToggle={(e) => {
-                            e.stopPropagation();
-                            setComponentState((prev) => ({
-                              ...prev,
-                              [component.id]: !prev[component.id],
-                            }));
-                          }}
-                        />
-                      );
-                    })}
-                  </SortableContext>
+                <SortableContext
+                  items={componentOrder}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {sortedComponents.map((component) => {
+                    const isActive = activeComponent === component.id;
+                    return (
+                      <SortableComponentItem
+                        key={component.id}
+                        component={component}
+                        isActive={isActive}
+                        isVisible={componentState[component.id]}
+                        onSelect={() => handleComponentSelect(component.id)}
+                        onToggle={(e) => {
+                          e.stopPropagation();
+                          setComponentState((prev) => ({
+                            ...prev,
+                            [component.id]: !prev[component.id],
+                          }));
+                        }}
+                      />
+                    );
+                  })}
+                </SortableContext>
                 ) : (
                   <div className="text-sm text-white/50">Componenten laden...</div>
                 )
@@ -4518,11 +5702,14 @@ export default function CustomTemplatePage() {
         <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
             <div 
-              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
+              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col mx-auto"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
                 fontFamily: formatFontStack(fontSettings.bodyFamily),
-                color: colorPalette.bodyText
+                color: colorPalette.bodyText,
+                maxWidth: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
+                width: viewport === 'desktop' ? '100%' : 'auto',
+                boxShadow: viewport !== 'desktop' ? '0 0 0 1px rgba(255,255,255,0.1)' : 'none',
               }}
             >
               {/* Navigation */}
@@ -4543,37 +5730,37 @@ export default function CustomTemplatePage() {
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className={`container mx-auto px-6 flex relative z-20 ${navigationWrapperClass}`}>
+                  <div className={`container mx-auto px-4 sm:px-6 flex relative z-20 ${navigationWrapperClass}`}>
                     <DroppableImageArea
                       id="preview-navigation-logo"
                       value={navigationSettings.logoUrl}
                       onChange={(url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url }))}
-                      className={`flex items-center gap-4 ${navigationLogoWrapperClass}`}
+                      className={`flex items-center gap-2 sm:gap-4 ${navigationLogoWrapperClass}`}
                     >
                       {navigationSettings.logoUrl ? (
                         <img
                           src={navigationSettings.logoUrl}
                           alt="Logo"
-                          style={{ width: navigationSettings.logoWidth, height: 'auto' }}
+                          style={{ width: viewport === 'mobile' ? Math.min(navigationSettings.logoWidth, 80) : navigationSettings.logoWidth, height: 'auto' }}
                           className="object-contain"
                         />
                       ) : (
                         <span
-                          className="text-xl font-bold tracking-[0.3em]"
+                          className="text-lg sm:text-xl font-bold tracking-[0.3em]"
                           style={{ color: navigationSettings.textColor, fontFamily: 'Space Grotesk, sans-serif' }}
                         >
                           H
                         </span>
                       )}
                     </DroppableImageArea>
-                    <ul className={`flex items-center ${navigationMenuGapClass} ${navigationMenuWrapperClass}`}>
+                    <ul className={`flex items-center flex-wrap ${navigationMenuGapClass} ${navigationMenuWrapperClass}`}>
                       {navigationSettings.menuItems
                         .filter((item) => item.enabled && item.label.trim())
                         .map((item) => (
                           <li key={item.id} className="relative">
                             <a 
                               href={item.type === 'section' ? item.value : item.value || '#'}
-                              className={navigationMenuLinkClass}
+                              className={`${navigationMenuLinkClass} text-sm sm:text-base`}
                               style={{ color: navigationSettings.textColor }}
                               onMouseEnter={(e) => e.currentTarget.style.color = navigationSettings.hoverColor}
                               onMouseLeave={(e) => e.currentTarget.style.color = navigationSettings.textColor}
@@ -4586,7 +5773,7 @@ export default function CustomTemplatePage() {
                     {shouldShowNavigationCta && !isStackedNavigationCta && navigationCtaElement}
                   </div>
                   {shouldShowNavigationCta && isStackedNavigationCta && (
-                    <div className="container mx-auto px-6 mt-4 flex justify-center">
+                    <div className="container mx-auto px-4 sm:px-6 mt-4 flex justify-center">
                       {navigationCtaElement}
                     </div>
                   )}
@@ -4601,8 +5788,8 @@ export default function CustomTemplatePage() {
                   onClick={(e) => handleComponentClick('hero', e)}
                   className={`relative overflow-hidden cursor-pointer group flex ${
                     selectedHeroTemplate.layout === 'split' 
-                      ? 'py-24 px-6 md:py-32' 
-                      : 'py-20 px-6'
+                      ? 'py-12 px-4 sm:py-16 md:py-24 lg:py-32 sm:px-6' 
+                      : 'py-12 px-4 sm:py-16 md:py-20 sm:px-6'
                   }`}
                   style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['hero'] ?? 1 }}
                 >
@@ -4631,7 +5818,7 @@ export default function CustomTemplatePage() {
 
                     const textBlock = (
                       <div
-                        className={`flex flex-col gap-6 ${isSplitLayout ? 'max-w-xl' : ''}`}
+                        className={`flex flex-col gap-3 sm:gap-4 md:gap-6 ${isSplitLayout ? 'max-w-xl' : ''}`}
                         style={{
                           textAlign: textAlignment,
                           alignItems:
@@ -4644,7 +5831,7 @@ export default function CustomTemplatePage() {
                       >
                         <HeadingText
                           level="h2"
-                          className="mb-2 uppercase tracking-widest opacity-70"
+                          className="mb-1 sm:mb-2 text-sm sm:text-base uppercase tracking-widest opacity-70"
                           color={colorPalette.mutedText}
                           align={textAlignment}
                         >
@@ -4652,13 +5839,13 @@ export default function CustomTemplatePage() {
                         </HeadingText>
                         <HeadingText
                           level="h1"
-                          className="font-bold mb-4"
+                          className="font-bold mb-2 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
                           align={textAlignment}
                         >
                           {heroSettings.title}
                         </HeadingText>
                         <BodyText
-                          className="text-lg mb-6 opacity-90 max-w-3xl"
+                          className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 opacity-90 max-w-3xl"
                           align={textAlignment}
                           style={{
                             marginLeft: textAlignment === 'center' ? 'auto' : undefined,
@@ -4667,24 +5854,24 @@ export default function CustomTemplatePage() {
                         >
                           {heroSettings.subtitle}
                         </BodyText>
-                        <div className="flex flex-wrap gap-6 mb-8" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">📅</span>
-                            <span className="text-sm">17 januari 2026</span>
+                        <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-lg sm:text-xl md:text-2xl">📅</span>
+                            <span className="text-xs sm:text-sm">17 januari 2026</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">📍</span>
-                            <span className="text-sm">Rotterdam Ahoy</span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-lg sm:text-xl md:text-2xl">📍</span>
+                            <span className="text-xs sm:text-sm">Rotterdam Ahoy</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">👥</span>
-                            <span className="text-sm">16 Teams</span>
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="text-lg sm:text-xl md:text-2xl">👥</span>
+                            <span className="text-xs sm:text-sm">16 Teams</span>
                           </div>
                         </div>
-                        <div className="flex gap-4 flex-wrap" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
+                        <div className="flex gap-2 sm:gap-3 md:gap-4 flex-wrap" style={{ justifyContent: textAlignment === 'left' ? 'flex-start' : textAlignment === 'right' ? 'flex-end' : 'center' }}>
                           <a 
                             href={heroSettings.primaryButton.link}
-                            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
+                            className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all hover:scale-105"
                             style={{ 
                               backgroundColor: heroSettings.primaryButton.background,
                               color: heroSettings.primaryButton.textColor
@@ -4694,7 +5881,7 @@ export default function CustomTemplatePage() {
                           </a>
                           <a 
                             href={heroSettings.secondaryButton.link}
-                            className="px-6 py-3 rounded-lg font-semibold border transition-all hover:scale-105"
+                            className="px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg font-semibold border text-sm sm:text-base transition-all hover:scale-105"
                             style={{ 
                               borderColor: heroSettings.secondaryButton.borderColor,
                               color: heroSettings.secondaryButton.textColor,
@@ -4747,14 +5934,14 @@ export default function CustomTemplatePage() {
                   id="about-section"
                   data-component-id="about"
                   onClick={(e) => handleComponentClick('about', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: aboutSettings.backgroundColor, paddingTop: aboutSettings.padding.top, paddingBottom: aboutSettings.padding.bottom, order: componentOrderMap['about'] ?? 2 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl relative z-20">
+                  <div className="container mx-auto max-w-6xl relative z-20 px-4 sm:px-6">
                     {(() => {
                       const renderAboutButtons = (align: 'left' | 'center' = 'left', tone: 'default' | 'inverted' = 'default') => {
                         if (!aboutSettings.buttons.length) return null;
@@ -4768,7 +5955,7 @@ export default function CustomTemplatePage() {
                               <a
                                 key={button.id}
                                 href={button.link}
-                                className="px-5 py-3 rounded-lg border text-sm font-medium transition-all hover:scale-105"
+                                className="px-4 py-2 sm:px-5 sm:py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all hover:scale-105"
                                 style={{ borderColor, color: textColor, backgroundColor }}
                               >
                                 {button.label}
@@ -4849,20 +6036,20 @@ export default function CustomTemplatePage() {
                         buttonTone?: 'default' | 'inverted';
                       } = {}) => (
                         <div className={`space-y-4 ${align === 'center' ? 'text-center' : ''}`}>
-                          <HeadingText
-                            level="h2"
-                            className="uppercase tracking-widest opacity-70"
+                        <HeadingText
+                          level="h2"
+                          className="uppercase tracking-widest opacity-70"
                             color={subtitleColor ?? colorPalette.mutedText}
                             align={align}
-                          >
-                            {aboutSettings.subtitle}
-                          </HeadingText>
+                        >
+                          {aboutSettings.subtitle}
+                        </HeadingText>
                           <HeadingText level="h1" className="font-bold" color={titleColor} align={align}>
-                            {aboutSettings.title}
-                          </HeadingText>
+                          {aboutSettings.title}
+                        </HeadingText>
                           <BodyText className="opacity-90" align={align} color={bodyColor}>
-                            {aboutSettings.paragraph}
-                          </BodyText>
+                          {aboutSettings.paragraph}
+                        </BodyText>
                           {includeBullets && renderAboutBullets({ variant: bulletVariant, align, tone: bulletTone })}
                           {includeButtons && renderAboutButtons(align, buttonTone)}
                         </div>
@@ -4903,7 +6090,7 @@ export default function CustomTemplatePage() {
                                 style={{ minHeight, borderColor: colorPalette.border }}
                               >
                                 Voeg een afbeelding toe
-                              </div>
+                        </div>
                             )}
                           </DroppableImageArea>
                         );
@@ -4914,7 +6101,7 @@ export default function CustomTemplatePage() {
                           {position === 'left' && renderAboutImage('left')}
                           {renderAboutMainText()}
                           {position === 'right' && renderAboutImage('right')}
-                        </div>
+                      </div>
                       );
 
                       const renderStackedLayout = () => (
@@ -4934,9 +6121,9 @@ export default function CustomTemplatePage() {
                         >
                           <div className="relative overflow-hidden rounded-3xl border border-white/10 min-h-[320px]">
                             {aboutSettings.imageUrl ? (
-                              <img
-                                src={aboutSettings.imageUrl}
-                                alt="About visual"
+                            <img
+                              src={aboutSettings.imageUrl}
+                              alt="About visual"
                                 className="absolute inset-0 w-full h-full object-cover"
                                 style={{ filter: 'brightness(0.6)' }}
                               />
@@ -4973,7 +6160,7 @@ export default function CustomTemplatePage() {
                               imageClassName: 'w-full h-60 object-cover rounded-3xl',
                               imageCover: true,
                             })}
-                          </div>
+                    </div>
                         </div>
                       );
 
@@ -5009,14 +6196,14 @@ export default function CustomTemplatePage() {
                   id="schedule-section"
                   data-component-id="program"
                   onClick={(e) => handleComponentClick('program', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: programSettings.backgroundColor, order: componentOrderMap['program'] ?? 3 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-5xl relative z-20">
+                  <div className="container mx-auto max-w-5xl relative z-20 px-4 sm:px-6">
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
@@ -5038,7 +6225,7 @@ export default function CustomTemplatePage() {
                               borderColor: programSettings.borderColor
                             }}
                           >
-                            <div className="text-2xl font-bold whitespace-nowrap" style={{ color: programSettings.timeColor, minWidth: `${programSettings.columnWidth}%` }}>
+                            <div className="text-lg sm:text-xl md:text-2xl font-bold whitespace-nowrap" style={{ color: programSettings.timeColor, minWidth: `${programSettings.columnWidth}%` }}>
                               {item.time}
                             </div>
                             <div className="flex-1">
@@ -5093,14 +6280,14 @@ export default function CustomTemplatePage() {
                   id="bracket-section"
                   data-component-id="group-stage"
                   onClick={(e) => handleComponentClick('group-stage', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: groupStageSettings.colors.backgroundColor, order: componentOrderMap['group-stage'] ?? 4 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
@@ -5124,9 +6311,9 @@ export default function CustomTemplatePage() {
                     >
                       {groupStageSettings.numberOfGroups * groupStageSettings.teamsPerGroup} teams verdeeld over {groupStageSettings.numberOfGroups} groepen. Top 2 van elke groep gaat door naar kwartfinales.
                     </BodyText>
-                    <div 
+                        <div 
                       className="grid gap-4 md:gap-6 w-full"
-                      style={{
+                          style={{ 
                         gridTemplateColumns: `repeat(${groupStageSettings.numberOfGroups}, minmax(0, 1fr))`,
                       }}
                     >
@@ -5148,49 +6335,68 @@ export default function CustomTemplatePage() {
                             Groep {group.name}
                           </HeadingText>
                           <div className={`${groupStageSettings.numberOfGroups > 4 ? 'space-y-1' : 'space-y-2'}`}>
-                            {group.teams.map((team) => (
-                              <div 
-                                key={team.id}
-                                className={`flex items-center justify-between rounded-lg ${groupStageSettings.numberOfGroups > 4 ? 'p-2' : 'p-3'}`}
-                                style={{ backgroundColor: groupStageSettings.colors.teamItemBackground }}
-                              >
-                                <div className={`flex items-center ${groupStageSettings.numberOfGroups > 4 ? 'gap-2' : 'gap-3'} min-w-0`}>
-                                  <span 
-                                    className="opacity-60 flex-shrink-0"
-                                    style={{ 
-                                      fontSize: `${groupStageSettings.fontSizes.teamTag}px`,
-                                      color: groupStageSettings.colors.seedColor
-                                    }}
-                                  >
-                                    {team.seed}
-                                  </span>
-                                  <div className="min-w-0 flex-1">
-                                    <HeadingText 
-                                      level="h3" 
-                                      className="truncate" 
-                                      color={groupStageSettings.colors.teamNameColor}
-                                      style={{ fontSize: `${groupStageSettings.fontSizes.teamName}px` }}
-                                    >
-                                      {team.name}
-                                    </HeadingText>
-                                    <BodyText 
-                                      as="div" 
-                                      variant="small" 
-                                      className="opacity-60 truncate"
+                            {group.teams.map((team) => {
+                              const groupColor = groupStageSettings.colors.groupNameColor;
+                              const hoverBgColor = groupColor + '15';
+                              const hoverBorderColor = groupColor + '40';
+                              
+                              return (
+                                <div 
+                                  key={team.id}
+                                  className={`group/team flex items-center justify-between rounded-lg transition-all duration-200 cursor-pointer ${groupStageSettings.numberOfGroups > 4 ? 'p-2' : 'p-3'} hover:scale-[1.02] hover:shadow-lg`}
+                                  style={{ 
+                                    backgroundColor: groupStageSettings.colors.teamItemBackground,
+                                    border: `1px solid transparent`,
+                                    '--hover-bg': hoverBgColor,
+                                    '--hover-border': hoverBorderColor,
+                                  } as React.CSSProperties & { '--hover-bg': string; '--hover-border': string }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = hoverBgColor;
+                                    e.currentTarget.style.borderColor = hoverBorderColor;
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = groupStageSettings.colors.teamItemBackground;
+                                    e.currentTarget.style.borderColor = 'transparent';
+                                  }}
+                                >
+                                  <div className={`flex items-center ${groupStageSettings.numberOfGroups > 4 ? 'gap-2' : 'gap-3'} min-w-0`}>
+                                    <span 
+                                      className="opacity-60 flex-shrink-0 transition-opacity group-hover/team:opacity-100"
                                       style={{ 
                                         fontSize: `${groupStageSettings.fontSizes.teamTag}px`,
-                                        color: groupStageSettings.colors.teamTagColor
+                                        color: groupStageSettings.colors.seedColor
                                       }}
                                     >
+                                      {team.seed}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <HeadingText 
+                                        level="h3" 
+                                        className="truncate transition-colors group-hover/team:opacity-100" 
+                                        color={groupStageSettings.colors.teamNameColor}
+                                        style={{ fontSize: `${groupStageSettings.fontSizes.teamName}px` }}
+                                      >
+                                      {team.name}
+                                    </HeadingText>
+                                      <BodyText 
+                                        as="div" 
+                                        variant="small" 
+                                        className="opacity-60 truncate transition-opacity group-hover/team:opacity-80"
+                                        style={{ 
+                                          fontSize: `${groupStageSettings.fontSizes.teamTag}px`,
+                                          color: groupStageSettings.colors.teamTagColor
+                                        }}
+                                      >
                                       {team.tag}
                                     </BodyText>
                                   </div>
                                 </div>
                               </div>
-                            ))}
+                              );
+                            })}
                           </div>
-                          </div>
-                        ))}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </section>
@@ -5202,14 +6408,14 @@ export default function CustomTemplatePage() {
                   id="bracket-section"
                   data-component-id="bracket"
                   onClick={(e) => handleComponentClick('bracket', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['bracket'] ?? 5 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
                     <HeadingText level="h1" className="text-center mb-6">
                       Tournament Bracket
                     </HeadingText>
@@ -5274,14 +6480,14 @@ export default function CustomTemplatePage() {
                   id="teams-section"
                   data-component-id="teams"
                   onClick={(e) => handleComponentClick('teams', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
@@ -5308,7 +6514,7 @@ export default function CustomTemplatePage() {
                           }}
                         >
                           <div 
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-4 mx-auto"
+                            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold mb-4 mx-auto"
                             style={{ backgroundColor: colorPalette.primary, color: 'white' }}
                           >
                             {team.initials}
@@ -5343,38 +6549,156 @@ export default function CustomTemplatePage() {
                   id="stats-section"
                   data-component-id="stats"
                   onClick={(e) => handleComponentClick('stats', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['stats'] ?? 7 }}
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
+                  style={{ backgroundColor: statsSettings.colors.backgroundColor, order: componentOrderMap['stats'] ?? 7 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      {[
-                        { value: '16', label: 'Teams' },
-                        { value: '€25.000', label: 'Prijzenpot (€)' },
-                        { value: '48', label: 'Spelers' },
-                        { value: '1.2K', label: 'Live Toeschouwers' }
-                      ].map((stat, idx) => (
-                        <div 
-                          key={idx}
-                          className="text-center p-6 rounded-xl border"
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+                    {(statsSettings.title || statsSettings.subtitle) && (
+                      <div className="text-center mb-12">
+                        {statsSettings.title && (
+                          <HeadingText 
+                            level="h1" 
+                            className="mb-4"
+                            color={statsSettings.colors.titleColor}
+                            style={{ fontSize: `${statsSettings.fontSizes.title}px` }}
+                          >
+                            {statsSettings.title}
+                          </HeadingText>
+                        )}
+                        {statsSettings.subtitle && (
+                          <BodyText 
+                            className="opacity-90"
+                            color={statsSettings.colors.subtitleColor}
+                            style={{ fontSize: `${statsSettings.fontSizes.subtitle}px` }}
+                          >
+                            {statsSettings.subtitle}
+                          </BodyText>
+                        )}
+                      </div>
+                    )}
+                    {statsSettings.layout === 'grid' && (
+                      <div className={`grid gap-6 ${statsSettings.stats.length <= 2 ? 'grid-cols-1 md:grid-cols-2' : statsSettings.stats.length <= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'}`}>
+                        {statsSettings.stats.map((stat) => (
+                          <div 
+                            key={stat.id}
+                            className="text-center p-6 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                           style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border
-                          }}
-                        >
-                          <HeadingText level="h1" className="mb-2" color={colorPalette.primary}>
+                              backgroundColor: statsSettings.colors.cardBackground,
+                              borderColor: statsSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h1" 
+                              className="mb-2" 
+                              color={statsSettings.colors.statValueColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statValue}px` }}
+                            >
                             {stat.value}
                           </HeadingText>
-                          <BodyText className="opacity-80" variant="small">
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={statsSettings.colors.statLabelColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statLabel}px` }}
+                            >
                             {stat.label}
                           </BodyText>
                         </div>
                       ))}
                     </div>
+                    )}
+                    {statsSettings.layout === 'list' && (
+                      <div className="space-y-4">
+                        {statsSettings.stats.map((stat) => (
+                          <div 
+                            key={stat.id}
+                            className="flex items-center justify-between p-6 rounded-xl border transition-all duration-200 hover:scale-[1.01] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: statsSettings.colors.cardBackground,
+                              borderColor: statsSettings.colors.cardBorder
+                            }}
+                          >
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={statsSettings.colors.statLabelColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statLabel}px` }}
+                            >
+                              {stat.label}
+                            </BodyText>
+                            <HeadingText 
+                              level="h1" 
+                              color={statsSettings.colors.statValueColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statValue}px` }}
+                            >
+                              {stat.value}
+                            </HeadingText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {statsSettings.layout === 'cards' && (
+                      <div className={`grid gap-6 ${statsSettings.stats.length <= 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                        {statsSettings.stats.map((stat) => (
+                          <div 
+                            key={stat.id}
+                            className="text-center p-8 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: statsSettings.colors.cardBackground,
+                              borderColor: statsSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h1" 
+                              className="mb-4" 
+                              color={statsSettings.colors.statValueColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statValue + 8}px` }}
+                            >
+                              {stat.value}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={statsSettings.colors.statLabelColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statLabel + 2}px` }}
+                            >
+                              {stat.label}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {statsSettings.layout === 'minimal' && (
+                      <div className="flex flex-wrap justify-center gap-8">
+                        {statsSettings.stats.map((stat) => (
+                          <div 
+                            key={stat.id}
+                            className="text-center transition-all duration-200 hover:scale-105"
+                          >
+                            <HeadingText 
+                              level="h1" 
+                              className="mb-1" 
+                              color={statsSettings.colors.statValueColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statValue}px` }}
+                            >
+                              {stat.value}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-60" 
+                              variant="small"
+                              color={statsSettings.colors.statLabelColor}
+                              style={{ fontSize: `${statsSettings.fontSizes.statLabel - 2}px` }}
+                            >
+                              {stat.label}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </section>
               )}
@@ -5385,14 +6709,14 @@ export default function CustomTemplatePage() {
                   id="register-section"
                   data-component-id="registration"
                   onClick={(e) => handleComponentClick('registration', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['registration'] ?? 8 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-2xl">
+                  <div className="container mx-auto max-w-2xl px-4 sm:px-6">
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
@@ -5500,47 +6824,156 @@ export default function CustomTemplatePage() {
                   id="faq-section"
                   data-component-id="faq"
                   onClick={(e) => handleComponentClick('faq', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['faq'] ?? 9 }}
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
+                  style={{ 
+                    backgroundColor: faqSettings.colors.backgroundColor, 
+                    order: componentOrderMap['faq'] ?? 9 
+                  }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-4xl">
+                  <div className="container mx-auto max-w-4xl px-4 sm:px-6">
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
-                      color={colorPalette.mutedText}
+                      color={faqSettings.colors.subtitleColor}
+                      style={{ fontSize: `${faqSettings.fontSizes.subtitle}px` }}
                     >
-                      Veelgestelde vragen
+                      {faqSettings.subtitle}
                     </HeadingText>
-                    <HeadingText level="h1" className="text-center mb-12">
-                      FAQ
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-12"
+                      color={faqSettings.colors.titleColor}
+                      style={{ fontSize: `${faqSettings.fontSizes.title}px` }}
+                    >
+                      {faqSettings.title}
                     </HeadingText>
-                    <div className="space-y-4">
-                      {[
-                        { q: 'Wat is het inschrijfgeld?', a: 'Het inschrijfgeld bedraagt €150 per team. Dit dekt de volledige dag inclusief faciliteiten, setup en prijs contributions.' },
-                        { q: 'Wat zijn de rank requirements?', a: 'Minimaal één speler moet Champion I of hoger zijn. De gemiddelde team rank moet minimaal Diamond III zijn.' },
-                        { q: 'Is een substitute speler toegestaan?', a: 'Ja, elk team mag één officiële substitute registreren. Deze moet bij inschrijving worden opgegeven.' }
-                      ].map((item, idx) => (
-                        <div 
-                          key={idx}
-                          className="p-6 rounded-xl border"
-                          style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border
-                          }}
-                        >
-                          <HeadingText level="h2" className="mb-3">
-                            {item.q}
-                          </HeadingText>
-                          <BodyText className="opacity-80" variant="small">
-                            {item.a}
-                          </BodyText>
-                        </div>
-                      ))}
-                    </div>
+                    {faqSettings.layout === 'accordion' && (
+                      <div className="space-y-4">
+                        {faqSettings.items.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="p-6 rounded-xl border transition-all duration-200 hover:scale-[1.01] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: faqSettings.colors.cardBackground,
+                              borderColor: faqSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h2" 
+                              className="mb-3"
+                              color={faqSettings.colors.questionColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
+                            >
+                              {item.question}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={faqSettings.colors.answerColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.answer}px` }}
+                            >
+                              {item.answer}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {faqSettings.layout === 'cards' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {faqSettings.items.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="p-6 rounded-xl border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: faqSettings.colors.cardBackground,
+                              borderColor: faqSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h2" 
+                              className="mb-3"
+                              color={faqSettings.colors.questionColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
+                            >
+                              {item.question}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={faqSettings.colors.answerColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.answer}px` }}
+                            >
+                              {item.answer}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {faqSettings.layout === 'list' && (
+                      <div className="space-y-3">
+                        {faqSettings.items.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="p-4 rounded-lg border transition-all duration-200 hover:bg-white/5"
+                            style={{ 
+                              backgroundColor: faqSettings.colors.cardBackground,
+                              borderColor: faqSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h3" 
+                              className="mb-2"
+                              color={faqSettings.colors.questionColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
+                            >
+                              {item.question}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-80" 
+                              variant="small"
+                              color={faqSettings.colors.answerColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.answer}px` }}
+                            >
+                              {item.answer}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {faqSettings.layout === 'minimal' && (
+                      <div className="space-y-2">
+                        {faqSettings.items.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="p-3 rounded border-b transition-all duration-200 hover:bg-white/5"
+                            style={{ 
+                              borderColor: faqSettings.colors.cardBorder
+                            }}
+                          >
+                            <HeadingText 
+                              level="h3" 
+                              className="mb-1"
+                              color={faqSettings.colors.questionColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
+                            >
+                              {item.question}
+                            </HeadingText>
+                            <BodyText 
+                              className="opacity-70" 
+                              variant="small"
+                              color={faqSettings.colors.answerColor}
+                              style={{ fontSize: `${faqSettings.fontSizes.answer}px` }}
+                            >
+                              {item.answer}
+                            </BodyText>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </section>
               )}
@@ -5551,14 +6984,14 @@ export default function CustomTemplatePage() {
                   id="twitch-section"
                   data-component-id="twitch"
                   onClick={(e) => handleComponentClick('twitch', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: twitchSettings.background, order: componentOrderMap['twitch'] ?? 10 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-5xl">
+                  <div className="container mx-auto max-w-5xl px-4 sm:px-6">
                     <HeadingText level="h1" className="text-center mb-6">
                       Live Stream
                     </HeadingText>
@@ -5583,24 +7016,24 @@ export default function CustomTemplatePage() {
                           chatEnabledOverride={twitchSettings.showChat && twitchSettings.layout !== 'stream-only'}
                           enabledOverride={true}
                         />
-                      </div>
+                          </div>
                     ) : (
-                      <div 
+                        <div 
                         className="rounded-xl border flex items-center justify-center"
-                        style={{ 
-                          backgroundColor: colorPalette.cardBackground,
-                          borderColor: colorPalette.border,
+                          style={{ 
+                            backgroundColor: colorPalette.cardBackground,
+                            borderColor: colorPalette.border,
                           minHeight: twitchSettings.height,
                         }}
                       >
                         <div className="text-center space-y-3">
-                          <div className="text-4xl">📺</div>
+                          <div className="text-2xl sm:text-3xl md:text-4xl">📺</div>
                           <BodyText className="opacity-80" variant="small">
                             Voer een Twitch kanaal of URL in om de stream te tonen
                           </BodyText>
                         </div>
-                      </div>
-                    )}
+                        </div>
+                      )}
                   </div>
                 </section>
               )}
@@ -5611,52 +7044,238 @@ export default function CustomTemplatePage() {
                   id="sponsors-section"
                   data-component-id="sponsors"
                   onClick={(e) => handleComponentClick('sponsors', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: sponsorSettings.backgroundColor, order: componentOrderMap['sponsors'] ?? 11 }}
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
+                  style={{ 
+                    backgroundColor: sponsorSettings.colors.backgroundColor, 
+                    order: componentOrderMap['sponsors'] ?? 11 
+                  }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
-                    <HeadingText level="h1" className="text-center mb-6">
-                      Onze Sponsors
-                    </HeadingText>
-                    <BodyText className="text-center mb-12 opacity-90">
-                      Met dank aan onze partners
-                    </BodyText>
-                    <div
-                      className={`${sponsorSettings.layout === 'carousel' ? 'flex overflow-x-auto gap-6 pb-4' : 'grid'} `}
-                      style={
-                        sponsorSettings.layout === 'grid'
-                          ? { gridTemplateColumns: `repeat(${sponsorSettings.columns}, minmax(0, 1fr))`, gap: sponsorSettings.gap }
-                          : { gap: sponsorSettings.gap }
-                      }
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-6"
+                      color={sponsorSettings.colors.titleColor}
+                      style={{ fontSize: `${sponsorSettings.fontSizes.title}px` }}
                     >
-                      {sponsorSettings.logos.map((logo) => (
-                        <a
-                          key={logo.id}
-                          href={logo.link}
-                          className="rounded-xl border flex items-center justify-center transition-all"
-                          style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: sponsorSettings.divider ? colorPalette.border : 'transparent',
-                            minWidth: sponsorSettings.layout === 'carousel' ? '180px' : undefined,
-                            filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
-                          }}
-                          onMouseEnter={(e) => sponsorSettings.grayscaleHover && (e.currentTarget.style.filter = 'grayscale(0%)')}
-                          onMouseLeave={(e) => sponsorSettings.grayscaleHover && (e.currentTarget.style.filter = 'grayscale(100%)')}
-                        >
-                          {logo.url ? (
-                            <img src={logo.url} alt={logo.name} style={{ maxHeight: sponsorSettings.logoSize }} className="object-contain" />
-                          ) : (
-                            <span className="text-sm font-medium opacity-80" style={{ color: colorPalette.bodyText }}>
-                              {logo.name}
-                            </span>
-                          )}
-                        </a>
-                      ))}
-                    </div>
+                      {sponsorSettings.title}
+                    </HeadingText>
+                    <BodyText 
+                      className="text-center mb-12 opacity-90"
+                      color={sponsorSettings.colors.subtitleColor}
+                      style={{ fontSize: `${sponsorSettings.fontSizes.subtitle}px` }}
+                    >
+                      {sponsorSettings.subtitle}
+                    </BodyText>
+                    {sponsorSettings.layout === 'grid' && (
+                      <div
+                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
+                        style={{ 
+                          gridTemplateColumns: viewport === 'mobile' ? `repeat(2, minmax(0, 1fr))` : viewport === 'tablet' ? `repeat(${Math.min(3, sponsorSettings.logos.length)}, minmax(0, 1fr))` : `repeat(${sponsorSettings.logos.length}, minmax(0, 1fr))`, 
+                          gap: `${sponsorSettings.gap}px` 
+                        }}
+                      >
+                        {sponsorSettings.logos.map((logo) => (
+                          <a
+                            key={logo.id}
+                            href={logo.link}
+                            className="rounded-xl border flex items-center justify-center transition-all duration-200 hover:scale-[1.05] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: sponsorSettings.colors.cardBackground,
+                              borderColor: sponsorSettings.divider ? sponsorSettings.colors.cardBorder : 'transparent',
+                              filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(0%)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(100%)';
+                              }
+                            }}
+                          >
+                            {logo.url ? (
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                style={{ width: `${sponsorSettings.logoSize}px`, height: 'auto' }}
+                                className="p-4"
+                              />
+                            ) : (
+                              <div className="p-4 text-white/40 text-sm">{logo.name}</div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {sponsorSettings.layout === 'carousel' && (
+                      <div
+                        className="flex overflow-x-auto gap-6 pb-4 scrollbar-hide"
+                        style={{ gap: `${sponsorSettings.gap}px` }}
+                      >
+                        {sponsorSettings.logos.map((logo) => (
+                          <a
+                            key={logo.id}
+                            href={logo.link}
+                            className="rounded-xl border flex items-center justify-center transition-all duration-200 hover:scale-[1.05] hover:shadow-lg flex-shrink-0"
+                            style={{ 
+                              backgroundColor: sponsorSettings.colors.cardBackground,
+                              borderColor: sponsorSettings.divider ? sponsorSettings.colors.cardBorder : 'transparent',
+                              minWidth: '180px',
+                              filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(0%)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(100%)';
+                              }
+                            }}
+                          >
+                            {logo.url ? (
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                style={{ width: `${sponsorSettings.logoSize}px`, height: 'auto' }}
+                                className="p-4"
+                              />
+                            ) : (
+                              <div className="p-4 text-white/40 text-sm">{logo.name}</div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {sponsorSettings.layout === 'rows' && (
+                      <div className="space-y-4">
+                        {Array.from({ length: Math.ceil(sponsorSettings.logos.length / sponsorSettings.columns) }).map((_, rowIndex) => (
+                          <div
+                            key={rowIndex}
+                            className="grid"
+                            style={{ 
+                              gridTemplateColumns: `repeat(${sponsorSettings.columns}, minmax(0, 1fr))`, 
+                              gap: `${sponsorSettings.gap}px` 
+                            }}
+                          >
+                            {sponsorSettings.logos.slice(rowIndex * sponsorSettings.columns, (rowIndex + 1) * sponsorSettings.columns).map((logo) => (
+                              <a
+                                key={logo.id}
+                                href={logo.link}
+                                className="rounded-xl border flex items-center justify-center transition-all duration-200 hover:scale-[1.05] hover:shadow-lg"
+                                style={{ 
+                                  backgroundColor: sponsorSettings.colors.cardBackground,
+                                  borderColor: sponsorSettings.divider ? sponsorSettings.colors.cardBorder : 'transparent',
+                                  filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (sponsorSettings.grayscaleHover) {
+                                    e.currentTarget.style.filter = 'grayscale(0%)';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (sponsorSettings.grayscaleHover) {
+                                    e.currentTarget.style.filter = 'grayscale(100%)';
+                                  }
+                                }}
+                              >
+                                {logo.url ? (
+                                  <img
+                                    src={logo.url}
+                                    alt={logo.name}
+                                    style={{ width: `${sponsorSettings.logoSize}px`, height: 'auto' }}
+                                    className="p-4"
+                                  />
+                                ) : (
+                                  <div className="p-4 text-white/40 text-sm">{logo.name}</div>
+                                )}
+                              </a>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {sponsorSettings.layout === 'centered' && (
+                      <div className="flex flex-wrap justify-center items-center gap-6">
+                        {sponsorSettings.logos.map((logo) => (
+                          <a
+                            key={logo.id}
+                            href={logo.link}
+                            className="rounded-xl border flex items-center justify-center transition-all duration-200 hover:scale-[1.05] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: sponsorSettings.colors.cardBackground,
+                              borderColor: sponsorSettings.divider ? sponsorSettings.colors.cardBorder : 'transparent',
+                              filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(0%)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(100%)';
+                              }
+                            }}
+                          >
+                            {logo.url ? (
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                style={{ width: `${sponsorSettings.logoSize}px`, height: 'auto' }}
+                                className="p-4"
+                              />
+                            ) : (
+                              <div className="p-4 text-white/40 text-sm">{logo.name}</div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                    {sponsorSettings.layout === 'minimal' && (
+                      <div className="flex flex-wrap justify-center items-center gap-4">
+                        {sponsorSettings.logos.map((logo) => (
+                          <a
+                            key={logo.id}
+                            href={logo.link}
+                            className="rounded-lg border flex items-center justify-center transition-all duration-200 hover:opacity-80"
+                            style={{ 
+                              backgroundColor: sponsorSettings.colors.cardBackground,
+                              borderColor: sponsorSettings.colors.cardBorder,
+                              filter: sponsorSettings.grayscaleHover ? 'grayscale(100%)' : 'none',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(0%)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (sponsorSettings.grayscaleHover) {
+                                e.currentTarget.style.filter = 'grayscale(100%)';
+                              }
+                            }}
+                          >
+                            {logo.url ? (
+                              <img
+                                src={logo.url}
+                                alt={logo.name}
+                                style={{ width: `${Math.min(sponsorSettings.logoSize, 60)}px`, height: 'auto' }}
+                                className="p-2"
+                              />
+                            ) : (
+                              <div className="p-2 text-white/40 text-xs">{logo.name}</div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </section>
               )}
@@ -5667,14 +7286,14 @@ export default function CustomTemplatePage() {
                   id="socials-section"
                   data-component-id="socials"
                   onClick={(e) => handleComponentClick('socials', e)}
-                  className="py-20 px-6 cursor-pointer relative group"
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
                   style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['socials'] ?? 12 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-4xl">
+                  <div className="container mx-auto max-w-4xl px-4 sm:px-6">
                     <HeadingText level="h1" className="text-center mb-6">
                       Volg Ons
                     </HeadingText>
@@ -5720,7 +7339,7 @@ export default function CustomTemplatePage() {
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <div className="container mx-auto max-w-6xl">
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
                     <div
                       className="grid mb-8"
                       style={{ 
@@ -5744,7 +7363,7 @@ export default function CustomTemplatePage() {
                           {footerSettings.logoUrl ? (
                             <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 object-contain" />
                           ) : (
-                            <HeadingText level="h1" color={footerSettings.textColor} className="text-xl font-bold">
+                            <HeadingText level="h1" color={footerSettings.textColor} className="text-lg sm:text-xl font-bold">
                               Winter Championship 2026
                             </HeadingText>
                           )}
@@ -5840,7 +7459,7 @@ export default function CustomTemplatePage() {
             <h2 className="text-lg font-semibold">Configureer de {activeComponentLabel}</h2>
           </div>
           <div className="flex-1 overflow-y-auto pr-8 -mr-6">
-            {renderSettingsPanel()}
+          {renderSettingsPanel()}
           </div>
         </aside>
       </main>
@@ -5877,7 +7496,7 @@ export default function CustomTemplatePage() {
           </div>
           <div className="flex-1 overflow-hidden bg-[#03040B] flex items-start justify-center">
             <div className="w-full h-full overflow-y-auto flex items-start justify-center pr-10 -mr-6">
-              <div 
+            <div 
               className="bg-gradient-to-br from-[#0B0E1F] to-[#020308] w-full transition-all"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
@@ -5888,21 +7507,21 @@ export default function CustomTemplatePage() {
                 boxShadow: '0 0 0 1px rgba(255,255,255,0.1)',
                 minHeight: '100%'
               }}
-              >
-                {/* Preview content will be cloned here via useEffect */}
-                <div 
-                  id="fullscreen-preview-container" 
-                  className="w-full flex flex-col"
-                  style={{ 
-                    backgroundColor: colorPalette.pageBackground,
-                    fontFamily: formatFontStack(fontSettings.bodyFamily),
-                    color: colorPalette.bodyText,
-                    width: '100%',
-                    minHeight: '100%',
-                    margin: 0,
-                    padding: 0
-                  }} 
-                />
+            >
+              {/* Preview content will be cloned here via useEffect */}
+              <div 
+                id="fullscreen-preview-container" 
+                className="w-full flex flex-col"
+                style={{ 
+                  backgroundColor: colorPalette.pageBackground,
+                  fontFamily: formatFontStack(fontSettings.bodyFamily),
+                  color: colorPalette.bodyText,
+                  width: '100%',
+                  minHeight: '100%',
+                  margin: 0,
+                  padding: 0
+                }} 
+              />
               </div>
             </div>
           </div>
