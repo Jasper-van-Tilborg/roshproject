@@ -1225,6 +1225,99 @@ const getDefaultBracketSettings = () => ({
   ],
 });
 
+const getDefaultGroupStageSettings = () => ({
+  numberOfGroups: 4,
+  teamsPerGroup: 4,
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    groupName: 24,
+    teamName: 14,
+    teamTag: 12,
+  },
+  colors: {
+    backgroundColor: '#05060D',
+    subtitleColor: '#FFFFFF',
+    titleColor: '#FFFFFF',
+    bodyTextColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    groupNameColor: '#755DFF',
+    teamItemBackground: '#05060D',
+    teamNameColor: '#FFFFFF',
+    teamTagColor: '#FFFFFF',
+    seedColor: '#FFFFFF',
+  },
+  groups: [
+    {
+      id: createId(),
+      name: 'A',
+      teams: [
+        { id: createId(), seed: '#1', name: 'Arctic Wolves', tag: 'ARCT' },
+        { id: createId(), seed: '#8', name: 'Thunder Strike', tag: 'THND' },
+        { id: createId(), seed: '#9', name: 'Ice Phoenix', tag: 'ICEP' },
+        { id: createId(), seed: '#16', name: 'Snow Leopards', tag: 'SNLP' },
+      ],
+    },
+    {
+      id: createId(),
+      name: 'B',
+      teams: [
+        { id: createId(), seed: '#2', name: 'Fire Dragons', tag: 'FIRE' },
+        { id: createId(), seed: '#7', name: 'Storm Riders', tag: 'STORM' },
+        { id: createId(), seed: '#10', name: 'Lightning Bolt', tag: 'LIGHT' },
+        { id: createId(), seed: '#15', name: 'Thunder Hawks', tag: 'HAWK' },
+      ],
+    },
+    {
+      id: createId(),
+      name: 'C',
+      teams: [
+        { id: createId(), seed: '#3', name: 'Shadow Wolves', tag: 'SHAD' },
+        { id: createId(), seed: '#6', name: 'Night Stalkers', tag: 'NIGHT' },
+        { id: createId(), seed: '#11', name: 'Dark Knights', tag: 'DARK' },
+        { id: createId(), seed: '#14', name: 'Midnight Riders', tag: 'MID' },
+      ],
+    },
+    {
+      id: createId(),
+      name: 'D',
+      teams: [
+        { id: createId(), seed: '#4', name: 'Golden Eagles', tag: 'GOLD' },
+        { id: createId(), seed: '#5', name: 'Silver Lions', tag: 'SILV' },
+        { id: createId(), seed: '#12', name: 'Bronze Bears', tag: 'BRON' },
+        { id: createId(), seed: '#13', name: 'Copper Tigers', tag: 'COPP' },
+      ],
+    },
+  ],
+});
+
+const resetGroupStageFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+    groupName: 24,
+    teamName: 14,
+    teamTag: 12,
+  };
+};
+
+const resetGroupStageColors = () => {
+  return {
+    backgroundColor: '#05060D',
+    subtitleColor: '#FFFFFF',
+    titleColor: '#FFFFFF',
+    bodyTextColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    groupNameColor: '#755DFF',
+    teamItemBackground: '#05060D',
+    teamNameColor: '#FFFFFF',
+    teamTagColor: '#FFFFFF',
+    seedColor: '#FFFFFF',
+  };
+};
+
 const getDefaultTwitchSettings = () => ({
   channel: 'roshlive',
   autoplay: false,
@@ -1356,6 +1449,17 @@ export default function CustomTemplatePage() {
   const [programSettings, setProgramSettings] = useState(() => getDefaultProgramSettings());
 
   const [bracketSettings, setBracketSettings] = useState(() => getDefaultBracketSettings());
+
+  const [groupStageSettings, setGroupStageSettings] = useState(() => getDefaultGroupStageSettings());
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    const defaultSettings = getDefaultGroupStageSettings();
+    defaultSettings.groups.forEach((group) => {
+      initial[group.id] = true; // Start with all groups expanded
+    });
+    return initial;
+  });
+  const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
 
   const [twitchSettings, setTwitchSettings] = useState(() => getDefaultTwitchSettings());
 
@@ -1880,6 +1984,7 @@ export default function CustomTemplatePage() {
     setAboutSettings(getDefaultAboutSettings());
     setProgramSettings(getDefaultProgramSettings());
     setBracketSettings(getDefaultBracketSettings());
+    setGroupStageSettings(getDefaultGroupStageSettings());
     setTwitchSettings(getDefaultTwitchSettings());
     setSponsorSettings(getDefaultSponsorSettings());
     setSocialSettings(getDefaultSocialSettings());
@@ -2104,6 +2209,143 @@ export default function CustomTemplatePage() {
         [section]: [...prev.links[section], { id: createId(), label: 'Nieuwe link', link: '#' }],
       },
     }));
+  };
+
+  const updateGroupStageGroup = (groupId: string, field: 'name', value: string) => {
+    setGroupStageSettings((prev) => ({
+      ...prev,
+      groups: prev.groups.map((group) => (group.id === groupId ? { ...group, [field]: value } : group)),
+    }));
+  };
+
+  const updateGroupStageTeam = (groupId: string, teamId: string, field: 'seed' | 'name' | 'tag', value: string) => {
+    setGroupStageSettings((prev) => ({
+      ...prev,
+      groups: prev.groups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              teams: group.teams.map((team) => (team.id === teamId ? { ...team, [field]: value } : team)),
+            }
+          : group
+      ),
+    }));
+  };
+
+  const handleGroupStageNumberOfGroupsChange = (value: number) => {
+    setGroupStageSettings((prev) => {
+      const newValue = Math.max(1, Math.min(8, value));
+      if (newValue > prev.groups.length) {
+        const newGroups = Array.from({ length: newValue - prev.groups.length }, (_, i) => {
+          const groupName = String.fromCharCode(65 + prev.groups.length + i);
+          return {
+            id: createId(),
+            name: groupName,
+            teams: Array.from({ length: prev.teamsPerGroup }, (_, j) => ({
+              id: createId(),
+              seed: `#${j + 1}`,
+              name: `Team ${groupName}${j + 1}`,
+              tag: `T${groupName}${j + 1}`,
+            })),
+          };
+        });
+        // Auto-expand new groups
+        setExpandedGroups((prevExpanded) => {
+          const updated = { ...prevExpanded };
+          newGroups.forEach((group) => {
+            updated[group.id] = true;
+          });
+          return updated;
+        });
+        return {
+          ...prev,
+          numberOfGroups: newValue,
+          groups: [...prev.groups, ...newGroups],
+        };
+      } else if (newValue < prev.groups.length) {
+        // Remove expanded state for removed groups
+        setExpandedGroups((prevExpanded) => {
+          const updated = { ...prevExpanded };
+          const removedGroups = prev.groups.slice(newValue);
+          removedGroups.forEach((group) => {
+            delete updated[group.id];
+          });
+          return updated;
+        });
+        return {
+          ...prev,
+          numberOfGroups: newValue,
+          groups: prev.groups.slice(0, newValue),
+        };
+      }
+      return { ...prev, numberOfGroups: newValue };
+    });
+  };
+
+  const handleGroupStageTeamsPerGroupChange = (value: number) => {
+    setGroupStageSettings((prev) => {
+      const newValue = Math.max(2, Math.min(8, value));
+      return {
+        ...prev,
+        teamsPerGroup: newValue,
+        groups: prev.groups.map((group) => {
+          if (group.teams.length < newValue) {
+            const newTeams = Array.from({ length: newValue - group.teams.length }, (_, i) => ({
+              id: createId(),
+              seed: `#${group.teams.length + i + 1}`,
+              name: `Team ${group.name}${group.teams.length + i + 1}`,
+              tag: `T${group.name}${group.teams.length + i + 1}`,
+            }));
+            return { ...group, teams: [...group.teams, ...newTeams] };
+          } else if (group.teams.length > newValue) {
+            return { ...group, teams: group.teams.slice(0, newValue) };
+          }
+          return group;
+        }),
+      };
+    });
+  };
+
+  const addGroupStageTeam = (groupId: string) => {
+    setGroupStageSettings((prev) => ({
+      ...prev,
+      teamsPerGroup: prev.teamsPerGroup + 1,
+      groups: prev.groups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              teams: [
+                ...group.teams,
+                {
+                  id: createId(),
+                  seed: `#${group.teams.length + 1}`,
+                  name: `Team ${group.name}${group.teams.length + 1}`,
+                  tag: `T${group.name}${group.teams.length + 1}`,
+                },
+              ],
+            }
+          : group
+      ),
+    }));
+  };
+
+  const removeGroupStageTeam = (groupId: string, teamId: string) => {
+    setGroupStageSettings((prev) => {
+      const updatedGroups = prev.groups.map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              teams: group.teams.filter((team) => team.id !== teamId),
+            }
+          : group
+      );
+      const minTeams = Math.min(...updatedGroups.map((g) => g.teams.length));
+      return {
+        ...prev,
+        teamsPerGroup: Math.max(2, minTeams),
+        groups: updatedGroups,
+      };
+    });
   };
 
   const renderSettingsPanel = () => {
@@ -3011,6 +3253,314 @@ export default function CustomTemplatePage() {
                   value={bracketSettings.style.winnerColor}
                   onChange={(value) => setBracketSettings((prev) => ({ ...prev, style: { ...prev.style, winnerColor: value } }))}
                 />
+              </div>
+            </section>
+          </div>
+        );
+      case 'group-stage':
+        return (
+          <div className={panelClass}>
+            <section className="space-y-3">
+              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Groep instellingen</h3>
+              <label className="flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-[0.3em] text-white/50">Aantal groepen</span>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={1}
+                    max={8}
+                    value={groupStageSettings.numberOfGroups}
+                    onChange={(e) => handleGroupStageNumberOfGroupsChange(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm text-white/70 w-10 text-right">{groupStageSettings.numberOfGroups}</span>
+                </div>
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-[0.3em] text-white/50">Teams per groep</span>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={2}
+                    max={8}
+                    value={groupStageSettings.teamsPerGroup}
+                    onChange={(e) => handleGroupStageTeamsPerGroupChange(Number(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="text-sm text-white/70 w-10 text-right">{groupStageSettings.teamsPerGroup}</span>
+                </div>
+              </label>
+            </section>
+            <section className="space-y-3">
+              <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Groepen en teams</h3>
+              <div className="space-y-3">
+                {groupStageSettings.groups.map((group) => {
+                  const isGroupExpanded = expandedGroups[group.id] ?? true;
+                  return (
+                    <div key={group.id} className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                      <button
+                        onClick={() => setExpandedGroups((prev) => ({ ...prev, [group.id]: !isGroupExpanded }))}
+                        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <svg
+                            className={`w-4 h-4 text-white/60 transition-transform ${isGroupExpanded ? 'rotate-90' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          <span className="text-sm font-semibold text-white">Groep {group.name}</span>
+                          <span className="text-xs text-white/40">({group.teams.length} teams)</span>
+                        </div>
+                      </button>
+                      {isGroupExpanded && (
+                        <div className="px-4 pb-4 space-y-3">
+                          <label className="flex flex-col gap-1">
+                            <span className="text-xs uppercase tracking-[0.2em] text-white/50">Groep naam</span>
+                            <input
+                              value={group.name}
+                              onChange={(e) => updateGroupStageGroup(group.id, 'name', e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm font-semibold focus:outline-none focus:border-[#755DFF]"
+                              placeholder="A"
+                            />
+                          </label>
+                          <div className="space-y-2">
+                            {group.teams.map((team, teamIdx) => {
+                              const isTeamExpanded = expandedTeams[team.id] ?? false;
+                              return (
+                                <div key={team.id} className="rounded-xl border border-white/5 bg-[#11132A]/50 overflow-hidden">
+                                  <div className="w-full flex items-center justify-between p-3">
+                                    <button
+                                      onClick={() => setExpandedTeams((prev) => ({ ...prev, [team.id]: !isTeamExpanded }))}
+                                      className="flex-1 flex items-center gap-2 hover:bg-white/5 transition rounded-lg p-2 -ml-2"
+                                    >
+                                      <svg
+                                        className={`w-3 h-3 text-white/50 transition-transform ${isTeamExpanded ? 'rotate-90' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                      <span className="text-xs uppercase tracking-[0.2em] text-white/60">Team {teamIdx + 1}</span>
+                                      {team.name && (
+                                        <span className="text-xs text-white/70 ml-2">- {team.name}</span>
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => removeGroupStageTeam(group.id, team.id)}
+                                      className="px-2 py-1 border border-white/10 rounded-lg text-xs text-white/70 hover:border-white/40 hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                                      disabled={group.teams.length <= 2}
+                                    >
+                                      Verwijder
+                                    </button>
+                                  </div>
+                                  {isTeamExpanded && (
+                                    <div className="px-3 pb-3 space-y-2">
+                                      <label className="flex flex-col gap-1">
+                                        <span className="text-xs text-white/50">Seed</span>
+                                        <input
+                                          value={team.seed}
+                                          onChange={(e) => updateGroupStageTeam(group.id, team.id, 'seed', e.target.value)}
+                                          className="w-full px-3 py-2 rounded-lg bg-[#0E1020] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                                          placeholder="#1"
+                                        />
+                                      </label>
+                                      <label className="flex flex-col gap-1">
+                                        <span className="text-xs text-white/50">Team naam</span>
+                                        <input
+                                          value={team.name}
+                                          onChange={(e) => updateGroupStageTeam(group.id, team.id, 'name', e.target.value)}
+                                          className="w-full px-3 py-2 rounded-lg bg-[#0E1020] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                                          placeholder="Team naam"
+                                        />
+                                      </label>
+                                      <label className="flex flex-col gap-1">
+                                        <span className="text-xs text-white/50">Tag</span>
+                                        <input
+                                          value={team.tag}
+                                          onChange={(e) => updateGroupStageTeam(group.id, team.id, 'tag', e.target.value)}
+                                          className="w-full px-3 py-2 rounded-lg bg-[#0E1020] border border-white/10 text-sm focus:outline-none focus:border-[#755DFF]"
+                                          placeholder="Tag"
+                                        />
+                                      </label>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <button
+                            onClick={() => addGroupStageTeam(group.id)}
+                            className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed"
+                            disabled={group.teams.length >= 8}
+                          >
+                            + Team toevoegen
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Kleuren</h3>
+                  <button
+                    type="button"
+                    onClick={() => setGroupStageSettings((prev) => ({ ...prev, colors: resetGroupStageColors() }))}
+                    className="text-[11px] uppercase tracking-[0.25em] px-3 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                  >
+                    Standaard
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={groupStageSettings.colors.backgroundColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={groupStageSettings.colors.subtitleColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={groupStageSettings.colors.titleColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Body tekst kleur"
+                    value={groupStageSettings.colors.bodyTextColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, bodyTextColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={groupStageSettings.colors.cardBackground}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={groupStageSettings.colors.cardBorder}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
+                  />
+                  <ColorInputField
+                    label="Groep naam kleur"
+                    value={groupStageSettings.colors.groupNameColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, groupNameColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Team item achtergrond"
+                    value={groupStageSettings.colors.teamItemBackground}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, teamItemBackground: value } }))}
+                  />
+                  <ColorInputField
+                    label="Team naam kleur"
+                    value={groupStageSettings.colors.teamNameColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, teamNameColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Team tag kleur"
+                    value={groupStageSettings.colors.teamTagColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, teamTagColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Seed kleur"
+                    value={groupStageSettings.colors.seedColor}
+                    onChange={(value) => setGroupStageSettings((prev) => ({ ...prev, colors: { ...prev.colors, seedColor: value } }))}
+                  />
+                </div>
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div className="bg-[#11132A] border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <h3 className="text-sm uppercase tracking-[0.3em] text-white/40">Tekst grootte</h3>
+                  <button
+                    type="button"
+                    onClick={() => setGroupStageSettings((prev) => ({ ...prev, fontSizes: resetGroupStageFontSizes() }))}
+                    className="text-[11px] uppercase tracking-[0.25em] px-3 py-1.5 rounded-lg border border-white/10 text-white/70 hover:border-white/40 transition"
+                  >
+                    Standaard
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">Titel (H1)</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={20}
+                        max={60}
+                        value={groupStageSettings.fontSizes.title}
+                        onChange={(e) => setGroupStageSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, title: Number(e.target.value) } }))}
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-white/70 w-10 text-right">{groupStageSettings.fontSizes.title}px</span>
+                    </div>
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">Ondertitel (H2)</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={12}
+                        max={40}
+                        value={groupStageSettings.fontSizes.subtitle}
+                        onChange={(e) => setGroupStageSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) } }))}
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-white/70 w-10 text-right">{groupStageSettings.fontSizes.subtitle}px</span>
+                    </div>
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">Groep naam (H2)</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={16}
+                        max={40}
+                        value={groupStageSettings.fontSizes.groupName}
+                        onChange={(e) => setGroupStageSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, groupName: Number(e.target.value) } }))}
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-white/70 w-10 text-right">{groupStageSettings.fontSizes.groupName}px</span>
+                    </div>
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">Team naam (H3)</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={10}
+                        max={24}
+                        value={groupStageSettings.fontSizes.teamName}
+                        onChange={(e) => setGroupStageSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, teamName: Number(e.target.value) } }))}
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-white/70 w-10 text-right">{groupStageSettings.fontSizes.teamName}px</span>
+                    </div>
+                  </label>
+                  <label className="flex flex-col gap-2">
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/40">Team tag</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={8}
+                        max={18}
+                        value={groupStageSettings.fontSizes.teamTag}
+                        onChange={(e) => setGroupStageSettings((prev) => ({ ...prev, fontSizes: { ...prev.fontSizes, teamTag: Number(e.target.value) } }))}
+                        className="flex-1"
+                      />
+                      <span className="text-xs text-white/70 w-10 text-right">{groupStageSettings.fontSizes.teamTag}px</span>
+                    </div>
+                  </label>
+                </div>
               </div>
             </section>
           </div>
@@ -4544,7 +5094,7 @@ export default function CustomTemplatePage() {
                   data-component-id="group-stage"
                   onClick={(e) => handleComponentClick('group-stage', e)}
                   className="py-20 px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['group-stage'] ?? 4 }}
+                  style={{ backgroundColor: groupStageSettings.colors.backgroundColor, order: componentOrderMap['group-stage'] ?? 4 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
@@ -4554,52 +5104,84 @@ export default function CustomTemplatePage() {
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
-                      color={colorPalette.mutedText}
+                      color={groupStageSettings.colors.subtitleColor}
+                      style={{ fontSize: `${groupStageSettings.fontSizes.subtitle}px` }}
                     >
                       Competitie Formaat
                     </HeadingText>
-                    <HeadingText level="h1" className="text-center mb-6">
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-6"
+                      color={groupStageSettings.colors.titleColor}
+                      style={{ fontSize: `${groupStageSettings.fontSizes.title}px` }}
+                    >
                       Groepsfase Indeling
                     </HeadingText>
-                    <BodyText className="text-center mb-12 opacity-90">
-                      16 teams verdeeld over 4 groepen. Top 2 van elke groep gaat door naar kwartfinales.
+                    <BodyText 
+                      className="text-center mb-12 opacity-90"
+                      color={groupStageSettings.colors.bodyTextColor}
+                      style={{ fontSize: `${groupStageSettings.fontSizes.subtitle}px` }}
+                    >
+                      {groupStageSettings.numberOfGroups * groupStageSettings.teamsPerGroup} teams verdeeld over {groupStageSettings.numberOfGroups} groepen. Top 2 van elke groep gaat door naar kwartfinales.
                     </BodyText>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {['A', 'B', 'C', 'D'].map((group) => (
+                    <div 
+                      className="grid gap-4 md:gap-6 w-full"
+                      style={{
+                        gridTemplateColumns: `repeat(${groupStageSettings.numberOfGroups}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {groupStageSettings.groups.map((group) => (
                         <div 
-                          key={group}
-                          className="p-6 rounded-xl border"
+                          key={group.id}
+                          className={`rounded-xl border ${groupStageSettings.numberOfGroups > 4 ? 'p-3' : groupStageSettings.numberOfGroups > 2 ? 'p-4' : 'p-6'}`}
                           style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border
+                            backgroundColor: groupStageSettings.colors.cardBackground,
+                            borderColor: groupStageSettings.colors.cardBorder
                           }}
                         >
                           <HeadingText
                             level="h2"
-                            className="mb-4"
-                            color={colorPalette.primary}
+                            className={`${groupStageSettings.numberOfGroups > 4 ? 'mb-2' : groupStageSettings.numberOfGroups > 2 ? 'mb-3' : 'mb-4'}`}
+                            color={groupStageSettings.colors.groupNameColor}
+                            style={{ fontSize: `${groupStageSettings.fontSizes.groupName}px` }}
                           >
-                            Groep {group}
+                            Groep {group.name}
                           </HeadingText>
-                          <div className="space-y-2">
-                            {[
-                              { seed: '#1', name: 'Arctic Wolves', tag: 'ARCT' },
-                              { seed: '#8', name: 'Thunder Strike', tag: 'THND' },
-                              { seed: '#9', name: 'Ice Phoenix', tag: 'ICEP' },
-                              { seed: '#16', name: 'Snow Leopards', tag: 'SNLP' }
-                            ].map((team, idx) => (
+                          <div className={`${groupStageSettings.numberOfGroups > 4 ? 'space-y-1' : 'space-y-2'}`}>
+                            {group.teams.map((team) => (
                               <div 
-                                key={idx}
-                                className="flex items-center justify-between p-3 rounded-lg"
-                                style={{ backgroundColor: colorPalette.pageBackground }}
+                                key={team.id}
+                                className={`flex items-center justify-between rounded-lg ${groupStageSettings.numberOfGroups > 4 ? 'p-2' : 'p-3'}`}
+                                style={{ backgroundColor: groupStageSettings.colors.teamItemBackground }}
                               >
-                                <div className="flex items-center gap-3">
-                                  <span className="text-xs opacity-60">{team.seed}</span>
-                                  <div>
-                                    <HeadingText level="h3" className="text-sm" color={colorPalette.headingText}>
+                                <div className={`flex items-center ${groupStageSettings.numberOfGroups > 4 ? 'gap-2' : 'gap-3'} min-w-0`}>
+                                  <span 
+                                    className="opacity-60 flex-shrink-0"
+                                    style={{ 
+                                      fontSize: `${groupStageSettings.fontSizes.teamTag}px`,
+                                      color: groupStageSettings.colors.seedColor
+                                    }}
+                                  >
+                                    {team.seed}
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <HeadingText 
+                                      level="h3" 
+                                      className="truncate" 
+                                      color={groupStageSettings.colors.teamNameColor}
+                                      style={{ fontSize: `${groupStageSettings.fontSizes.teamName}px` }}
+                                    >
                                       {team.name}
                                     </HeadingText>
-                                    <BodyText as="div" variant="small" className="opacity-60">
+                                    <BodyText 
+                                      as="div" 
+                                      variant="small" 
+                                      className="opacity-60 truncate"
+                                      style={{ 
+                                        fontSize: `${groupStageSettings.fontSizes.teamTag}px`,
+                                        color: groupStageSettings.colors.teamTagColor
+                                      }}
+                                    >
                                       {team.tag}
                                     </BodyText>
                                   </div>
@@ -4607,8 +5189,8 @@ export default function CustomTemplatePage() {
                               </div>
                             ))}
                           </div>
-                        </div>
-                      ))}
+                          </div>
+                        ))}
                     </div>
                   </div>
                 </section>
