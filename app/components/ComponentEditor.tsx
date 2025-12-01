@@ -20,7 +20,8 @@ function ColorPicker({
     const b = parseInt(hex.slice(5, 7), 16) / 255
     const max = Math.max(r, g, b)
     const min = Math.min(r, g, b)
-    let h = 0, s = 0, l = (max + min) / 2
+    let h = 0, s = 0
+    const l = (max + min) / 2
 
     if (max !== min) {
       const d = max - min
@@ -165,7 +166,8 @@ function ColorPicker({
     
     const r = newRgb.r / 255, g = newRgb.g / 255, b = newRgb.b / 255
     const max = Math.max(r, g, b), min = Math.min(r, g, b)
-    let h = 0, s = 0, l = (max + min) / 2
+    let h = 0, s = 0
+    const l = (max + min) / 2
 
     if (max !== min) {
       const d = max - min
@@ -596,7 +598,7 @@ export default function ComponentEditor({
         color: selectedComponent.styles.color
       })
     }
-  }, [selectedComponent?.id])
+  }, [selectedComponent])
 
   // Sync external viewport prop
   useEffect(() => {
@@ -605,6 +607,8 @@ export default function ComponentEditor({
     }
   }, [externalViewport])
 
+  // handleViewportChange is kept for potential future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleViewportChange = (viewport: 'desktop' | 'tablet' | 'mobile') => {
     setPageSettings(prev => ({ ...prev, viewport }))
     if (onViewportChange) {
@@ -888,7 +892,7 @@ export default function ComponentEditor({
         isParsingRef.current = false
       }, 0)
     }
-  }, [editedHtml, editedCss, editedJs])
+  }, [editedHtml, editedCss, editedJs, components])
 
   // Apply font settings to CSS and update via onCodeChange
   // Only apply if font settings have been modified by user
@@ -1000,7 +1004,7 @@ export default function ComponentEditor({
     setTimeout(() => {
       isApplyingFontsRef.current = false
     }, 0)
-  }, [fontSettings, editedHtml, editedJs, fontSettingsModified, originalFontSettings])
+  }, [fontSettings, editedHtml, editedJs, editedCss, fontSettingsModified, originalFontSettings])
 
   // Generate preview HTML with font settings applied
   useEffect(() => {
@@ -2244,6 +2248,7 @@ export default function ComponentEditor({
                       </div>
                       {(selectedComponent.properties.image as { src?: string })?.src && (
                         <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={(selectedComponent.properties.image as { src?: string }).src}
                             alt={(selectedComponent.properties.image as { alt?: string })?.alt || 'Hero image'}
@@ -2726,7 +2731,7 @@ export default function ComponentEditor({
                                 ? 'border-[#482CFF] bg-[#482CFF]/20'
                                 : 'border-gray-700 bg-gray-900/60 hover:border-gray-600'
                             }`}
-                            onMouseEnter={(e) => {
+                            onMouseEnter={() => {
                               // Show preview on hover (placeholder for now)
                             }}
                           >
@@ -2782,6 +2787,7 @@ export default function ComponentEditor({
                       </div>
                       {(selectedComponent.properties.logo as { src?: string })?.src && (
                         <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={(selectedComponent.properties.logo as { src?: string }).src}
                             alt={(selectedComponent.properties.logo as { alt?: string })?.alt || 'Logo'}
