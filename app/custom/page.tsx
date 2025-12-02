@@ -1145,6 +1145,7 @@ const getDefaultNavigationSettings = (): NavigationSettingsState => ({
 const getDefaultHeroSettings = () => ({
   template: 'classic-center',
   heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
+  backgroundImageUrl: '',
   title: 'Het grootste Rocket League toernooi van de winter',
   subtitle: 'Het grootste Rocket League toernooi van de winter',
   overlayColor: '#05060D',
@@ -1511,6 +1512,100 @@ const getDefaultSocialSettings = () => ({
   ],
 });
 
+type TeamPlayer = {
+  id: string;
+  name: string;
+  role: string;
+  avatarUrl: string;
+};
+
+type Team = {
+  id: string;
+  name: string;
+  logoUrl: string;
+  description: string;
+  players: TeamPlayer[];
+};
+
+const getDefaultTeamsSettings = (): {
+  title: string;
+  subtitle: string;
+  layout: 'grid' | 'list' | 'cards';
+  columns: number;
+  backgroundColor: string;
+  numberOfTeams: number;
+  playersPerTeam: number;
+  teams: Team[];
+  fontSizes: {
+    title: number;
+    subtitle: number;
+    teamName: number;
+    description: number;
+  };
+  colors: {
+    backgroundColor: string;
+    titleColor: string;
+    subtitleColor: string;
+    cardBackground: string;
+    cardBorder: string;
+    teamNameColor: string;
+    descriptionColor: string;
+  };
+} => ({
+  title: 'Deelnemende Teams',
+  subtitle: 'Ontmoet de teams die strijden om de titel',
+  layout: 'grid' as 'grid' | 'list' | 'cards',
+  columns: 4,
+  backgroundColor: '#0E1020',
+  numberOfTeams: 4,
+  playersPerTeam: 0,
+  teams: [
+    { 
+      id: createId(), 
+      name: 'Team Alpha', 
+      logoUrl: '', 
+      description: 'Een sterk team met jarenlange ervaring',
+      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
+    },
+    { 
+      id: createId(), 
+      name: 'Team Beta', 
+      logoUrl: '', 
+      description: 'Opkomende talenten in de Rocket League scene',
+      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
+    },
+    { 
+      id: createId(), 
+      name: 'Team Gamma', 
+      logoUrl: '', 
+      description: 'Bekend om hun strategische gameplay',
+      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
+    },
+    { 
+      id: createId(), 
+      name: 'Team Delta', 
+      logoUrl: '', 
+      description: 'Een team dat altijd verrast met innovatieve tactieken',
+      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
+    },
+  ],
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    teamName: 20,
+    description: 14,
+  },
+  colors: {
+    backgroundColor: '#0E1020',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    teamNameColor: '#FFFFFF',
+    descriptionColor: '#FFFFFF',
+  },
+});
+
 const getDefaultFooterSettings = () => ({
   logoUrl: '',
   description: 'Het grootste wintertoernooi van het jaar',
@@ -1591,6 +1686,8 @@ export default function CustomTemplatePage() {
   const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
   const sponsorLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const teamLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const playerAvatarInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
   const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
@@ -1643,6 +1740,13 @@ export default function CustomTemplatePage() {
     rounds: true,
     style: false,
   });
+  const [expandedTeamsSections, setExpandedTeamsSections] = useState<Record<string, boolean>>({
+    settings: true,
+    teams: true,
+    layout: false,
+    style: false,
+  });
+  const [expandedTeamItems, setExpandedTeamItems] = useState<Record<string, boolean>>({});
   const [expandedTwitchSections, setExpandedTwitchSections] = useState<Record<string, boolean>>({
     settings: true,
     layout: true,
@@ -1686,6 +1790,7 @@ export default function CustomTemplatePage() {
   const [socialSettings, setSocialSettings] = useState(() => getDefaultSocialSettings());
 
   const [footerSettings, setFooterSettings] = useState(() => getDefaultFooterSettings());
+  const [teamsSettings, setTeamsSettings] = useState(() => getDefaultTeamsSettings());
   const loadedFontsRef = useRef<Record<string, boolean>>({});
 
   const ensureFontLoaded = useCallback((fontName: string) => {
@@ -2017,14 +2122,20 @@ export default function CustomTemplatePage() {
           // Detect component name from drop zone ID
           let componentName = activeComponentLabel;
           const dropZoneId = over.id.toString();
-          if (dropZoneId.includes('navigation')) {
+          if (dropZoneId.includes('navigation') || dropZoneId.includes('nav-logo')) {
             componentName = 'Navigation';
-          } else if (dropZoneId.includes('hero')) {
+          } else if (dropZoneId.includes('hero') || dropZoneId.includes('hero-background') || dropZoneId.includes('hero-image')) {
             componentName = 'Hero';
-          } else if (dropZoneId.includes('about')) {
+          } else if (dropZoneId.includes('about') || dropZoneId.includes('about-image')) {
             componentName = 'About';
-          } else if (dropZoneId.includes('footer')) {
+          } else if (dropZoneId.includes('footer') || dropZoneId.includes('footer-logo')) {
             componentName = 'Footer';
+          } else if (dropZoneId.includes('sponsor') || dropZoneId.includes('sponsor-logo')) {
+            componentName = 'Sponsors';
+          } else if (dropZoneId.includes('team-logo')) {
+            componentName = 'Teams';
+          } else if (dropZoneId.includes('player-avatar')) {
+            componentName = 'Teams';
           }
           
           // Update usedIn for the upload
@@ -2437,6 +2548,135 @@ export default function CustomTemplatePage() {
       ...prev,
       logos: prev.logos.filter((logo) => logo.id !== id),
     }));
+  };
+
+  const updateTeam = (id: string, field: string, value: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) => (team.id === id ? { ...team, [field]: value } : team)),
+    }));
+  };
+
+  const addTeam = () => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: [...prev.teams, { 
+        id: createId(), 
+        name: `Team ${String.fromCharCode(65 + prev.teams.length)}`, 
+        logoUrl: '', 
+        description: '', 
+        players: Array.from({ length: prev.playersPerTeam }, () => ({
+          id: createId(),
+          name: 'Nieuwe Speler',
+          role: '',
+          avatarUrl: '',
+        }))
+      }],
+      numberOfTeams: prev.teams.length + 1,
+    }));
+  };
+
+  const addPlayer = (teamId: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId
+          ? { ...team, players: [...team.players, { id: createId(), name: 'Nieuwe Speler', role: '', avatarUrl: '' }] }
+          : team
+      ),
+      playersPerTeam: Math.max(prev.playersPerTeam, prev.teams.find(t => t.id === teamId)?.players.length ?? 0) + 1,
+    }));
+  };
+
+  const removePlayer = (teamId: string, playerId: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId
+          ? { ...team, players: team.players.filter((player) => player.id !== playerId) }
+          : team
+      ),
+    }));
+  };
+
+  const updatePlayer = (teamId: string, playerId: string, field: string, value: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              players: team.players.map((player) =>
+                player.id === playerId ? { ...player, [field]: value } : player
+              ),
+            }
+          : team
+      ),
+    }));
+  };
+
+  const removeTeam = (id: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.filter((team) => team.id !== id),
+      numberOfTeams: Math.max(1, prev.teams.length - 1),
+    }));
+  };
+
+  const handleTeamsNumberOfTeamsChange = (value: number) => {
+    setTeamsSettings((prev) => {
+      const newValue = Math.max(1, Math.min(20, value));
+      if (newValue > prev.teams.length) {
+        const newTeams = Array.from({ length: newValue - prev.teams.length }, (_, i) => ({
+          id: createId(),
+          name: `Team ${String.fromCharCode(65 + prev.teams.length + i)}`,
+          logoUrl: '',
+          description: '',
+          players: Array.from({ length: prev.playersPerTeam }, () => ({
+            id: createId(),
+            name: 'Nieuwe Speler',
+            role: '',
+            avatarUrl: '',
+          })),
+        }));
+        return {
+          ...prev,
+          numberOfTeams: newValue,
+          teams: [...prev.teams, ...newTeams],
+        };
+      } else if (newValue < prev.teams.length) {
+        return {
+          ...prev,
+          numberOfTeams: newValue,
+          teams: prev.teams.slice(0, newValue),
+        };
+      }
+      return { ...prev, numberOfTeams: newValue };
+    });
+  };
+
+  const handleTeamsPlayersPerTeamChange = (value: number) => {
+    setTeamsSettings((prev) => {
+      const newValue = Math.max(0, Math.min(10, value));
+      return {
+        ...prev,
+        playersPerTeam: newValue,
+        teams: prev.teams.map((team) => {
+          if (team.players.length < newValue) {
+            const newPlayers = Array.from({ length: newValue - team.players.length }, () => ({
+              id: createId(),
+              name: 'Nieuwe Speler',
+              role: '',
+              avatarUrl: '',
+            }));
+            return { ...team, players: [...team.players, ...newPlayers] };
+          } else if (team.players.length > newValue) {
+            return { ...team, players: team.players.slice(0, newValue) };
+          }
+          return team;
+        }),
+      };
+    });
   };
 
   const updateFooterLinks = (section: 'tournament' | 'info', id: string, field: 'label' | 'link', value: string) => {
@@ -2953,28 +3193,29 @@ export default function CustomTemplatePage() {
               'Templates',
               expandedHeroSections.template,
               () => setExpandedHeroSections((prev) => ({ ...prev, template: !prev.template })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {HERO_TEMPLATES.map((template) => {
                   const isSelected = heroSettings.template === template.id;
                   return (
                     <button
                       key={template.id}
                       onClick={() => handleHeroTemplateChange(template.id)}
-                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
                         isSelected
-                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
-                      <p className="font-semibold flex items-center justify-between">
-                        {template.label}
-                        {template.requiresImage && (
-                          <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 border border-white/20 px-2 py-0.5 rounded-full">
-                            Image
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-white/50 mt-1">{template.description}</p>
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-semibold">{template.label}</p>
+                          {template.requiresImage && (
+                            <span className="text-xs uppercase tracking-widest text-white/40">Image</span>
+                          )}
+                        </div>
+                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                      </div>
+                      <p className="text-xs text-white/60">{template.description}</p>
                     </button>
                   );
                 })}
@@ -3010,21 +3251,88 @@ export default function CustomTemplatePage() {
               expandedHeroSections.image,
               () => setExpandedHeroSections((prev) => ({ ...prev, image: !prev.image })),
               <div className="space-y-3">
+                <DroppableImageField
+                  id="hero-background-image"
+                  value={heroSettings.backgroundImageUrl ?? ''}
+                  onChange={(url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url }))}
+                  label="Achtergrond afbeelding"
+                >
+                  <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
+                    <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
+                      {heroSettings.backgroundImageUrl ? (
+                        <img
+                          src={heroSettings.backgroundImageUrl}
+                          alt="Hero achtergrond"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Afbeelding URL
+                        <input
+                          type="text"
+                          value={heroSettings.backgroundImageUrl ?? ''}
+                          onChange={(e) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: e.target.value }))}
+                          className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                          placeholder="https://"
+                        />
+                      </label>
+                      <label className="text-xs text-white/60 flex flex-col gap-1">
+                        Upload bestand
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url })))}
+                          className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </DroppableImageField>
                 {selectedHeroTemplate.requiresImage && (
                   <DroppableImageField
                     id="hero-image"
-                    value={heroSettings.heroImageUrl}
+                    value={heroSettings.heroImageUrl ?? ''}
                     onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
                     label="Hero afbeelding"
                   >
-                    <input
-                      type="text"
-                      value={heroSettings.heroImageUrl}
-                      onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                      placeholder="Afbeelding URL"
-                    />
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
+                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
+                      <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
+                        {heroSettings.heroImageUrl ? (
+                          <img
+                            src={heroSettings.heroImageUrl}
+                            alt="Hero visual"
+                            className="w-full h-full object-cover rounded-3xl"
+                          />
+                        ) : (
+                          <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs text-white/60 flex flex-col gap-1">
+                          Afbeelding URL
+                          <input
+                            type="text"
+                            value={heroSettings.heroImageUrl ?? ''}
+                            onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
+                            className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                            placeholder="https://"
+                          />
+                        </label>
+                        <label className="text-xs text-white/60 flex flex-col gap-1">
+                          Upload bestand
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))}
+                            className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
+                          />
+                        </label>
+                      </div>
+                    </div>
                   </DroppableImageField>
                 )}
               </div>
@@ -3151,26 +3459,26 @@ export default function CustomTemplatePage() {
               'Layouts',
               expandedAboutSections.layout,
               () => setExpandedAboutSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {ABOUT_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = aboutSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setAboutSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
                         isSelected
-                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
-                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
                       </div>
+                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -3975,21 +4283,29 @@ export default function CustomTemplatePage() {
                 </button>
                 {expandedStatsSections.layout && (
                   <div className="px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      {STATS_LAYOUT_OPTIONS.map((layout) => (
-                        <button
-                          key={layout.id}
-                          onClick={() => setStatsSettings((prev) => ({ ...prev, layout: layout.id }))}
-                          className={`p-3 rounded-xl border text-left transition ${
-                            statsSettings.layout === layout.id
-                              ? 'border-[#755DFF] bg-[#755DFF]/10'
-                              : 'border-white/10 bg-[#11132A] hover:border-white/20'
-                          }`}
-                        >
-                          <div className="text-sm font-semibold text-white mb-1">{layout.label}</div>
-                          <div className="text-xs text-white/50">{layout.description}</div>
-                        </button>
-                      ))}
+                    <div className="space-y-2">
+                      {STATS_LAYOUT_OPTIONS.map((layout) => {
+                        const isSelected = statsSettings.layout === layout.id;
+                        return (
+                          <button
+                            key={layout.id}
+                            onClick={() => setStatsSettings((prev) => ({ ...prev, layout: layout.id }))}
+                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
+                              isSelected
+                                ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
+                                : 'border-white/10 hover:border-white/30'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <p className="font-semibold">{layout.label}</p>
+                              </div>
+                              {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                            </div>
+                            <p className="text-xs text-white/60">{layout.description}</p>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -4358,26 +4674,26 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedSponsorSections.layout,
               () => setExpandedSponsorSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {SPONSOR_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = sponsorSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setSponsorSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
                         isSelected
-                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
-                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
                       </div>
+                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -4615,6 +4931,377 @@ export default function CustomTemplatePage() {
             )}
           </div>
         );
+      case 'teams':
+        return (
+          <div className={panelClass}>
+            {renderCollapsibleSection(
+              'teams-settings',
+              'Instellingen',
+              expandedTeamsSections.settings ?? false,
+              () => setExpandedTeamsSections((prev) => ({ ...prev, settings: !prev.settings })),
+              <div className="space-y-3">
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs uppercase tracking-[0.3em] text-white/50">Aantal teams</span>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min={1}
+                      max={20}
+                      value={teamsSettings.numberOfTeams}
+                      onChange={(e) => handleTeamsNumberOfTeamsChange(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-white/70 w-10 text-right">{teamsSettings.numberOfTeams}</span>
+                  </div>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs uppercase tracking-[0.3em] text-white/50">Aantal spelers per team</span>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min={0}
+                      max={10}
+                      value={teamsSettings.playersPerTeam}
+                      onChange={(e) => handleTeamsPlayersPerTeamChange(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-white/70 w-10 text-right">{teamsSettings.playersPerTeam}</span>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'teams-list',
+              'Teams',
+              expandedTeamsSections.teams,
+              () => setExpandedTeamsSections((prev) => ({ ...prev, teams: !prev.teams })),
+              <div className="space-y-2">
+                {teamsSettings.teams.map((team, index) => {
+                  const isExpanded = expandedTeamItems[team.id] ?? false;
+                  return (
+                    <div key={team.id} className="rounded-xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                      <div 
+                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 transition"
+                        onClick={() => setExpandedTeamItems((prev) => ({ ...prev, [team.id]: !prev[team.id] }))}
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {team.logoUrl ? (
+                            <img src={team.logoUrl} alt={team.name} className="w-8 h-8 object-contain flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-xs text-white/40 flex-shrink-0">
+                              {team.name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-white truncate">{team.name || `Team #${index + 1}`}</div>
+                            {team.players && team.players.length > 0 && (
+                              <div className="text-xs text-white/50">{team.players.length} speler{team.players.length !== 1 ? 's' : ''}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTeam(team.id);
+                            }}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
+                          >
+                            Verwijder
+                          </button>
+                          <svg 
+                            className={`w-4 h-4 text-white/50 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="p-3 space-y-3 border-t border-white/10">
+                          <DroppableImageField
+                            id={`team-logo-${team.id}`}
+                            value={team.logoUrl ?? ''}
+                            onChange={(url) => updateTeam(team.id, 'logoUrl', url)}
+                            label="Team logo"
+                          >
+                            <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2">
+                              <div className="flex items-center gap-3">
+                                <div className="w-20 h-20 rounded-lg border border-dashed border-white/10 bg-[#05060F] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {team.logoUrl ? (
+                                    <img
+                                      src={team.logoUrl}
+                                      alt={team.name || 'Team logo preview'}
+                                      className="max-w-full max-h-full object-contain"
+                                    />
+                                  ) : (
+                                    <div className="text-xs text-white/50 text-center px-2">Logo</div>
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                                    Logo URL
+                                    <input
+                                      type="text"
+                                      value={team.logoUrl ?? ''}
+                                      onChange={(e) => updateTeam(team.id, 'logoUrl', e.target.value)}
+                                      className="w-full px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                                      placeholder="https://"
+                                    />
+                                  </label>
+                                  <input
+                                    ref={(el) => { teamLogoInputRefs.current[team.id] = el; }}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleImageUpload(e, (url) => updateTeam(team.id, 'logoUrl', url))}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => teamLogoInputRefs.current[team.id]?.click()}
+                                    className="w-full px-2 py-1.5 rounded-lg border border-white/10 bg-[#11132A] text-xs text-white/70 hover:text-white hover:border-white/30 transition"
+                                  >
+                                    Upload bestand
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </DroppableImageField>
+                          <div className="grid grid-cols-1 gap-2">
+                            <label className="text-xs text-white/60 flex flex-col gap-1">
+                              Team naam
+                              <input
+                                value={team.name}
+                                onChange={(e) => updateTeam(team.id, 'name', e.target.value)}
+                                className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                placeholder="Team naam"
+                              />
+                            </label>
+                            <label className="text-xs text-white/60 flex flex-col gap-1">
+                              Beschrijving
+                              <textarea
+                                value={team.description}
+                                onChange={(e) => updateTeam(team.id, 'description', e.target.value)}
+                                className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                placeholder="Team beschrijving"
+                                rows={2}
+                              />
+                            </label>
+                          </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-xs uppercase text-white/50">Spelers</h4>
+                        <button
+                          onClick={() => addPlayer(team.id)}
+                          className="px-3 py-1.5 text-xs font-semibold bg-[#755DFF] hover:bg-[#8B6FFF] text-white rounded-lg transition-all shadow-sm hover:shadow-md"
+                        >
+                          + Speler toevoegen
+                        </button>
+                      </div>
+                            {team.players && team.players.length > 0 ? (
+                              <div className="space-y-2">
+                                {team.players.map((player) => (
+                                  <div key={player.id} className="rounded-lg border border-white/10 bg-[#0B0D1E] p-3 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-lg border border-dashed border-white/10 bg-[#05060F] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                          {player.avatarUrl ? (
+                                            <img
+                                              src={player.avatarUrl}
+                                              alt={player.name || 'Speler avatar'}
+                                              className="w-full h-full object-cover rounded-lg"
+                                            />
+                                          ) : (
+                                            <div className="text-xs text-white/50">{player.name.charAt(0)}</div>
+                                          )}
+                                        </div>
+                                        <div className="text-xs text-white/50">Speler</div>
+                                      </div>
+                                      <button
+                                        onClick={() => removePlayer(team.id, player.id)}
+                                        className="px-2 py-1.5 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
+                                        title="Verwijder speler"
+                                      >
+                                        × Verwijder
+                                      </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <input
+                                        type="text"
+                                        value={player.name}
+                                        onChange={(e) => updatePlayer(team.id, player.id, 'name', e.target.value)}
+                                        className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                        placeholder="Speler naam"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={player.role}
+                                        onChange={(e) => updatePlayer(team.id, player.id, 'role', e.target.value)}
+                                        className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                        placeholder="Rol (bijv. Striker, Defender)"
+                                      />
+                                    </div>
+                                    <DroppableImageField
+                                      id={`player-avatar-${team.id}-${player.id}`}
+                                      value={player.avatarUrl ?? ''}
+                                      onChange={(url) => updatePlayer(team.id, player.id, 'avatarUrl', url)}
+                                      label="Speler avatar"
+                                    >
+                                      <div className="space-y-2">
+                                        <input
+                                          ref={(el) => { playerAvatarInputRefs.current[`${team.id}-${player.id}`] = el; }}
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => handleImageUpload(e, (url) => updatePlayer(team.id, player.id, 'avatarUrl', url))}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => playerAvatarInputRefs.current[`${team.id}-${player.id}`]?.click()}
+                                          className="w-full px-3 py-1.5 text-xs border border-white/10 rounded-lg hover:border-white/30 transition text-white/70 hover:text-white bg-[#11132A]"
+                                          title="Upload avatar"
+                                        >
+                                          📷 Upload avatar bestand
+                                        </button>
+                                        <input
+                                          type="text"
+                                          value={player.avatarUrl ?? ''}
+                                          onChange={(e) => updatePlayer(team.id, player.id, 'avatarUrl', e.target.value)}
+                                          className="w-full px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                                          placeholder="Of voer avatar URL in"
+                                        />
+                                      </div>
+                                    </DroppableImageField>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-white/40 text-center py-2 border border-dashed border-white/10 rounded-lg">
+                                Geen spelers. Klik op "+ Speler" om toe te voegen.
+                              </div>
+                            )}
+                    </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <button
+                  onClick={addTeam}
+                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white hover:border-white/40 transition"
+                >
+                  + Team toevoegen
+                </button>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'teams-layout',
+              'Layout',
+              expandedTeamsSections.layout,
+              () => setExpandedTeamsSections((prev) => ({ ...prev, layout: !prev.layout })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Layout type
+                    <select
+                      value={teamsSettings.layout}
+                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, layout: e.target.value as 'grid' | 'list' | 'cards' }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                    >
+                      <option value="grid">Grid</option>
+                      <option value="list">Lijst</option>
+                      <option value="cards">Kaarten</option>
+                    </select>
+                  </label>
+                  {teamsSettings.layout === 'grid' && (
+                    <label className="text-xs text-white/60 flex flex-col gap-1">
+                      Aantal kolommen ({teamsSettings.columns})
+                      <input
+                        type="range"
+                        min={2}
+                        max={6}
+                        value={teamsSettings.columns}
+                        onChange={(e) => setTeamsSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))}
+                      />
+                    </label>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      type="text"
+                      value={teamsSettings.title}
+                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Ondertitel
+                    <input
+                      type="text"
+                      value={teamsSettings.subtitle}
+                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Ondertitel"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'teams-style',
+              'Stijl',
+              expandedTeamsSections.style,
+              () => setExpandedTeamsSections((prev) => ({ ...prev, style: !prev.style })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={teamsSettings.colors.backgroundColor}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={teamsSettings.colors.titleColor}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={teamsSettings.colors.subtitleColor}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={teamsSettings.colors.cardBackground}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={teamsSettings.colors.cardBorder}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
+                  />
+                  <ColorInputField
+                    label="Team naam kleur"
+                    value={teamsSettings.colors.teamNameColor}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, teamNameColor: value } }))}
+                  />
+                  <ColorInputField
+                    label="Beschrijving kleur"
+                    value={teamsSettings.colors.descriptionColor}
+                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, descriptionColor: value } }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        );
       case 'socials':
         return (
           <div className={panelClass}>
@@ -4816,26 +5503,26 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedFAQSections.layout,
               () => setExpandedFAQSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {FAQ_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = faqSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setFaqSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
+                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
                         isSelected
-                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
-                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
                       </div>
+                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -5174,6 +5861,9 @@ export default function CustomTemplatePage() {
       case 'about':
         setAboutSettings((prev) => ({ ...prev, imageUrl: imageUrl }));
         break;
+      case 'teams':
+        // Teams image drop will be handled per team in the settings panel
+        break;
       case 'footer':
         setFooterSettings((prev) => ({ ...prev, logoUrl: imageUrl }));
         break;
@@ -5240,7 +5930,7 @@ export default function CustomTemplatePage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [isFullscreen, componentState, colorPalette, fontSettings, navigationSettings, heroSettings, viewport, aboutSettings, programSettings, bracketSettings]);
+  }, [isFullscreen, componentState, colorPalette, fontSettings, navigationSettings, heroSettings, viewport, aboutSettings, programSettings, bracketSettings, teamsSettings]);
 
   return (
     <DndContext
@@ -5699,16 +6389,18 @@ export default function CustomTemplatePage() {
         </aside>
 
         {/* Middle preview area */}
-        <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
-          <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
+        <section className="bg-[#03040B] fixed flex flex-col left-[420px] right-[360px] bottom-0 overflow-hidden" style={{ top: 'calc(85px + 10px)', height: 'calc(100vh - 89px)' }}>
+          <div className="flex-1 overflow-y-auto w-full h-full scrollbar-hide" data-preview-scroll-container>
             <div 
-              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col mx-auto"
+              className="min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
                 fontFamily: formatFontStack(fontSettings.bodyFamily),
                 color: colorPalette.bodyText,
                 maxWidth: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
-                width: viewport === 'desktop' ? '100%' : 'auto',
+                width: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
+                marginLeft: viewport === 'desktop' ? '0' : 'auto',
+                marginRight: viewport === 'desktop' ? '0' : 'auto',
                 boxShadow: viewport !== 'desktop' ? '0 0 0 1px rgba(255,255,255,0.1)' : 'none',
               }}
             >
@@ -5791,8 +6483,22 @@ export default function CustomTemplatePage() {
                       ? 'py-12 px-4 sm:py-16 md:py-24 lg:py-32 sm:px-6' 
                       : 'py-12 px-4 sm:py-16 md:py-20 sm:px-6'
                   }`}
-                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['hero'] ?? 1 }}
+                  style={{ 
+                    backgroundColor: heroSettings.backgroundImageUrl ? 'transparent' : colorPalette.sectionBackground, 
+                    order: componentOrderMap['hero'] ?? 1 
+                  }}
                 >
+                  {heroSettings.backgroundImageUrl && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        backgroundImage: `url(${heroSettings.backgroundImageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    />
+                  )}
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -5897,7 +6603,7 @@ export default function CustomTemplatePage() {
                     const imageBlock = selectedHeroTemplate.requiresImage ? (
                       <DroppableImageArea
                         id="preview-hero-image"
-                        value={heroSettings.heroImageUrl}
+                        value={heroSettings.heroImageUrl ?? ''}
                         onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
                         className="w-full flex justify-center"
                         minHeight="260px"
@@ -6467,75 +7173,6 @@ export default function CustomTemplatePage() {
                               </div>
                             </div>
                           ))}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Teams */}
-              {componentState.teams && (
-                <section 
-                  id="teams-section"
-                  data-component-id="teams"
-                  onClick={(e) => handleComponentClick('teams', e)}
-                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
-                >
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
-                    style={{ borderColor: colorPalette.primary }}
-                  />
-                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-                    <HeadingText
-                      level="h2"
-                      className="text-center mb-4 uppercase tracking-widest opacity-70"
-                      color={colorPalette.mutedText}
-                    >
-                      Deelnemers
-                    </HeadingText>
-                    <HeadingText level="h1" className="text-center mb-12">
-                      Geregistreerde Teams
-                    </HeadingText>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {[
-                        { initials: 'AR', name: 'Arctic Wolves', tag: 'ARCT', players: ['Player1', 'Player2', 'Player3'] },
-                        { initials: 'TH', name: 'Thunder Strike', tag: 'THND', players: ['Player1', 'Player2', 'Player3'] },
-                        { initials: 'IC', name: 'Ice Phoenix', tag: 'ICEP', players: ['Player 1', 'Player 2', 'Player 3'] },
-                        { initials: 'SN', name: 'Snow Leopards', tag: 'SNLP', players: ['Player 1', 'Player 2', 'Player 3'] }
-                      ].map((team, idx) => (
-                        <div 
-                          key={idx}
-                          className="p-6 rounded-xl border"
-                          style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border
-                          }}
-                        >
-                          <div 
-                            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold mb-4 mx-auto"
-                            style={{ backgroundColor: colorPalette.primary, color: 'white' }}
-                          >
-                            {team.initials}
-                          </div>
-                          <HeadingText level="h2" className="text-center mb-2">
-                            {team.name}
-                          </HeadingText>
-                          <BodyText className="text-center opacity-60 mb-4" variant="small">
-                            {team.tag}
-                          </BodyText>
-                          <div className="space-y-1">
-                            {team.players.map((player, pIdx) => (
-                              <BodyText
-                                key={pIdx}
-                                className="text-center opacity-80"
-                                variant="small"
-                              >
-                                {player}
-                              </BodyText>
-                            ))}
-                          </div>
                         </div>
                       ))}
                     </div>
@@ -7281,6 +7918,294 @@ export default function CustomTemplatePage() {
               )}
 
               {/* Socials */}
+              {componentState.teams && (
+                <section 
+                  id="teams-section"
+                  data-component-id="teams"
+                  onClick={(e) => handleComponentClick('teams', e)}
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
+                  style={{ 
+                    backgroundColor: teamsSettings.colors.backgroundColor, 
+                    order: componentOrderMap['teams'] ?? 10 
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6 relative z-20">
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-6"
+                      color={teamsSettings.colors.titleColor}
+                      style={{ fontSize: `${teamsSettings.fontSizes.title}px` }}
+                    >
+                      {teamsSettings.title}
+                    </HeadingText>
+                    <BodyText 
+                      className="text-center mb-12 opacity-90"
+                      color={teamsSettings.colors.subtitleColor}
+                      style={{ fontSize: `${teamsSettings.fontSizes.subtitle}px` }}
+                    >
+                      {teamsSettings.subtitle}
+                    </BodyText>
+                    {teamsSettings.layout === 'grid' && (
+                      <div
+                        className="grid gap-6"
+                        style={{ 
+                          gridTemplateColumns: `repeat(${Math.min(teamsSettings.columns, teamsSettings.teams.length)}, minmax(0, 1fr))`,
+                        }}
+                      >
+                        {teamsSettings.teams.map((team) => (
+                          <div
+                            key={team.id}
+                            className="rounded-xl border p-6 flex flex-col items-center text-center transition-all duration-200 hover:scale-[1.02] hover:shadow-lg h-full"
+                            style={{ 
+                              backgroundColor: teamsSettings.colors.cardBackground,
+                              borderColor: teamsSettings.colors.cardBorder,
+                            }}
+                          >
+                            {team.logoUrl ? (
+                              <img
+                                src={team.logoUrl}
+                                alt={team.name}
+                                className="w-24 h-24 object-contain mb-4"
+                              />
+                            ) : (
+                              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-4 text-white/40 text-sm">
+                                {team.name.charAt(0)}
+                              </div>
+                            )}
+                            <HeadingText
+                              level="h3"
+                              className="mb-2"
+                              color={teamsSettings.colors.teamNameColor}
+                              style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
+                            >
+                              {team.name}
+                            </HeadingText>
+                            <div className="min-h-[60px] mb-4 flex items-center justify-center">
+                              {team.description ? (
+                                <BodyText
+                                  variant="small"
+                                  className="opacity-80"
+                                  color={teamsSettings.colors.descriptionColor}
+                                  style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
+                                >
+                                  {team.description}
+                                </BodyText>
+                              ) : (
+                                <div className="h-[60px]"></div>
+                              )}
+                            </div>
+                            <div className="w-full mt-auto pt-4 border-t border-white/10">
+                              {team.players && team.players.length > 0 ? (
+                                <>
+                                  <p className="text-xs text-white/50 mb-3 uppercase tracking-wider text-center">Spelers</p>
+                                  <div className="space-y-2 max-w-md mx-auto">
+                                    {team.players.map((player) => (
+                                      <div
+                                        key={player.id}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10"
+                                      >
+                                        {player.avatarUrl ? (
+                                          <img
+                                            src={player.avatarUrl}
+                                            alt={player.name}
+                                            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                                          />
+                                        ) : (
+                                          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/60 flex-shrink-0">
+                                            {player.name.charAt(0)}
+                                          </div>
+                                        )}
+                                        <div className="text-xs flex-1 min-w-0">
+                                          <div className="text-white/90 font-medium">{player.name}</div>
+                                          {player.role && (
+                                            <div className="text-white/50 text-[10px]">{player.role}</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="min-h-[40px]"></div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {teamsSettings.layout === 'list' && (
+                      <div className="space-y-4">
+                        {teamsSettings.teams.map((team) => (
+                          <div
+                            key={team.id}
+                            className="rounded-xl border p-4 flex items-center gap-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg"
+                            style={{ 
+                              backgroundColor: teamsSettings.colors.cardBackground,
+                              borderColor: teamsSettings.colors.cardBorder,
+                            }}
+                          >
+                            {team.logoUrl ? (
+                              <img
+                                src={team.logoUrl}
+                                alt={team.name}
+                                className="w-16 h-16 object-contain flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 text-white/40">
+                                {team.name.charAt(0)}
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <HeadingText
+                                level="h3"
+                                className="mb-1"
+                                color={teamsSettings.colors.teamNameColor}
+                                style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
+                              >
+                                {team.name}
+                              </HeadingText>
+                              <div className="min-h-[40px] mb-3">
+                                {team.description ? (
+                                  <BodyText
+                                    variant="small"
+                                    className="opacity-80"
+                                    color={teamsSettings.colors.descriptionColor}
+                                    style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
+                                  >
+                                    {team.description}
+                                  </BodyText>
+                                ) : null}
+                              </div>
+                              <div className="w-full mt-auto pt-3 border-t border-white/10">
+                                {team.players && team.players.length > 0 ? (
+                                  <>
+                                    <p className="text-xs text-white/50 mb-2 uppercase tracking-wider">Spelers</p>
+                                    <div className="space-y-2">
+                                      {team.players.map((player) => (
+                                        <div
+                                          key={player.id}
+                                          className="flex items-center gap-2 px-2 py-1 rounded bg-white/5 border border-white/10"
+                                        >
+                                          {player.avatarUrl ? (
+                                            <img
+                                              src={player.avatarUrl}
+                                              alt={player.name}
+                                              className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                                            />
+                                          ) : (
+                                            <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 flex-shrink-0">
+                                              {player.name.charAt(0)}
+                                            </div>
+                                          )}
+                                          <div className="text-xs flex-1 min-w-0">
+                                            <div className="text-white/90 font-medium">{player.name}</div>
+                                            {player.role && (
+                                              <div className="text-white/50 text-[10px]">{player.role}</div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="min-h-[20px]"></div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {teamsSettings.layout === 'cards' && (
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {teamsSettings.teams.map((team) => (
+                          <div
+                            key={team.id}
+                            className="rounded-xl border p-6 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-lg h-full"
+                            style={{ 
+                              backgroundColor: teamsSettings.colors.cardBackground,
+                              borderColor: teamsSettings.colors.cardBorder,
+                            }}
+                          >
+                            <div className="flex items-center gap-4 mb-4">
+                              {team.logoUrl ? (
+                                <img
+                                  src={team.logoUrl}
+                                  alt={team.name}
+                                  className="w-16 h-16 object-contain flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 text-white/40">
+                                  {team.name.charAt(0)}
+                                </div>
+                              )}
+                              <HeadingText
+                                level="h3"
+                                color={teamsSettings.colors.teamNameColor}
+                                style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
+                              >
+                                {team.name}
+                              </HeadingText>
+                            </div>
+                            <div className="min-h-[40px] mb-3">
+                              {team.description ? (
+                                <BodyText
+                                  variant="small"
+                                  className="opacity-80"
+                                  color={teamsSettings.colors.descriptionColor}
+                                  style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
+                                >
+                                  {team.description}
+                                </BodyText>
+                              ) : null}
+                            </div>
+                            <div className="w-full mt-auto pt-3 border-t border-white/10">
+                              {team.players && team.players.length > 0 ? (
+                                <>
+                                  <p className="text-xs text-white/50 mb-2 uppercase tracking-wider">Spelers</p>
+                                  <div className="space-y-2">
+                                    {team.players.map((player) => (
+                                      <div
+                                        key={player.id}
+                                        className="flex items-center gap-2 px-2 py-1 rounded bg-white/5 border border-white/10"
+                                      >
+                                        {player.avatarUrl ? (
+                                          <img
+                                            src={player.avatarUrl}
+                                            alt={player.name}
+                                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                                          />
+                                        ) : (
+                                          <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 flex-shrink-0">
+                                            {player.name.charAt(0)}
+                                          </div>
+                                        )}
+                                        <div className="text-xs flex-1 min-w-0">
+                                          <div className="text-white/90 font-medium">{player.name}</div>
+                                          {player.role && (
+                                            <div className="text-white/50 text-[10px]">{player.role}</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="min-h-[20px]"></div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
               {componentState.socials && (
                 <section 
                   id="socials-section"

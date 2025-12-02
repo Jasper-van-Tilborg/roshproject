@@ -3965,7 +3965,7 @@ export default function Dashboard() {
                     <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
                       {/* Preview Header */}
                       <div 
-                        className="relative w-full h-40 overflow-hidden"
+                        className="relative w-full min-h-[160px] overflow-hidden"
                         style={{ 
                           background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
                           borderBottom: `2px solid ${tournament.primaryColor}40`
@@ -3976,9 +3976,9 @@ export default function Dashboard() {
                         }}></div>
                         
                         <div className="relative h-full flex items-center justify-between p-5">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 flex-1 min-w-0 pr-2">
                             <div 
-                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0"
                               style={{ 
                                 backgroundColor: tournament.primaryColor,
                                 boxShadow: `0 4px 20px ${tournament.primaryColor}50`
@@ -3986,9 +3986,9 @@ export default function Dashboard() {
                             >
                               {tournament.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
-                              <span className="text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
+                            <div className="flex-1 min-w-0 overflow-visible">
+                              <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
+                              <span className="inline-block text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
                                 Draft
                               </span>
                             </div>
@@ -4150,7 +4150,7 @@ export default function Dashboard() {
                     <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
                       {/* Preview Header */}
                       <div 
-                        className="relative w-full h-40 overflow-hidden"
+                        className="relative w-full min-h-[160px] overflow-hidden"
                         style={{ 
                           background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
                           borderBottom: `2px solid ${tournament.primaryColor}40`
@@ -4161,9 +4161,9 @@ export default function Dashboard() {
                         }}></div>
                         
                         <div className="relative h-full flex items-center justify-between p-5">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 flex-1 min-w-0 pr-2">
                             <div 
-                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0"
                               style={{ 
                                 backgroundColor: tournament.primaryColor,
                                 boxShadow: `0 4px 20px ${tournament.primaryColor}50`
@@ -4171,9 +4171,9 @@ export default function Dashboard() {
                             >
                               {tournament.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
-                              <span className="text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: '#482CFF40' }}>
+                            <div className="flex-1 min-w-0 overflow-visible">
+                              <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
+                              <span className="inline-block text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: '#482CFF40' }}>
                                 Published
                               </span>
                             </div>
