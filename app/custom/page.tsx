@@ -721,108 +721,6 @@ const HERO_TEMPLATES = [
   },
 ];
 
-const FOOTER_TEMPLATES = [
-  {
-    id: 'minimal',
-    label: 'Minimal',
-    description: 'Eenvoudige footer met logo en copyright',
-    layout: 'layout1' as 'layout1' | 'layout2' | 'layout3',
-    linkSections: [
-      {
-        title: 'Links',
-        links: [
-          { label: 'Over', link: '#about-section' },
-          { label: 'Contact', link: '#contact-section' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'standard',
-    label: 'Standard',
-    description: 'Klassieke footer met meerdere link secties',
-    layout: 'layout1' as 'layout1' | 'layout2' | 'layout3',
-    linkSections: [
-      {
-        title: 'Toernooi',
-        links: [
-          { label: 'Over', link: '#about-section' },
-          { label: 'Schema', link: '#schedule-section' },
-          { label: 'Groepen', link: '#bracket-section' },
-          { label: 'Teams', link: '#teams-section' },
-        ],
-      },
-      {
-        title: 'Informatie',
-        links: [
-          { label: 'Inschrijven', link: '#register-section' },
-          { label: 'FAQ', link: '#faq-section' },
-          { label: 'Reglement', link: '#' },
-          { label: 'Contact', link: '#' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'comprehensive',
-    label: 'Comprehensive',
-    description: 'Uitgebreide footer met veel links en socials',
-    layout: 'layout2' as 'layout1' | 'layout2' | 'layout3',
-    linkSections: [
-      {
-        title: 'Toernooi',
-        links: [
-          { label: 'Over', link: '#about-section' },
-          { label: 'Schema', link: '#schedule-section' },
-          { label: 'Groepen', link: '#bracket-section' },
-          { label: 'Teams', link: '#teams-section' },
-          { label: 'Stats', link: '#stats-section' },
-        ],
-      },
-      {
-        title: 'Informatie',
-        links: [
-          { label: 'Inschrijven', link: '#register-section' },
-          { label: 'FAQ', link: '#faq-section' },
-          { label: 'Reglement', link: '#' },
-          { label: 'Contact', link: '#' },
-        ],
-      },
-      {
-        title: 'Legal',
-        links: [
-          { label: 'Privacy', link: '#privacy' },
-          { label: 'Terms', link: '#terms' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'centered',
-    label: 'Centered',
-    description: 'Gecentreerde layout met logo in het midden',
-    layout: 'layout3' as 'layout1' | 'layout2' | 'layout3',
-    linkSections: [
-      {
-        title: 'Toernooi',
-        links: [
-          { label: 'Over', link: '#about-section' },
-          { label: 'Schema', link: '#schedule-section' },
-          { label: 'Groepen', link: '#bracket-section' },
-        ],
-      },
-      {
-        title: 'Informatie',
-        links: [
-          { label: 'Inschrijven', link: '#register-section' },
-          { label: 'FAQ', link: '#faq-section' },
-          { label: 'Contact', link: '#' },
-        ],
-      },
-    ],
-  },
-];
-
 const ABOUT_LAYOUT_OPTIONS: Array<{
   id: AboutLayout;
   label: string;
@@ -1247,7 +1145,6 @@ const getDefaultNavigationSettings = (): NavigationSettingsState => ({
 const getDefaultHeroSettings = () => ({
   template: 'classic-center',
   heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
-  backgroundImageUrl: '',
   title: 'Het grootste Rocket League toernooi van de winter',
   subtitle: 'Het grootste Rocket League toernooi van de winter',
   overlayColor: '#05060D',
@@ -1614,106 +1511,6 @@ const getDefaultSocialSettings = () => ({
   ],
 });
 
-type TeamPlayer = {
-  id: string;
-  name: string;
-  role: string;
-  avatarUrl: string;
-};
-
-type Team = {
-  id: string;
-  name: string;
-  logoUrl: string;
-  description: string;
-  players: TeamPlayer[];
-};
-
-const getDefaultTeamsSettings = (): {
-  title: string;
-  subtitle: string;
-  layout: 'grid' | 'list' | 'cards';
-  columns: number;
-  backgroundColor: string;
-  numberOfTeams: number;
-  playersPerTeam: number;
-  teams: Team[];
-  fontSizes: {
-    title: number;
-    subtitle: number;
-    teamName: number;
-    description: number;
-  };
-  colors: {
-    backgroundColor: string;
-    titleColor: string;
-    subtitleColor: string;
-    cardBackground: string;
-    cardBorder: string;
-    teamNameColor: string;
-    descriptionColor: string;
-  };
-} => ({
-  title: 'Deelnemende Teams',
-  subtitle: 'Ontmoet de teams die strijden om de titel',
-  layout: 'grid' as 'grid' | 'list' | 'cards',
-  columns: 4,
-  backgroundColor: '#0E1020',
-  numberOfTeams: 4,
-  playersPerTeam: 0,
-  teams: [
-    { 
-      id: createId(), 
-      name: 'Team Alpha', 
-      logoUrl: '', 
-      description: 'Een sterk team met jarenlange ervaring',
-      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
-    },
-    { 
-      id: createId(), 
-      name: 'Team Beta', 
-      logoUrl: '', 
-      description: 'Opkomende talenten in de Rocket League scene',
-      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
-    },
-    { 
-      id: createId(), 
-      name: 'Team Gamma', 
-      logoUrl: '', 
-      description: 'Bekend om hun strategische gameplay',
-      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
-    },
-    { 
-      id: createId(), 
-      name: 'Team Delta', 
-      logoUrl: '', 
-      description: 'Een team dat altijd verrast met innovatieve tactieken',
-      players: [] as Array<{ id: string; name: string; role: string; avatarUrl: string }>
-    },
-  ],
-  fontSizes: {
-    title: 36,
-    subtitle: 16,
-    teamName: 20,
-    description: 14,
-  },
-  colors: {
-    backgroundColor: '#0E1020',
-    titleColor: '#FFFFFF',
-    subtitleColor: '#FFFFFF',
-    cardBackground: '#11132A',
-    cardBorder: '#755DFF',
-    teamNameColor: '#FFFFFF',
-    descriptionColor: '#FFFFFF',
-  },
-});
-
-type FooterLinkSection = {
-  id: string;
-  title: string;
-  links: Array<{ id: string; label: string; link: string }>;
-};
-
 const getDefaultFooterSettings = () => ({
   logoUrl: '',
   description: 'Het grootste wintertoernooi van het jaar',
@@ -1723,28 +1520,20 @@ const getDefaultFooterSettings = () => ({
   textColor: '#FFFFFF',
   divider: true,
   spacing: 32,
-  linkSections: [
-    {
-      id: createId(),
-      title: 'Toernooi',
-      links: [
-        { id: createId(), label: 'Over', link: '#about-section' },
-        { id: createId(), label: 'Schema', link: '#schedule-section' },
-        { id: createId(), label: 'Groepen', link: '#bracket-section' },
-        { id: createId(), label: 'Teams', link: '#teams-section' },
-      ],
-    },
-    {
-      id: createId(),
-      title: 'Informatie',
-      links: [
-        { id: createId(), label: 'Inschrijven', link: '#register-section' },
-        { id: createId(), label: 'FAQ', link: '#faq-section' },
-        { id: createId(), label: 'Reglement', link: '#' },
-        { id: createId(), label: 'Contact', link: '#' },
-      ],
-    },
-  ] as FooterLinkSection[],
+  links: {
+    tournament: [
+      { id: createId(), label: 'Over', link: '#about-section' },
+      { id: createId(), label: 'Schema', link: '#schedule-section' },
+      { id: createId(), label: 'Groepen', link: '#bracket-section' },
+      { id: createId(), label: 'Teams', link: '#teams-section' },
+    ],
+    info: [
+      { id: createId(), label: 'Inschrijven', link: '#register-section' },
+      { id: createId(), label: 'FAQ', link: '#faq-section' },
+      { id: createId(), label: 'Reglement', link: '#' },
+      { id: createId(), label: 'Contact', link: '#' },
+    ],
+  },
   showSocials: true,
 });
 
@@ -1778,566 +1567,6 @@ interface BodyTextProps {
   style?: CSSProperties;
 }
 
-// Footer Component Interfaces and Types
-export interface FooterLink {
-  label: string;
-  url: string;
-  subItems?: Array<{ label: string; url: string }>;
-}
-
-export interface FooterConfig {
-  showFooter: boolean;
-  backgroundColor: string;
-  textColor: string;
-  linkColor: string;
-  linkHoverColor: string;
-  copyrightText: string;
-  showSocialLinks: boolean;
-  socialLinks: {
-    instagram?: string;
-    x?: string;
-    discord?: string;
-    facebook?: string;
-    youtube?: string;
-    linkedin?: string;
-  };
-  links: FooterLink[];
-  layout: 'layout1' | 'layout2' | 'layout3';
-  padding: number;
-  showDivider: boolean;
-  showBottomDivider: boolean;
-  logoUrl: string;
-  logoText: string;
-  navigationLinks: {
-    home: FooterLink;
-    info: FooterLink;
-    bracket: FooterLink;
-    location: FooterLink;
-  };
-}
-
-const defaultConfig: FooterConfig = {
-  showFooter: true,
-  backgroundColor: '#05060D',
-  textColor: '#FFFFFF',
-  linkColor: '#FFFFFF',
-  linkHoverColor: '#755DFF',
-  copyrightText: '© 2026 Winter Championship. Alle rechten voorbehouden.',
-  showSocialLinks: true,
-  socialLinks: {
-    instagram: '',
-    x: '',
-    discord: '',
-    facebook: '',
-    youtube: '',
-    linkedin: '',
-  },
-  links: [],
-  layout: 'layout1',
-  padding: 48,
-  showDivider: true,
-  showBottomDivider: true,
-  logoUrl: '',
-  logoText: 'LOGO',
-  navigationLinks: {
-    home: { label: 'Home', url: '/' },
-    info: { label: 'Info', url: '/info' },
-    bracket: { label: 'Bracket', url: '/bracket' },
-    location: { label: 'Locatie', url: '/location' },
-  },
-};
-
-interface FooterProps {
-  config?: Partial<FooterConfig>;
-  showControlPanel?: boolean;
-  storageKey?: string;
-}
-
-// Footer Display Component
-function FooterDisplay({ config }: { config: FooterConfig & { linkSections?: Array<{ title: string; links: Array<{ label: string; url: string }> }> } }) {
-  const { showFooter, backgroundColor, textColor, linkColor, linkHoverColor, copyrightText, socialLinks, layout, padding, showBottomDivider, logoUrl, logoText, navigationLinks, links, linkSections } = config;
-  if (!showFooter) return null;
-  
-  // Use linkSections if available, otherwise fall back to navigationLinks
-  const sectionsToRender: Array<{ title: string; links: Array<{ label: string; url: string }> }> = linkSections || (navigationLinks.home?.subItems && navigationLinks.info?.subItems ? [
-    { title: navigationLinks.home.label, links: navigationLinks.home.subItems },
-    { title: navigationLinks.info.label, links: navigationLinks.info.subItems },
-  ] : []);
-
-  const socialIconStyle = { color: linkColor, transition: 'all 0.3s ease', position: 'relative' as const, display: 'inline-block', width: '24px', height: '24px' };
-
-  const renderSocialLinks = () => {
-    const activeSocials = Object.entries(socialLinks).filter(([_, url]) => url && url.trim() !== '');
-    if (activeSocials.length === 0) return null;
-
-    const SocialLink = ({ href, label, path }: { href: string; label: string; path: string }) => (
-      <a href={href} target="_blank" rel="noopener noreferrer" style={socialIconStyle}
-        onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.transform = 'translateY(-2px)' }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.transform = 'translateY(0)' }}
-        aria-label={label}>
-        <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24"><path d={path} /></svg>
-      </a>
-    );
-
-    return (
-      <div className="flex gap-4 flex-wrap items-center">
-        {socialLinks.instagram && <SocialLink href={socialLinks.instagram} label="Instagram" path="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />}
-        {socialLinks.x && <SocialLink href={socialLinks.x} label="X" path="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />}
-        {socialLinks.discord && <SocialLink href={socialLinks.discord} label="Discord" path="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />}
-        {socialLinks.facebook && <SocialLink href={socialLinks.facebook} label="Facebook" path="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />}
-        {socialLinks.youtube && <SocialLink href={socialLinks.youtube} label="YouTube" path="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />}
-        {socialLinks.linkedin && <SocialLink href={socialLinks.linkedin} label="LinkedIn" path="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />}
-      </div>
-    );
-  };
-
-  const renderLogo = () => {
-    if (logoUrl && logoUrl.trim() !== '') {
-      return (
-        <div className="flex items-center" style={{ minHeight: '48px' }}>
-          <img src={logoUrl.trim()} alt="Logo" className="max-h-12 w-auto object-contain" style={{ maxWidth: '200px', height: 'auto', display: 'block' }}
-            onError={(e) => {
-              const target = e.currentTarget as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) { const fallback = document.createElement('div'); fallback.style.color = textColor; fallback.style.fontSize = '1.5rem'; fallback.style.fontWeight = 'bold'; fallback.textContent = logoText || 'LOGO'; parent.appendChild(fallback) }
-            }} />
-        </div>
-      );
-    }
-    return <div style={{ color: textColor, fontSize: '1.5rem', fontWeight: 'bold', minHeight: '48px', display: 'flex', alignItems: 'center' }}>{logoText || 'LOGO'}</div>;
-  };
-
-  const renderNavigationLink = (link: { label: string; url: string; subItems?: Array<{ label: string; url: string }> }) => {
-    const hasSubItems = link.subItems && link.subItems.length > 0;
-    return (
-      <div className="flex flex-col">
-        <Link href={link.url} style={{ color: linkColor, transition: 'all 0.3s ease', position: 'relative', display: 'inline-block', fontWeight: '600', marginBottom: hasSubItems ? '8px' : '0' }} className="footer-link"
-          onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.textShadow = `0 0 8px ${linkHoverColor}40, 0 0 12px ${linkHoverColor}30` }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.textShadow = 'none' }}>
-          {link.label}
-        </Link>
-        {hasSubItems && link.subItems && (
-          <div className="flex flex-col gap-2">
-            {link.subItems.map((subItem, index) => (
-              <Link key={index} href={subItem.url} style={{ color: linkColor, transition: 'all 0.3s ease', position: 'relative', display: 'inline-block', fontSize: '0.875rem', opacity: 0.8 }} className="footer-link"
-                onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.textShadow = `0 0 8px ${linkHoverColor}40, 0 0 12px ${linkHoverColor}30` }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.textShadow = 'none' }}>
-                {subItem.label}
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderLayout1 = () => {
-    // Use linkSections if available, otherwise use navigationLinks
-    const sections: Array<{ title: string; links: Array<{ label: string; url: string }> }> = sectionsToRender.length > 0 ? sectionsToRender : [
-      { title: 'Toernooi', links: navigationLinks.home?.subItems || [] },
-      { title: 'Informatie', links: navigationLinks.info?.subItems || [] },
-    ];
-    
-    return (
-      <>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-6">
-          <div className="md:col-span-3">{renderLogo()}</div>
-          <div className="md:col-span-9">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {/* Render all sections dynamically - show up to 4 sections */}
-              {sections.slice(0, 4).map((section: { title: string; links: Array<{ label: string; url: string }> }, sectionIndex: number) => (
-                <div key={sectionIndex} className="flex flex-col">
-                  <div style={{ color: linkColor, fontWeight: '600', marginBottom: '12px', fontSize: '0.875rem', textTransform: 'uppercase' }}>
-                    {section.title}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {section.links.length > 0 ? section.links.map((link: { label: string; url: string }, index: number) => (
-                      <Link key={index} href={link.url} style={{ color: linkColor, transition: 'all 0.3s ease', fontSize: '0.875rem', opacity: 0.8 }} className="footer-link"
-                        onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.transform = 'translateY(0)' }}>
-                        {link.label}
-                      </Link>
-                    )) : (
-                      <div style={{ color: linkColor, fontSize: '0.875rem', opacity: 0.5 }}>Geen links</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className={`flex justify-between items-center pt-6 ${showBottomDivider ? 'border-t' : ''}`} style={showBottomDivider ? { borderColor: `${linkColor}20` } : {}}>
-          {copyrightText && <div style={{ color: linkColor, fontSize: '0.875rem' }}>{copyrightText}</div>}
-          <div className="flex justify-end">{renderSocialLinks()}</div>
-        </div>
-      </>
-    );
-  };
-
-  const renderLayout2 = () => {
-    // Use linkSections if available, otherwise use navigationLinks
-    const sections: Array<{ title: string; links: Array<{ label: string; url: string }> }> = sectionsToRender.length > 0 ? sectionsToRender : [
-      { title: 'Toernooi', links: navigationLinks.home?.subItems || [] },
-      { title: 'Informatie', links: navigationLinks.info?.subItems || [] },
-    ];
-    
-    return (
-      <>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-6">
-          <div className="md:col-span-9">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {/* Render all sections dynamically - show up to 4 sections */}
-              {sections.slice(0, 4).map((section: { title: string; links: Array<{ label: string; url: string }> }, sectionIndex: number) => (
-                <div key={sectionIndex} className="flex flex-col">
-                  <div style={{ color: linkColor, fontWeight: '600', marginBottom: '12px', fontSize: '0.875rem', textTransform: 'uppercase' }}>
-                    {section.title}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {section.links.length > 0 ? section.links.map((link: { label: string; url: string }, index: number) => (
-                      <Link key={index} href={link.url} style={{ color: linkColor, transition: 'all 0.3s ease', fontSize: '0.875rem', opacity: 0.8 }} className="footer-link"
-                        onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.transform = 'translateY(0)' }}>
-                        {link.label}
-                      </Link>
-                    )) : (
-                      <div style={{ color: linkColor, fontSize: '0.875rem', opacity: 0.5 }}>Geen links</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="md:col-span-3 flex justify-end md:justify-start">{renderLogo()}</div>
-        </div>
-        <div className="flex justify-between items-center pt-6 border-t" style={{ borderColor: `${linkColor}20` }}>
-          <div className="flex justify-start">{renderSocialLinks()}</div>
-          {copyrightText && <div style={{ color: linkColor, fontSize: '0.875rem' }}>{copyrightText}</div>}
-        </div>
-      </>
-    );
-  };
-
-  const renderLayout3 = () => {
-    // Use linkSections if available, otherwise use navigationLinks
-    const sections: Array<{ title: string; links: Array<{ label: string; url: string }> }> = sectionsToRender.length > 0 ? sectionsToRender : [
-      { title: 'Toernooi', links: navigationLinks.home?.subItems || [] },
-      { title: 'Informatie', links: navigationLinks.info?.subItems || [] },
-    ];
-    
-    return (
-      <>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-6">
-          <div className="flex flex-col gap-4">
-            {/* Render all sections dynamically */}
-            {sections.map((section: { title: string; links: Array<{ label: string; url: string }> }, sectionIndex: number) => (
-              <div key={sectionIndex} className="flex flex-col">
-                <div style={{ color: linkColor, fontWeight: '600', marginBottom: '8px', fontSize: '0.875rem', textTransform: 'uppercase' }}>
-                  {section.title}
-                </div>
-                <div className="flex flex-col gap-2">
-                  {section.links.length > 0 ? section.links.map((link: { label: string; url: string }, index: number) => (
-                    <Link key={index} href={link.url} style={{ color: linkColor, transition: 'all 0.3s ease', fontSize: '0.875rem', opacity: 0.8 }} className="footer-link"
-                      onMouseEnter={(e) => { e.currentTarget.style.color = linkHoverColor; e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = linkColor; e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.transform = 'translateY(0)' }}>
-                      {link.label}
-                    </Link>
-                  )) : (
-                    <div style={{ color: linkColor, fontSize: '0.875rem', opacity: 0.5 }}>Geen links</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-center">{renderLogo()}</div>
-          <div className="flex flex-col gap-4">
-            {renderNavigationLink(navigationLinks.bracket)}
-            {renderNavigationLink(navigationLinks.location)}
-          </div>
-        </div>
-        <div className={`flex justify-between items-center pt-6 ${showBottomDivider ? 'border-t' : ''}`} style={showBottomDivider ? { borderColor: `${linkColor}20` } : {}}>
-          {copyrightText && <div style={{ color: linkColor, fontSize: '0.875rem' }}>{copyrightText}</div>}
-          <div className="flex justify-end">{renderSocialLinks()}</div>
-        </div>
-      </>
-    );
-  };
-
-  return (
-    <footer style={{ backgroundColor, color: textColor, paddingTop: `${padding}px`, paddingBottom: `${padding}px` }} className="w-full">
-      <div className="max-w-7xl mx-auto px-6">
-        {layout === 'layout1' ? renderLayout1() : layout === 'layout2' ? renderLayout2() : renderLayout3()}
-      </div>
-    </footer>
-  );
-}
-
-// Left Sidebar Component
-function LeftSidebar({ config, updateConfig }: { config: FooterConfig; updateConfig: (updates: Partial<FooterConfig>) => void }) {
-  return (
-    <div className="w-64 border-r border-gray-700 overflow-y-auto" style={{ backgroundColor: '#1f2937' }}>
-      <div className="p-6 border-b border-gray-700">
-        <h1 className="text-2xl font-bold text-white">Footer Instellingen</h1>
-        <p className="text-sm text-gray-400 mt-1">Pas de footer aan en bekijk live preview</p>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-3 p-4 border border-gray-600 rounded-lg bg-gray-800">
-          <label htmlFor="showFooter" className="text-sm font-medium text-white">Footer weergeven</label>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="showFooter" checked={config.showFooter} onChange={(e) => updateConfig({ showFooter: e.target.checked })} className="sr-only peer" />
-            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Right Sidebar Component
-function RightSidebar({ config, updateConfig }: { config: FooterConfig; updateConfig: (updates: Partial<FooterConfig>) => void }) {
-  const [openSections, setOpenSections] = useState({ layout: false, colors: false, socialLinks: false, logo: false, navigationLinks: false, copyright: false });
-  const toggleSection = (section: keyof typeof openSections) => setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-  const updateNavigationLink = (key: keyof FooterConfig['navigationLinks'], field: 'label' | 'url', value: string) => {
-    updateConfig({ navigationLinks: { ...config.navigationLinks, [key]: { ...config.navigationLinks[key], [field]: value } } });
-  };
-  const addSubItem = (key: keyof FooterConfig['navigationLinks']) => {
-    const currentSubItems = config.navigationLinks[key].subItems || [];
-    updateConfig({ navigationLinks: { ...config.navigationLinks, [key]: { ...config.navigationLinks[key], subItems: [...currentSubItems, { label: '', url: '' }] } } });
-  };
-  const updateSubItem = (key: keyof FooterConfig['navigationLinks'], index: number, field: 'label' | 'url', value: string) => {
-    const currentSubItems = config.navigationLinks[key].subItems || [];
-    const updatedSubItems = [...currentSubItems];
-    updatedSubItems[index] = { ...updatedSubItems[index], [field]: value };
-    updateConfig({ navigationLinks: { ...config.navigationLinks, [key]: { ...config.navigationLinks[key], subItems: updatedSubItems } } });
-  };
-  const removeSubItem = (key: keyof FooterConfig['navigationLinks'], index: number) => {
-    const currentSubItems = config.navigationLinks[key].subItems || [];
-    const updatedSubItems = currentSubItems.filter((_, i) => i !== index);
-    updateConfig({ navigationLinks: { ...config.navigationLinks, [key]: { ...config.navigationLinks[key], subItems: updatedSubItems.length > 0 ? updatedSubItems : undefined } } });
-  };
-  const updateSocialLink = (platform: keyof FooterConfig['socialLinks'], value: string) => {
-    updateConfig({ socialLinks: { ...config.socialLinks, [platform]: value } });
-  };
-  const renderSubItems = (key: keyof FooterConfig['navigationLinks']) => {
-    const subItems = config.navigationLinks[key].subItems || [];
-    return (
-      <div className="mt-2 space-y-2 pl-4 border-l-2 border-gray-600">
-        {subItems.map((subItem, index) => (
-          <div key={index} className="flex gap-2 items-center">
-            <div className="grid grid-cols-2 gap-2 flex-1">
-              <input type="text" value={subItem.label} onChange={(e) => updateSubItem(key, index, 'label', e.target.value)} className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder="Sub-item label" />
-              <input type="text" value={subItem.url} onChange={(e) => updateSubItem(key, index, 'url', e.target.value)} className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder="/url" />
-            </div>
-            <button onClick={() => removeSubItem(key, index)} className="px-2 py-1.5 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition" title="Verwijderen">×</button>
-          </div>
-        ))}
-        <button onClick={() => addSubItem(key)} className="w-full px-2 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition">+ Sub-item toevoegen</button>
-      </div>
-    );
-  };
-
-  return (
-    <div className="w-80 border-l border-gray-700 overflow-y-auto" style={{ backgroundColor: '#1f2937' }}>
-      <div className="p-4">
-        <div className="border border-gray-600 rounded-lg bg-gray-800 p-4 space-y-0">
-          {/* Layout Section */}
-          <div className="border-b border-gray-600 pb-4 mb-4">
-            <button onClick={() => toggleSection('layout')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Layout</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.layout ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.layout && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-2">Footer Layout</label>
-                  <div className="flex flex-col gap-4">
-                    {['layout1', 'layout2', 'layout3'].map((layoutOption) => (
-                      <button key={layoutOption} onClick={() => updateConfig({ layout: layoutOption as 'layout1' | 'layout2' | 'layout3' })} className={`relative border-2 rounded-lg overflow-hidden transition-all w-full ${config.layout === layoutOption ? 'border-blue-500 ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-800' : 'border-gray-600 hover:border-gray-500'}`}>
-                        <img src={`/footer ${layoutOption.replace('layout', '')}.png`} alt={`Footer ${layoutOption}`} className="w-full h-auto object-contain" />
-                        {config.layout === layoutOption && <div className="absolute top-2 right-2 bg-blue-500 rounded-full p-1.5"><svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg></div>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Padding: {config.padding}px</label>
-                  <input type="range" min="24" max="96" value={config.padding} onChange={(e) => updateConfig({ padding: parseInt(e.target.value) })} className="w-full" />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <label htmlFor="showBottomDivider" className="text-xs font-medium text-gray-300">Scheidingsstreep</label>
-                  <input type="checkbox" id="showBottomDivider" checked={config.showBottomDivider} onChange={(e) => updateConfig({ showBottomDivider: e.target.checked })} className="w-4 h-4" />
-                </div>
-              </div>
-            )}
-          </div>
-          {/* Colors Section */}
-          <div className="border-b border-gray-600 pb-4 mb-4">
-            <button onClick={() => toggleSection('colors')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Kleuren</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.colors ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.colors && (
-              <div className="grid grid-cols-2 gap-3">
-                {[{ key: 'backgroundColor', label: 'Achtergrondkleur' }, { key: 'textColor', label: 'Tekstkleur' }, { key: 'linkColor', label: 'Linkkleur' }, { key: 'linkHoverColor', label: 'Link hover kleur' }].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">{label}</label>
-                    <div className="flex gap-2 items-center">
-                      <input type="color" value={config[key as keyof FooterConfig] as string} onChange={(e) => updateConfig({ [key]: e.target.value } as Partial<FooterConfig>)} className="w-8 h-8 rounded border border-gray-600 cursor-pointer flex-shrink-0" />
-                      <input type="text" value={config[key as keyof FooterConfig] as string} onChange={(e) => updateConfig({ [key]: e.target.value } as Partial<FooterConfig>)} style={{ width: '72px' }} className="px-1.5 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Social Links Section */}
-          <div className="border-b border-gray-600 pb-4 mb-4">
-            <button onClick={() => toggleSection('socialLinks')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Social Media Links</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.socialLinks ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.socialLinks && (
-              <div className="space-y-3">
-                {[{ key: 'instagram', label: 'Instagram URL', placeholder: 'https://instagram.com/...' }, { key: 'x', label: 'X (Twitter) URL', placeholder: 'https://x.com/...' }, { key: 'discord', label: 'Discord URL', placeholder: 'https://discord.gg/...' }, { key: 'facebook', label: 'Facebook URL', placeholder: 'https://facebook.com/...' }, { key: 'youtube', label: 'YouTube URL', placeholder: 'https://youtube.com/...' }, { key: 'linkedin', label: 'LinkedIn URL', placeholder: 'https://linkedin.com/...' }].map(({ key, label, placeholder }) => (
-                  <div key={key}>
-                    <label className="block text-xs font-medium text-gray-300 mb-1">{label}</label>
-                    <input type="text" value={config.socialLinks[key as keyof FooterConfig['socialLinks']] || ''} onChange={(e) => updateSocialLink(key as keyof FooterConfig['socialLinks'], e.target.value)} className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder={placeholder} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Logo Section */}
-          <div className="border-b border-gray-600 pb-4 mb-4">
-            <button onClick={() => toggleSection('logo')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Logo</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.logo ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.logo && (
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Logo Upload</label>
-                  <div className="space-y-3">
-                    <input type="file" accept="image/*" onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        if (file.size > 5 * 1024 * 1024) { alert('Bestand is te groot. Maximum grootte is 5MB.'); return; }
-                        const reader = new FileReader();
-                        reader.onload = (event) => { const result = event.target?.result as string; if (result) updateConfig({ logoUrl: result }); };
-                        reader.onerror = () => { alert('Fout bij het lezen van het bestand.'); };
-                        reader.readAsDataURL(file);
-                      }
-                    }} className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs cursor-pointer bg-gray-800 text-white file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700" />
-                    {config.logoUrl && config.logoUrl.trim() !== '' && (
-                      <div className="relative">
-                        <div className="border border-gray-600 rounded p-3 bg-gray-800">
-                          <img src={config.logoUrl} alt="Logo preview" className="max-h-24 w-auto mx-auto object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                        </div>
-                        <button onClick={() => updateConfig({ logoUrl: '' })} className="mt-2 w-full px-3 py-1.5 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 transition">Logo Verwijderen</button>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">Upload een afbeelding voor je logo (max 5MB)</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Logo Tekst (fallback)</label>
-                  <input type="text" value={config.logoText || ''} onChange={(e) => updateConfig({ logoText: e.target.value })} className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder="LOGO" />
-                  <p className="text-xs text-gray-400 mt-1">Wordt gebruikt als er geen logo is geüpload</p>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* Navigation Links Section */}
-          <div className="border-b border-gray-600 pb-4 mb-4">
-            <button onClick={() => toggleSection('navigationLinks')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Navigatie Links</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.navigationLinks ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.navigationLinks && (
-              <div className="space-y-3">
-                {(['home', 'info', 'bracket', 'location'] as const).map((key) => (
-                  <div key={key}>
-                    <label className="block text-xs font-medium text-gray-300 mb-1 capitalize">{key}</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="text" value={config.navigationLinks[key].label} onChange={(e) => updateNavigationLink(key, 'label', e.target.value)} className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder="Label" />
-                      <input type="text" value={config.navigationLinks[key].url} onChange={(e) => updateNavigationLink(key, 'url', e.target.value)} className="px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" placeholder="/url" />
-                    </div>
-                    {renderSubItems(key)}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Copyright Section */}
-          <div className="pb-4">
-            <button onClick={() => toggleSection('copyright')} className="w-full flex items-center justify-between text-base font-semibold text-white py-2 px-2 -mx-2 rounded hover:bg-gray-700 transition-colors cursor-pointer">
-              <span>Copyright</span>
-              <svg className={`w-5 h-5 transition-transform ${openSections.copyright ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {openSections.copyright && (
-              <div>
-                <textarea value={config.copyrightText} onChange={(e) => updateConfig({ copyrightText: e.target.value })} className="w-full px-2 py-1.5 border border-gray-600 rounded text-xs bg-gray-800 text-white" rows={2} placeholder="Copyright tekst" />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main Footer Component
-export function Footer({ config: initialConfig = {}, showControlPanel = false, storageKey = 'footerConfig' }: FooterProps) {
-  const [config, setConfig] = useState<FooterConfig>(() => ({ ...defaultConfig, ...initialConfig }));
-  const previewRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedConfig = localStorage.getItem(storageKey);
-      if (savedConfig) {
-        try { setConfig(prev => ({ ...prev, ...JSON.parse(savedConfig) })); } catch (e) { console.error('Error loading footer config:', e); }
-      }
-    }
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (showControlPanel && typeof window !== 'undefined') {
-      localStorage.setItem(storageKey, JSON.stringify(config));
-    }
-  }, [config, showControlPanel, storageKey]);
-
-  const updateConfig = (updates: Partial<FooterConfig>) => setConfig((prev) => ({ ...prev, ...updates }));
-
-  if (!showControlPanel) return <FooterDisplay config={config} />;
-
-  return (
-    <div className="min-h-screen flex" style={{ backgroundColor: '#111827' }}>
-      <LeftSidebar config={config} updateConfig={updateConfig} />
-      <div className="flex-1 flex flex-col">
-        <div className="border-b border-gray-700 p-4" style={{ backgroundColor: '#1f2937' }}>
-          <h2 className="text-xl font-semibold text-white">Live Preview</h2>
-          <p className="text-sm text-gray-400">Wijzigingen worden direct getoond</p>
-        </div>
-        <div className="flex-1 overflow-auto p-8" ref={previewRef} style={{ backgroundColor: '#111827' }}>
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-gray-800 min-h-[60vh] p-8 mb-0 rounded">
-              <h1 className="text-3xl font-bold mb-4 text-white">Voorbeeld Pagina</h1>
-              <p className="text-gray-300 mb-4">Dit is een voorbeeldpagina om de footer in context te zien. Scroll naar beneden om de footer te bekijken.</p>
-              <div className="space-y-4">
-                <div className="h-32 bg-gray-700 rounded"></div>
-                <div className="h-32 bg-gray-700 rounded"></div>
-                <div className="h-32 bg-gray-700 rounded"></div>
-              </div>
-            </div>
-            <FooterDisplay config={config} />
-          </div>
-        </div>
-      </div>
-      <RightSidebar config={config} updateConfig={updateConfig} />
-    </div>
-  );
-}
-
 export default function CustomTemplatePage() {
   const [componentOrder, setComponentOrder] = useState<string[]>(() => getDefaultComponentOrder());
   const [componentState, setComponentState] = useState<Record<string, boolean>>(() => getDefaultComponentVisibility());
@@ -2362,8 +1591,6 @@ export default function CustomTemplatePage() {
   const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
   const sponsorLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const teamLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const playerAvatarInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
   const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
@@ -2416,13 +1643,6 @@ export default function CustomTemplatePage() {
     rounds: true,
     style: false,
   });
-  const [expandedTeamsSections, setExpandedTeamsSections] = useState<Record<string, boolean>>({
-    settings: true,
-    teams: true,
-    layout: false,
-    style: false,
-  });
-  const [expandedTeamItems, setExpandedTeamItems] = useState<Record<string, boolean>>({});
   const [expandedTwitchSections, setExpandedTwitchSections] = useState<Record<string, boolean>>({
     settings: true,
     layout: true,
@@ -2439,8 +1659,7 @@ export default function CustomTemplatePage() {
     style: false,
   });
   const [expandedFooterSections, setExpandedFooterSections] = useState<Record<string, boolean>>({
-    template: true,
-    content: false,
+    content: true,
     links: true,
     style: false,
   });
@@ -2467,7 +1686,6 @@ export default function CustomTemplatePage() {
   const [socialSettings, setSocialSettings] = useState(() => getDefaultSocialSettings());
 
   const [footerSettings, setFooterSettings] = useState(() => getDefaultFooterSettings());
-  const [teamsSettings, setTeamsSettings] = useState(() => getDefaultTeamsSettings());
   const loadedFontsRef = useRef<Record<string, boolean>>({});
 
   const ensureFontLoaded = useCallback((fontName: string) => {
@@ -2799,20 +2017,14 @@ export default function CustomTemplatePage() {
           // Detect component name from drop zone ID
           let componentName = activeComponentLabel;
           const dropZoneId = over.id.toString();
-          if (dropZoneId.includes('navigation') || dropZoneId.includes('nav-logo')) {
+          if (dropZoneId.includes('navigation')) {
             componentName = 'Navigation';
-          } else if (dropZoneId.includes('hero') || dropZoneId.includes('hero-background') || dropZoneId.includes('hero-image')) {
+          } else if (dropZoneId.includes('hero')) {
             componentName = 'Hero';
-          } else if (dropZoneId.includes('about') || dropZoneId.includes('about-image')) {
+          } else if (dropZoneId.includes('about')) {
             componentName = 'About';
-          } else if (dropZoneId.includes('footer') || dropZoneId.includes('footer-logo')) {
+          } else if (dropZoneId.includes('footer')) {
             componentName = 'Footer';
-          } else if (dropZoneId.includes('sponsor') || dropZoneId.includes('sponsor-logo')) {
-            componentName = 'Sponsors';
-          } else if (dropZoneId.includes('team-logo')) {
-            componentName = 'Teams';
-          } else if (dropZoneId.includes('player-avatar')) {
-            componentName = 'Teams';
           }
           
           // Update usedIn for the upload
@@ -2885,87 +2097,6 @@ export default function CustomTemplatePage() {
       {navigationSettings.cta.label}
     </a>
   );
-
-  // Helper function to convert footerSettings to FooterConfig
-  const convertFooterSettingsToConfig = useMemo(() => {
-    // Map social icons to footer social links
-    const socialLinks: FooterConfig['socialLinks'] = {
-      instagram: socialSettings.icons.find(i => i.id === 'instagram' && i.enabled)?.link || '',
-      x: socialSettings.icons.find(i => i.id === 'twitter' && i.enabled)?.link || '',
-      discord: socialSettings.icons.find(i => i.id === 'discord' && i.enabled)?.link || '',
-      facebook: socialSettings.icons.find(i => i.id === 'facebook' && i.enabled)?.link || '',
-      youtube: socialSettings.icons.find(i => i.id === 'youtube' && i.enabled)?.link || '',
-      linkedin: socialSettings.icons.find(i => i.id === 'linkedin' && i.enabled)?.link || '',
-    };
-
-    // Map layout
-    let layout: 'layout1' | 'layout2' | 'layout3' = 'layout1';
-    if (footerSettings.layout === 'two-columns') layout = 'layout2';
-    else if (footerSettings.layout === 'centered') layout = 'layout3';
-
-    // Map link sections - convert all sections to subItems
-    // Use first two sections for home and info, or create defaults
-    const firstSection = footerSettings.linkSections[0];
-    const secondSection = footerSettings.linkSections[1];
-    
-    const homeSubItems = firstSection ? firstSection.links.map(link => ({
-      label: link.label,
-      url: link.link
-    })) : [];
-
-    const infoSubItems = secondSection ? secondSection.links.map(link => ({
-      label: link.label,
-      url: link.link
-    })) : [];
-
-    // Find specific links for main navigation items
-    const homeLink = firstSection?.links[0] || { id: '', label: firstSection?.title || 'Toernooi', link: '#' };
-    const infoLink = secondSection?.links[0] || { id: '', label: secondSection?.title || 'Informatie', link: '#' };
-    const bracketLink = firstSection?.links.find(l => l.label.toLowerCase().includes('bracket') || l.label.toLowerCase().includes('groep')) || firstSection?.links[2] || { id: '', label: 'Bracket', link: '#bracket-section' };
-    const locationLink = secondSection?.links.find(l => l.label.toLowerCase().includes('locatie') || l.label.toLowerCase().includes('contact')) || secondSection?.links[3] || { id: '', label: 'Contact', link: '#' };
-
-    // Combine all links into a single array for direct rendering
-    const allLinks = footerSettings.linkSections.flatMap(section => 
-      section.links.map(link => ({ label: link.label, url: link.link }))
-    );
-
-    return {
-      showFooter: true,
-      backgroundColor: footerSettings.backgroundColor,
-      textColor: footerSettings.textColor,
-      linkColor: footerSettings.textColor,
-      linkHoverColor: colorPalette.primary || '#755DFF',
-      copyrightText: footerSettings.copyright,
-      showSocialLinks: footerSettings.showSocials,
-      socialLinks,
-      layout,
-      padding: footerSettings.spacing,
-      showDivider: footerSettings.divider,
-      showBottomDivider: footerSettings.divider,
-      logoUrl: footerSettings.logoUrl,
-      logoText: 'Winter Championship 2026',
-      links: allLinks,
-      navigationLinks: {
-        home: { 
-          label: firstSection?.title || 'Toernooi', 
-          url: homeLink.link,
-          subItems: homeSubItems.length > 0 ? homeSubItems : undefined
-        },
-        info: { 
-          label: secondSection?.title || 'Informatie', 
-          url: infoLink.link,
-          subItems: infoSubItems.length > 0 ? infoSubItems : undefined
-        },
-        bracket: { label: bracketLink.label, url: bracketLink.link },
-        location: { label: locationLink.label, url: locationLink.link },
-      },
-      // Add all sections for rendering
-      linkSections: footerSettings.linkSections.map(section => ({
-        title: section.title,
-        links: section.links.map(link => ({ label: link.label, url: link.link }))
-      })),
-    };
-  }, [footerSettings, socialSettings, colorPalette]);
 
   const componentOrderMap = useMemo(() => {
     const orderMap: Record<string, number> = {};
@@ -3308,220 +2439,24 @@ export default function CustomTemplatePage() {
     }));
   };
 
-  const updateTeam = (id: string, field: string, value: string) => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: prev.teams.map((team) => (team.id === id ? { ...team, [field]: value } : team)),
-    }));
-  };
-
-  const addTeam = () => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: [...prev.teams, { 
-        id: createId(), 
-        name: `Team ${String.fromCharCode(65 + prev.teams.length)}`, 
-        logoUrl: '', 
-        description: '', 
-        players: Array.from({ length: prev.playersPerTeam }, () => ({
-          id: createId(),
-          name: 'Nieuwe Speler',
-          role: '',
-          avatarUrl: '',
-        }))
-      }],
-      numberOfTeams: prev.teams.length + 1,
-    }));
-  };
-
-  const addPlayer = (teamId: string) => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: prev.teams.map((team) =>
-        team.id === teamId
-          ? { ...team, players: [...team.players, { id: createId(), name: 'Nieuwe Speler', role: '', avatarUrl: '' }] }
-          : team
-      ),
-      playersPerTeam: Math.max(prev.playersPerTeam, prev.teams.find(t => t.id === teamId)?.players.length ?? 0) + 1,
-    }));
-  };
-
-  const removePlayer = (teamId: string, playerId: string) => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: prev.teams.map((team) =>
-        team.id === teamId
-          ? { ...team, players: team.players.filter((player) => player.id !== playerId) }
-          : team
-      ),
-    }));
-  };
-
-  const updatePlayer = (teamId: string, playerId: string, field: string, value: string) => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: prev.teams.map((team) =>
-        team.id === teamId
-          ? {
-              ...team,
-              players: team.players.map((player) =>
-                player.id === playerId ? { ...player, [field]: value } : player
-              ),
-            }
-          : team
-      ),
-    }));
-  };
-
-  const removeTeam = (id: string) => {
-    setTeamsSettings((prev) => ({
-      ...prev,
-      teams: prev.teams.filter((team) => team.id !== id),
-      numberOfTeams: Math.max(1, prev.teams.length - 1),
-    }));
-  };
-
-  const handleTeamsNumberOfTeamsChange = (value: number) => {
-    setTeamsSettings((prev) => {
-      const newValue = Math.max(1, Math.min(20, value));
-      if (newValue > prev.teams.length) {
-        const newTeams = Array.from({ length: newValue - prev.teams.length }, (_, i) => ({
-          id: createId(),
-          name: `Team ${String.fromCharCode(65 + prev.teams.length + i)}`,
-          logoUrl: '',
-          description: '',
-          players: Array.from({ length: prev.playersPerTeam }, () => ({
-            id: createId(),
-            name: 'Nieuwe Speler',
-            role: '',
-            avatarUrl: '',
-          })),
-        }));
-        return {
-          ...prev,
-          numberOfTeams: newValue,
-          teams: [...prev.teams, ...newTeams],
-        };
-      } else if (newValue < prev.teams.length) {
-        return {
-          ...prev,
-          numberOfTeams: newValue,
-          teams: prev.teams.slice(0, newValue),
-        };
-      }
-      return { ...prev, numberOfTeams: newValue };
-    });
-  };
-
-  const handleTeamsPlayersPerTeamChange = (value: number) => {
-    setTeamsSettings((prev) => {
-      const newValue = Math.max(0, Math.min(10, value));
-      return {
-        ...prev,
-        playersPerTeam: newValue,
-        teams: prev.teams.map((team) => {
-          if (team.players.length < newValue) {
-            const newPlayers = Array.from({ length: newValue - team.players.length }, () => ({
-              id: createId(),
-              name: 'Nieuwe Speler',
-              role: '',
-              avatarUrl: '',
-            }));
-            return { ...team, players: [...team.players, ...newPlayers] };
-          } else if (team.players.length > newValue) {
-            return { ...team, players: team.players.slice(0, newValue) };
-          }
-          return team;
-        }),
-      };
-    });
-  };
-
-  const updateFooterLink = (sectionId: string, linkId: string, field: 'label' | 'link', value: string) => {
+  const updateFooterLinks = (section: 'tournament' | 'info', id: string, field: 'label' | 'link', value: string) => {
     setFooterSettings((prev) => ({
       ...prev,
-      linkSections: prev.linkSections.map((section) =>
-        section.id === sectionId
-          ? {
-              ...section,
-              links: section.links.map((link) => (link.id === linkId ? { ...link, [field]: value } : link)),
-            }
-          : section
-      ),
+      links: {
+        ...prev.links,
+        [section]: prev.links[section].map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+      },
     }));
   };
 
-  const addFooterLink = (sectionId: string) => {
+  const addFooterLink = (section: 'tournament' | 'info') => {
     setFooterSettings((prev) => ({
       ...prev,
-      linkSections: prev.linkSections.map((section) =>
-        section.id === sectionId
-          ? { ...section, links: [...section.links, { id: createId(), label: 'Nieuwe link', link: '#' }] }
-          : section
-      ),
+      links: {
+        ...prev.links,
+        [section]: [...prev.links[section], { id: createId(), label: 'Nieuwe link', link: '#' }],
+      },
     }));
-  };
-
-  const removeFooterLink = (sectionId: string, linkId: string) => {
-    setFooterSettings((prev) => ({
-      ...prev,
-      linkSections: prev.linkSections.map((section) =>
-        section.id === sectionId
-          ? { ...section, links: section.links.filter((link) => link.id !== linkId) }
-          : section
-      ),
-    }));
-  };
-
-  const addFooterSection = () => {
-    setFooterSettings((prev) => ({
-      ...prev,
-      linkSections: [
-        ...prev.linkSections,
-        {
-          id: createId(),
-          title: 'Nieuwe sectie',
-          links: [{ id: createId(), label: 'Nieuwe link', link: '#' }],
-        },
-      ],
-    }));
-  };
-
-  const removeFooterSection = (sectionId: string) => {
-    setFooterSettings((prev) => ({
-      ...prev,
-      linkSections: prev.linkSections.filter((section) => section.id !== sectionId),
-    }));
-  };
-
-  const updateFooterSectionTitle = (sectionId: string, title: string) => {
-    setFooterSettings((prev) => ({
-      ...prev,
-      linkSections: prev.linkSections.map((section) =>
-        section.id === sectionId ? { ...section, title } : section
-      ),
-    }));
-  };
-
-  const handleFooterTemplateChange = (templateId: string) => {
-    const template = FOOTER_TEMPLATES.find((t) => t.id === templateId);
-    if (template) {
-      // Map layout from template to footerSettings layout
-      let layout: 'two-columns' | 'three-columns' | 'centered' = 'three-columns';
-      if (template.layout === 'layout1') layout = 'three-columns';
-      else if (template.layout === 'layout2') layout = 'two-columns';
-      else if (template.layout === 'layout3') layout = 'centered';
-      
-      setFooterSettings((prev) => ({
-        ...prev,
-        layout,
-        linkSections: template.linkSections.map((section) => ({
-          id: createId(),
-          title: section.title,
-          links: section.links.map((link) => ({ id: createId(), ...link })),
-        })),
-      }));
-    }
   };
 
   const updateGroupStageGroup = (groupId: string, field: 'name', value: string) => {
@@ -4018,29 +2953,28 @@ export default function CustomTemplatePage() {
               'Templates',
               expandedHeroSections.template,
               () => setExpandedHeroSections((prev) => ({ ...prev, template: !prev.template })),
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {HERO_TEMPLATES.map((template) => {
                   const isSelected = heroSettings.template === template.id;
                   return (
                     <button
                       key={template.id}
                       onClick={() => handleHeroTemplateChange(template.id)}
-                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
                         isSelected
-                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-semibold">{template.label}</p>
-                          {template.requiresImage && (
-                            <span className="text-xs uppercase tracking-widest text-white/40">Image</span>
-                          )}
-                        </div>
-                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
-                      </div>
-                      <p className="text-xs text-white/60">{template.description}</p>
+                      <p className="font-semibold flex items-center justify-between">
+                        {template.label}
+                        {template.requiresImage && (
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 border border-white/20 px-2 py-0.5 rounded-full">
+                            Image
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-white/50 mt-1">{template.description}</p>
                     </button>
                   );
                 })}
@@ -4076,88 +3010,21 @@ export default function CustomTemplatePage() {
               expandedHeroSections.image,
               () => setExpandedHeroSections((prev) => ({ ...prev, image: !prev.image })),
               <div className="space-y-3">
-                <DroppableImageField
-                  id="hero-background-image"
-                  value={heroSettings.backgroundImageUrl ?? ''}
-                  onChange={(url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url }))}
-                  label="Achtergrond afbeelding"
-                >
-                  <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
-                    <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
-                      {heroSettings.backgroundImageUrl ? (
-                        <img
-                          src={heroSettings.backgroundImageUrl}
-                          alt="Hero achtergrond"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs text-white/60 flex flex-col gap-1">
-                        Afbeelding URL
-                        <input
-                          type="text"
-                          value={heroSettings.backgroundImageUrl ?? ''}
-                          onChange={(e) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: e.target.value }))}
-                          className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                          placeholder="https://"
-                        />
-                      </label>
-                      <label className="text-xs text-white/60 flex flex-col gap-1">
-                        Upload bestand
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url })))}
-                          className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </DroppableImageField>
                 {selectedHeroTemplate.requiresImage && (
                   <DroppableImageField
                     id="hero-image"
-                    value={heroSettings.heroImageUrl ?? ''}
+                    value={heroSettings.heroImageUrl}
                     onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
                     label="Hero afbeelding"
                   >
-                    <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
-                      <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
-                        {heroSettings.heroImageUrl ? (
-                          <img
-                            src={heroSettings.heroImageUrl}
-                            alt="Hero visual"
-                            className="w-full h-full object-cover rounded-3xl"
-                          />
-                        ) : (
-                          <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs text-white/60 flex flex-col gap-1">
-                          Afbeelding URL
-                          <input
-                            type="text"
-                            value={heroSettings.heroImageUrl ?? ''}
-                            onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
-                            className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                            placeholder="https://"
-                          />
-                        </label>
-                        <label className="text-xs text-white/60 flex flex-col gap-1">
-                          Upload bestand
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))}
-                            className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
-                          />
-                        </label>
-                      </div>
-                    </div>
+                    <input
+                      type="text"
+                      value={heroSettings.heroImageUrl}
+                      onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Afbeelding URL"
+                    />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
                   </DroppableImageField>
                 )}
               </div>
@@ -4284,26 +3151,26 @@ export default function CustomTemplatePage() {
               'Layouts',
               expandedAboutSections.layout,
               () => setExpandedAboutSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ABOUT_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = aboutSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setAboutSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
                         isSelected
-                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
                       </div>
-                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -5108,29 +3975,21 @@ export default function CustomTemplatePage() {
                 </button>
                 {expandedStatsSections.layout && (
                   <div className="px-4 pb-4">
-                    <div className="space-y-2">
-                      {STATS_LAYOUT_OPTIONS.map((layout) => {
-                        const isSelected = statsSettings.layout === layout.id;
-                        return (
-                          <button
-                            key={layout.id}
-                            onClick={() => setStatsSettings((prev) => ({ ...prev, layout: layout.id }))}
-                            className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
-                              isSelected
-                                ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
-                                : 'border-white/10 hover:border-white/30'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-4">
-                              <div>
-                                <p className="font-semibold">{layout.label}</p>
-                              </div>
-                              {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
-                            </div>
-                            <p className="text-xs text-white/60">{layout.description}</p>
-                          </button>
-                        );
-                      })}
+                    <div className="grid grid-cols-2 gap-3">
+                      {STATS_LAYOUT_OPTIONS.map((layout) => (
+                        <button
+                          key={layout.id}
+                          onClick={() => setStatsSettings((prev) => ({ ...prev, layout: layout.id }))}
+                          className={`p-3 rounded-xl border text-left transition ${
+                            statsSettings.layout === layout.id
+                              ? 'border-[#755DFF] bg-[#755DFF]/10'
+                              : 'border-white/10 bg-[#11132A] hover:border-white/20'
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-white mb-1">{layout.label}</div>
+                          <div className="text-xs text-white/50">{layout.description}</div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -5499,26 +4358,26 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedSponsorSections.layout,
               () => setExpandedSponsorSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SPONSOR_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = sponsorSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setSponsorSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
                         isSelected
-                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
                       </div>
-                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -5756,377 +4615,6 @@ export default function CustomTemplatePage() {
             )}
           </div>
         );
-      case 'teams':
-        return (
-          <div className={panelClass}>
-            {renderCollapsibleSection(
-              'teams-settings',
-              'Instellingen',
-              expandedTeamsSections.settings ?? false,
-              () => setExpandedTeamsSections((prev) => ({ ...prev, settings: !prev.settings })),
-              <div className="space-y-3">
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs uppercase tracking-[0.3em] text-white/50">Aantal teams</span>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min={1}
-                      max={20}
-                      value={teamsSettings.numberOfTeams}
-                      onChange={(e) => handleTeamsNumberOfTeamsChange(Number(e.target.value))}
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-white/70 w-10 text-right">{teamsSettings.numberOfTeams}</span>
-                  </div>
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className="text-xs uppercase tracking-[0.3em] text-white/50">Aantal spelers per team</span>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min={0}
-                      max={10}
-                      value={teamsSettings.playersPerTeam}
-                      onChange={(e) => handleTeamsPlayersPerTeamChange(Number(e.target.value))}
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-white/70 w-10 text-right">{teamsSettings.playersPerTeam}</span>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            {renderCollapsibleSection(
-              'teams-list',
-              'Teams',
-              expandedTeamsSections.teams,
-              () => setExpandedTeamsSections((prev) => ({ ...prev, teams: !prev.teams })),
-              <div className="space-y-2">
-                {teamsSettings.teams.map((team, index) => {
-                  const isExpanded = expandedTeamItems[team.id] ?? false;
-                  return (
-                    <div key={team.id} className="rounded-xl border border-white/10 bg-[#0E1020] overflow-hidden">
-                      <div 
-                        className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 transition"
-                        onClick={() => setExpandedTeamItems((prev) => ({ ...prev, [team.id]: !prev[team.id] }))}
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {team.logoUrl ? (
-                            <img src={team.logoUrl} alt={team.name} className="w-8 h-8 object-contain flex-shrink-0" />
-                          ) : (
-                            <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-xs text-white/40 flex-shrink-0">
-                              {team.name.charAt(0)}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-white truncate">{team.name || `Team #${index + 1}`}</div>
-                            {team.players && team.players.length > 0 && (
-                              <div className="text-xs text-white/50">{team.players.length} speler{team.players.length !== 1 ? 's' : ''}</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeTeam(team.id);
-                            }}
-                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
-                          >
-                            Verwijder
-                          </button>
-                          <svg 
-                            className={`w-4 h-4 text-white/50 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </div>
-                      </div>
-                      {isExpanded && (
-                        <div className="p-3 space-y-3 border-t border-white/10">
-                          <DroppableImageField
-                            id={`team-logo-${team.id}`}
-                            value={team.logoUrl ?? ''}
-                            onChange={(url) => updateTeam(team.id, 'logoUrl', url)}
-                            label="Team logo"
-                          >
-                            <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2">
-                              <div className="flex items-center gap-3">
-                                <div className="w-20 h-20 rounded-lg border border-dashed border-white/10 bg-[#05060F] flex items-center justify-center overflow-hidden flex-shrink-0">
-                                  {team.logoUrl ? (
-                                    <img
-                                      src={team.logoUrl}
-                                      alt={team.name || 'Team logo preview'}
-                                      className="max-w-full max-h-full object-contain"
-                                    />
-                                  ) : (
-                                    <div className="text-xs text-white/50 text-center px-2">Logo</div>
-                                  )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                  <label className="text-xs text-white/60 flex flex-col gap-1">
-                                    Logo URL
-                                    <input
-                                      type="text"
-                                      value={team.logoUrl ?? ''}
-                                      onChange={(e) => updateTeam(team.id, 'logoUrl', e.target.value)}
-                                      className="w-full px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
-                                      placeholder="https://"
-                                    />
-                                  </label>
-                                  <input
-                                    ref={(el) => { teamLogoInputRefs.current[team.id] = el; }}
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={(e) => handleImageUpload(e, (url) => updateTeam(team.id, 'logoUrl', url))}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => teamLogoInputRefs.current[team.id]?.click()}
-                                    className="w-full px-2 py-1.5 rounded-lg border border-white/10 bg-[#11132A] text-xs text-white/70 hover:text-white hover:border-white/30 transition"
-                                  >
-                                    Upload bestand
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </DroppableImageField>
-                          <div className="grid grid-cols-1 gap-2">
-                            <label className="text-xs text-white/60 flex flex-col gap-1">
-                              Team naam
-                              <input
-                                value={team.name}
-                                onChange={(e) => updateTeam(team.id, 'name', e.target.value)}
-                                className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
-                                placeholder="Team naam"
-                              />
-                            </label>
-                            <label className="text-xs text-white/60 flex flex-col gap-1">
-                              Beschrijving
-                              <textarea
-                                value={team.description}
-                                onChange={(e) => updateTeam(team.id, 'description', e.target.value)}
-                                className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
-                                placeholder="Team beschrijving"
-                                rows={2}
-                              />
-                            </label>
-                          </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-xs uppercase text-white/50">Spelers</h4>
-                        <button
-                          onClick={() => addPlayer(team.id)}
-                          className="px-3 py-1.5 text-xs font-semibold bg-[#755DFF] hover:bg-[#8B6FFF] text-white rounded-lg transition-all shadow-sm hover:shadow-md"
-                        >
-                          + Speler toevoegen
-                        </button>
-                      </div>
-                            {team.players && team.players.length > 0 ? (
-                              <div className="space-y-2">
-                                {team.players.map((player) => (
-                                  <div key={player.id} className="rounded-lg border border-white/10 bg-[#0B0D1E] p-3 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-lg border border-dashed border-white/10 bg-[#05060F] flex items-center justify-center overflow-hidden flex-shrink-0">
-                                          {player.avatarUrl ? (
-                                            <img
-                                              src={player.avatarUrl}
-                                              alt={player.name || 'Speler avatar'}
-                                              className="w-full h-full object-cover rounded-lg"
-                                            />
-                                          ) : (
-                                            <div className="text-xs text-white/50">{player.name.charAt(0)}</div>
-                                          )}
-                                        </div>
-                                        <div className="text-xs text-white/50">Speler</div>
-                                      </div>
-                                      <button
-                                        onClick={() => removePlayer(team.id, player.id)}
-                                        className="px-2 py-1.5 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
-                                        title="Verwijder speler"
-                                      >
-                                        × Verwijder
-                                      </button>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <input
-                                        type="text"
-                                        value={player.name}
-                                        onChange={(e) => updatePlayer(team.id, player.id, 'name', e.target.value)}
-                                        className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
-                                        placeholder="Speler naam"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={player.role}
-                                        onChange={(e) => updatePlayer(team.id, player.id, 'role', e.target.value)}
-                                        className="w-full px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
-                                        placeholder="Rol (bijv. Striker, Defender)"
-                                      />
-                                    </div>
-                                    <DroppableImageField
-                                      id={`player-avatar-${team.id}-${player.id}`}
-                                      value={player.avatarUrl ?? ''}
-                                      onChange={(url) => updatePlayer(team.id, player.id, 'avatarUrl', url)}
-                                      label="Speler avatar"
-                                    >
-                                      <div className="space-y-2">
-                                        <input
-                                          ref={(el) => { playerAvatarInputRefs.current[`${team.id}-${player.id}`] = el; }}
-                                          type="file"
-                                          accept="image/*"
-                                          className="hidden"
-                                          onChange={(e) => handleImageUpload(e, (url) => updatePlayer(team.id, player.id, 'avatarUrl', url))}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => playerAvatarInputRefs.current[`${team.id}-${player.id}`]?.click()}
-                                          className="w-full px-3 py-1.5 text-xs border border-white/10 rounded-lg hover:border-white/30 transition text-white/70 hover:text-white bg-[#11132A]"
-                                          title="Upload avatar"
-                                        >
-                                          📷 Upload avatar bestand
-                                        </button>
-                                        <input
-                                          type="text"
-                                          value={player.avatarUrl ?? ''}
-                                          onChange={(e) => updatePlayer(team.id, player.id, 'avatarUrl', e.target.value)}
-                                          className="w-full px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
-                                          placeholder="Of voer avatar URL in"
-                                        />
-                                      </div>
-                                    </DroppableImageField>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-xs text-white/40 text-center py-2 border border-dashed border-white/10 rounded-lg">
-                                Geen spelers. Klik op "+ Speler" om toe te voegen.
-                              </div>
-                            )}
-                    </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <button
-                  onClick={addTeam}
-                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white hover:border-white/40 transition"
-                >
-                  + Team toevoegen
-                </button>
-              </div>
-            )}
-
-            {renderCollapsibleSection(
-              'teams-layout',
-              'Layout',
-              expandedTeamsSections.layout,
-              () => setExpandedTeamsSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="text-xs text-white/60 flex flex-col gap-1">
-                    Layout type
-                    <select
-                      value={teamsSettings.layout}
-                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, layout: e.target.value as 'grid' | 'list' | 'cards' }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    >
-                      <option value="grid">Grid</option>
-                      <option value="list">Lijst</option>
-                      <option value="cards">Kaarten</option>
-                    </select>
-                  </label>
-                  {teamsSettings.layout === 'grid' && (
-                    <label className="text-xs text-white/60 flex flex-col gap-1">
-                      Aantal kolommen ({teamsSettings.columns})
-                      <input
-                        type="range"
-                        min={2}
-                        max={6}
-                        value={teamsSettings.columns}
-                        onChange={(e) => setTeamsSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))}
-                      />
-                    </label>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs text-white/60 flex flex-col gap-1">
-                    Titel
-                    <input
-                      type="text"
-                      value={teamsSettings.title}
-                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                      placeholder="Titel"
-                    />
-                  </label>
-                  <label className="text-xs text-white/60 flex flex-col gap-1">
-                    Ondertitel
-                    <input
-                      type="text"
-                      value={teamsSettings.subtitle}
-                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                      placeholder="Ondertitel"
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {renderCollapsibleSection(
-              'teams-style',
-              'Stijl',
-              expandedTeamsSections.style,
-              () => setExpandedTeamsSections((prev) => ({ ...prev, style: !prev.style })),
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <ColorInputField
-                    label="Achtergrondkleur"
-                    value={teamsSettings.colors.backgroundColor}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, backgroundColor: value } }))}
-                  />
-                  <ColorInputField
-                    label="Titel kleur"
-                    value={teamsSettings.colors.titleColor}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, titleColor: value } }))}
-                  />
-                  <ColorInputField
-                    label="Ondertitel kleur"
-                    value={teamsSettings.colors.subtitleColor}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, subtitleColor: value } }))}
-                  />
-                  <ColorInputField
-                    label="Card achtergrond"
-                    value={teamsSettings.colors.cardBackground}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBackground: value } }))}
-                  />
-                  <ColorInputField
-                    label="Card border"
-                    value={teamsSettings.colors.cardBorder}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, cardBorder: value } }))}
-                  />
-                  <ColorInputField
-                    label="Team naam kleur"
-                    value={teamsSettings.colors.teamNameColor}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, teamNameColor: value } }))}
-                  />
-                  <ColorInputField
-                    label="Beschrijving kleur"
-                    value={teamsSettings.colors.descriptionColor}
-                    onChange={(value) => setTeamsSettings((prev) => ({ ...prev, colors: { ...prev.colors, descriptionColor: value } }))}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        );
       case 'socials':
         return (
           <div className={panelClass}>
@@ -6208,53 +4696,6 @@ export default function CustomTemplatePage() {
         return (
           <div className={panelClass}>
             {renderCollapsibleSection(
-              'footer-template',
-              'Templates',
-              expandedFooterSections.template,
-              () => setExpandedFooterSections((prev) => ({ ...prev, template: !prev.template })),
-              <div className="space-y-2">
-                {FOOTER_TEMPLATES.map((template) => {
-                  // Map template layout to footerSettings layout for comparison
-                  let templateLayout: 'two-columns' | 'three-columns' | 'centered' = 'three-columns';
-                  if (template.layout === 'layout1') templateLayout = 'three-columns';
-                  else if (template.layout === 'layout2') templateLayout = 'two-columns';
-                  else if (template.layout === 'layout3') templateLayout = 'centered';
-                  
-                  const isSelected = footerSettings.layout === templateLayout && 
-                    footerSettings.linkSections.length === template.linkSections.length &&
-                    footerSettings.linkSections.every((section, index) => 
-                      section.links.length === template.linkSections[index]?.links.length
-                    );
-                  return (
-                    <button
-                      key={template.id}
-                      onClick={() => handleFooterTemplateChange(template.id)}
-                      className={`w-full text-left p-3 rounded-lg border transition-all ${
-                        isSelected
-                          ? 'border-[#755DFF] bg-[#755DFF]/10'
-                          : 'border-white/10 hover:border-white/20 bg-[#11132A]'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-white mb-1">{template.label}</div>
-                          <div className="text-xs text-white/60">{template.description}</div>
-                        </div>
-                        {isSelected && (
-                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#755DFF] flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {renderCollapsibleSection(
               'footer-content',
               'Content',
               expandedFooterSections.content,
@@ -6264,119 +4705,62 @@ export default function CustomTemplatePage() {
                   id="footer-logo"
                   value={footerSettings.logoUrl}
                   onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
-                  label="Logo"
+                  label="Footer content"
                 >
-                  <input
-                    value={footerSettings.logoUrl}
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="Logo URL"
-                  />
+              <input
+                value={footerSettings.logoUrl}
+                onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                placeholder="Logo URL"
+              />
                   <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))} />
                 </DroppableImageField>
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Beschrijving
-                  <textarea
-                    value={footerSettings.description}
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    rows={2}
-                    placeholder="Beschrijving"
-                  />
-                </label>
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Copyright tekst
-                  <input
-                    value={footerSettings.copyright}
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                    placeholder="© 2026 Winter Championship. Alle rechten voorbehouden."
-                  />
-                </label>
+                <textarea
+                  value={footerSettings.description}
+                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  rows={2}
+                  placeholder="Beschrijving"
+                />
+                <input
+                  value={footerSettings.copyright}
+                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  placeholder="Copyright tekst"
+                />
               </div>
             )}
 
             {renderCollapsibleSection(
               'footer-links',
-              'Link Secties',
+              'Navigatie links',
               expandedFooterSections.links,
               () => setExpandedFooterSections((prev) => ({ ...prev, links: !prev.links })),
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs uppercase text-white/70 font-medium">Link Secties</p>
-                  <button 
-                    onClick={addFooterSection} 
-                    className="text-xs px-3 py-1.5 border border-dashed border-white/20 rounded text-white/70 hover:border-white/40 hover:text-white transition bg-white/5"
-                  >
-                    + Sectie toevoegen
+              <div className="space-y-2">
+              {['tournament', 'info'].map((section) => (
+                <div key={section} className="space-y-2">
+                  <p className="text-xs uppercase text-white/50">{section === 'tournament' ? 'Toernooi' : 'Informatie'}</p>
+                  {footerSettings.links[section as 'tournament' | 'info'].map((link) => (
+                    <div key={link.id} className="flex gap-2">
+                      <input
+                        value={link.label}
+                        onChange={(e) => updateFooterLinks(section as 'tournament' | 'info', link.id, 'label', e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Label"
+                      />
+                      <input
+                        value={link.link}
+                        onChange={(e) => updateFooterLinks(section as 'tournament' | 'info', link.id, 'link', e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                        placeholder="Link"
+                      />
+                    </div>
+                  ))}
+                  <button onClick={() => addFooterLink(section as 'tournament' | 'info')} className="text-xs px-3 py-1 border border-dashed border-white/20 rounded-lg text-white/70">
+                    + Link toevoegen
                   </button>
                 </div>
-                {footerSettings.linkSections.map((section) => (
-                  <div key={section.id} className="space-y-2 p-3 rounded-lg border border-white/10 bg-[#11132A]/50">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <input
-                        value={section.title}
-                        onChange={(e) => updateFooterSectionTitle(section.id, e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm text-white font-medium"
-                        placeholder="Sectie titel"
-                      />
-                      <button
-                        onClick={() => removeFooterSection(section.id)}
-                        className="px-2 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 transition text-xs flex-shrink-0"
-                        title="Sectie verwijderen"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {section.links.map((link) => (
-                        <div key={link.id} className="flex gap-2 items-start">
-                          <div className="flex-1 space-y-2">
-                            <input
-                              value={link.label}
-                              onChange={(e) => updateFooterLink(section.id, link.id, 'label', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm text-white placeholder-white/40"
-                              placeholder="Link label"
-                            />
-                            <input
-                              value={link.link}
-                              onChange={(e) => updateFooterLink(section.id, link.id, 'link', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm text-white placeholder-white/40"
-                              placeholder="/url of #section"
-                            />
-                          </div>
-                          <button
-                            onClick={() => removeFooterLink(section.id, link.id)}
-                            className="px-2 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 transition text-xs flex-shrink-0"
-                            title="Link verwijderen"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                      <button 
-                        onClick={() => addFooterLink(section.id)} 
-                        className="w-full text-xs px-3 py-1.5 border border-dashed border-white/20 rounded text-white/70 hover:border-white/40 hover:text-white transition"
-                      >
-                        + Link toevoegen
-                      </button>
-                      {section.links.length === 0 && (
-                        <div className="text-xs text-white/40 text-center py-3 border border-dashed border-white/10 rounded-lg">
-                          Geen links in deze sectie
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {footerSettings.linkSections.length === 0 && (
-                  <div className="text-xs text-white/40 text-center py-6 border border-dashed border-white/10 rounded-lg">
-                    Geen link secties. Klik op "+ Sectie toevoegen" om te beginnen.
-                  </div>
-                )}
+              ))}
               </div>
             )}
 
@@ -6385,56 +4769,41 @@ export default function CustomTemplatePage() {
               'Stijl',
               expandedFooterSections.style,
               () => setExpandedFooterSections((prev) => ({ ...prev, style: !prev.style })),
-              <div className="space-y-3">
-                <label className="text-xs text-white/60 flex flex-col gap-1">
+              <div className="space-y-2 text-xs text-white/60">
+                <label>
                   Layout
-                  <select
-                    value={footerSettings.layout}
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, layout: e.target.value as typeof footerSettings.layout }))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  >
-                    <option value="two-columns">2 koloms</option>
-                    <option value="three-columns">3 koloms</option>
-                    <option value="centered">Gecentreerd</option>
-                  </select>
-                </label>
-                <label className="text-xs text-white/60 flex flex-col gap-1">
-                  Spacing ({footerSettings.spacing}px)
-                  <input 
-                    type="range" 
-                    min={16} 
-                    max={64} 
-                    value={footerSettings.spacing} 
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, spacing: Number(e.target.value) }))} 
-                    className="w-full"
-                  />
-                </label>
-                <ColorInputField
-                  label="Achtergrondkleur"
-                  value={footerSettings.backgroundColor}
-                  onChange={(value) => setFooterSettings((prev) => ({ ...prev, backgroundColor: value }))}
-                />
-                <ColorInputField
-                  label="Tekstkleur"
-                  value={footerSettings.textColor}
-                  onChange={(value) => setFooterSettings((prev) => ({ ...prev, textColor: value }))}
-                />
-                <label className="flex items-center gap-2 text-sm text-white/70">
-                  <input 
-                    type="checkbox" 
-                    checked={footerSettings.divider} 
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, divider: e.target.checked }))} 
-                  />
-                  Divider weergeven
-                </label>
-                <label className="flex items-center gap-2 text-sm text-white/70">
-                  <input 
-                    type="checkbox" 
-                    checked={footerSettings.showSocials} 
-                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, showSocials: e.target.checked }))} 
-                  />
-                  Social media links weergeven
-                </label>
+                <select
+                  value={footerSettings.layout}
+                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, layout: e.target.value as typeof footerSettings.layout }))}
+                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                >
+                  <option value="two-columns">2 koloms</option>
+                  <option value="three-columns">3 koloms</option>
+                  <option value="centered">Centered</option>
+                </select>
+              </label>
+              <label>
+                Spacing ({footerSettings.spacing}px)
+                <input type="range" min={16} max={64} value={footerSettings.spacing} onChange={(e) => setFooterSettings((prev) => ({ ...prev, spacing: Number(e.target.value) }))} />
+              </label>
+              <ColorInputField
+                label="Achtergrondkleur"
+                value={footerSettings.backgroundColor}
+                onChange={(value) => setFooterSettings((prev) => ({ ...prev, backgroundColor: value }))}
+              />
+              <ColorInputField
+                label="Tekstkleur"
+                value={footerSettings.textColor}
+                onChange={(value) => setFooterSettings((prev) => ({ ...prev, textColor: value }))}
+              />
+              <label className="flex items-center gap-2 text-sm text-white/70">
+                <input type="checkbox" checked={footerSettings.divider} onChange={(e) => setFooterSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
+                Divider
+              </label>
+              <label className="flex items-center gap-2 text-sm text-white/70">
+                <input type="checkbox" checked={footerSettings.showSocials} onChange={(e) => setFooterSettings((prev) => ({ ...prev, showSocials: e.target.checked }))} />
+                Socials
+              </label>
               </div>
             )}
           </div>
@@ -6447,26 +4816,26 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedFAQSections.layout,
               () => setExpandedFAQSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {FAQ_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = faqSettings.layout === layout.id;
                   return (
                     <button
                       key={layout.id}
                       onClick={() => setFaqSettings((prev) => ({ ...prev, layout: layout.id }))}
-                      className={`w-full text-left px-4 py-3 rounded-xl border transition-all space-y-1 ${
+                      className={`w-full text-left px-4 py-3 rounded-2xl border transition-all bg-[#11132A] ${
                         isSelected
-                          ? 'border-[#755DFF] bg-[#1a1d36] shadow-[0_0_20px_rgba(117,93,255,0.3)]'
+                          ? 'border-[#755DFF] shadow-[0_0_25px_rgba(117,93,255,0.3)]'
                           : 'border-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-semibold">{layout.label}</p>
+                          <p className="text-xs text-white/50 mt-1">{layout.description}</p>
                         </div>
-                        {isSelected && <span className="text-xs text-[#B8A4FF]">Actief</span>}
+                        {isSelected && <span className="text-[10px] uppercase tracking-[0.3em] text-[#B8A4FF]">Actief</span>}
                       </div>
-                      <p className="text-xs text-white/60">{layout.description}</p>
                     </button>
                   );
                 })}
@@ -6805,9 +5174,6 @@ export default function CustomTemplatePage() {
       case 'about':
         setAboutSettings((prev) => ({ ...prev, imageUrl: imageUrl }));
         break;
-      case 'teams':
-        // Teams image drop will be handled per team in the settings panel
-        break;
       case 'footer':
         setFooterSettings((prev) => ({ ...prev, logoUrl: imageUrl }));
         break;
@@ -6874,7 +5240,7 @@ export default function CustomTemplatePage() {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [isFullscreen, componentState, colorPalette, fontSettings, navigationSettings, heroSettings, viewport, aboutSettings, programSettings, bracketSettings, teamsSettings]);
+  }, [isFullscreen, componentState, colorPalette, fontSettings, navigationSettings, heroSettings, viewport, aboutSettings, programSettings, bracketSettings]);
 
   return (
     <DndContext
@@ -7333,18 +5699,16 @@ export default function CustomTemplatePage() {
         </aside>
 
         {/* Middle preview area */}
-        <section className="bg-[#03040B] fixed flex flex-col left-[420px] right-[360px] bottom-0 overflow-hidden" style={{ top: 'calc(85px + 10px)', height: 'calc(100vh - 89px)' }}>
-          <div className="flex-1 overflow-y-auto w-full h-full scrollbar-hide" data-preview-scroll-container>
+        <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
+          <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
             <div 
-              className="min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col"
+              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col mx-auto"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
                 fontFamily: formatFontStack(fontSettings.bodyFamily),
                 color: colorPalette.bodyText,
                 maxWidth: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
-                width: viewport === 'desktop' ? '100%' : viewport === 'tablet' ? '768px' : '375px',
-                marginLeft: viewport === 'desktop' ? '0' : 'auto',
-                marginRight: viewport === 'desktop' ? '0' : 'auto',
+                width: viewport === 'desktop' ? '100%' : 'auto',
                 boxShadow: viewport !== 'desktop' ? '0 0 0 1px rgba(255,255,255,0.1)' : 'none',
               }}
             >
@@ -7427,22 +5791,8 @@ export default function CustomTemplatePage() {
                       ? 'py-12 px-4 sm:py-16 md:py-24 lg:py-32 sm:px-6' 
                       : 'py-12 px-4 sm:py-16 md:py-20 sm:px-6'
                   }`}
-                  style={{ 
-                    backgroundColor: heroSettings.backgroundImageUrl ? 'transparent' : colorPalette.sectionBackground, 
-                    order: componentOrderMap['hero'] ?? 1 
-                  }}
+                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['hero'] ?? 1 }}
                 >
-                  {heroSettings.backgroundImageUrl && (
-                    <div
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        backgroundImage: `url(${heroSettings.backgroundImageUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                      }}
-                    />
-                  )}
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
@@ -7547,7 +5897,7 @@ export default function CustomTemplatePage() {
                     const imageBlock = selectedHeroTemplate.requiresImage ? (
                       <DroppableImageArea
                         id="preview-hero-image"
-                        value={heroSettings.heroImageUrl ?? ''}
+                        value={heroSettings.heroImageUrl}
                         onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
                         className="w-full flex justify-center"
                         minHeight="260px"
@@ -8117,6 +6467,75 @@ export default function CustomTemplatePage() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Teams */}
+              {componentState.teams && (
+                <section 
+                  id="teams-section"
+                  data-component-id="teams"
+                  onClick={(e) => handleComponentClick('teams', e)}
+                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
+                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
+                >
+                  <div
+                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
+                    style={{ borderColor: colorPalette.primary }}
+                  />
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+                    <HeadingText
+                      level="h2"
+                      className="text-center mb-4 uppercase tracking-widest opacity-70"
+                      color={colorPalette.mutedText}
+                    >
+                      Deelnemers
+                    </HeadingText>
+                    <HeadingText level="h1" className="text-center mb-12">
+                      Geregistreerde Teams
+                    </HeadingText>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {[
+                        { initials: 'AR', name: 'Arctic Wolves', tag: 'ARCT', players: ['Player1', 'Player2', 'Player3'] },
+                        { initials: 'TH', name: 'Thunder Strike', tag: 'THND', players: ['Player1', 'Player2', 'Player3'] },
+                        { initials: 'IC', name: 'Ice Phoenix', tag: 'ICEP', players: ['Player 1', 'Player 2', 'Player 3'] },
+                        { initials: 'SN', name: 'Snow Leopards', tag: 'SNLP', players: ['Player 1', 'Player 2', 'Player 3'] }
+                      ].map((team, idx) => (
+                        <div 
+                          key={idx}
+                          className="p-6 rounded-xl border"
+                          style={{ 
+                            backgroundColor: colorPalette.cardBackground,
+                            borderColor: colorPalette.border
+                          }}
+                        >
+                          <div 
+                            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold mb-4 mx-auto"
+                            style={{ backgroundColor: colorPalette.primary, color: 'white' }}
+                          >
+                            {team.initials}
+                          </div>
+                          <HeadingText level="h2" className="text-center mb-2">
+                            {team.name}
+                          </HeadingText>
+                          <BodyText className="text-center opacity-60 mb-4" variant="small">
+                            {team.tag}
+                          </BodyText>
+                          <div className="space-y-1">
+                            {team.players.map((player, pIdx) => (
+                              <BodyText
+                                key={pIdx}
+                                className="text-center opacity-80"
+                                variant="small"
+                              >
+                                {player}
+                              </BodyText>
+                            ))}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -8862,294 +7281,6 @@ export default function CustomTemplatePage() {
               )}
 
               {/* Socials */}
-              {componentState.teams && (
-                <section 
-                  id="teams-section"
-                  data-component-id="teams"
-                  onClick={(e) => handleComponentClick('teams', e)}
-                  className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
-                  style={{ 
-                    backgroundColor: teamsSettings.colors.backgroundColor, 
-                    order: componentOrderMap['teams'] ?? 10 
-                  }}
-                >
-                  <div
-                    className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
-                    style={{ borderColor: colorPalette.primary }}
-                  />
-                  <div className="container mx-auto max-w-6xl px-4 sm:px-6 relative z-20">
-                    <HeadingText 
-                      level="h1" 
-                      className="text-center mb-6"
-                      color={teamsSettings.colors.titleColor}
-                      style={{ fontSize: `${teamsSettings.fontSizes.title}px` }}
-                    >
-                      {teamsSettings.title}
-                    </HeadingText>
-                    <BodyText 
-                      className="text-center mb-12 opacity-90"
-                      color={teamsSettings.colors.subtitleColor}
-                      style={{ fontSize: `${teamsSettings.fontSizes.subtitle}px` }}
-                    >
-                      {teamsSettings.subtitle}
-                    </BodyText>
-                    {teamsSettings.layout === 'grid' && (
-                      <div
-                        className="grid gap-6"
-                        style={{ 
-                          gridTemplateColumns: `repeat(${Math.min(teamsSettings.columns, teamsSettings.teams.length)}, minmax(0, 1fr))`,
-                        }}
-                      >
-                        {teamsSettings.teams.map((team) => (
-                          <div
-                            key={team.id}
-                            className="rounded-xl border p-6 flex flex-col items-center text-center transition-all duration-200 hover:scale-[1.02] hover:shadow-lg h-full"
-                            style={{ 
-                              backgroundColor: teamsSettings.colors.cardBackground,
-                              borderColor: teamsSettings.colors.cardBorder,
-                            }}
-                          >
-                            {team.logoUrl ? (
-                              <img
-                                src={team.logoUrl}
-                                alt={team.name}
-                                className="w-24 h-24 object-contain mb-4"
-                              />
-                            ) : (
-                              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-4 text-white/40 text-sm">
-                                {team.name.charAt(0)}
-                              </div>
-                            )}
-                            <HeadingText
-                              level="h3"
-                              className="mb-2"
-                              color={teamsSettings.colors.teamNameColor}
-                              style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
-                            >
-                              {team.name}
-                            </HeadingText>
-                            <div className="min-h-[60px] mb-4 flex items-center justify-center">
-                              {team.description ? (
-                                <BodyText
-                                  variant="small"
-                                  className="opacity-80"
-                                  color={teamsSettings.colors.descriptionColor}
-                                  style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
-                                >
-                                  {team.description}
-                                </BodyText>
-                              ) : (
-                                <div className="h-[60px]"></div>
-                              )}
-                            </div>
-                            <div className="w-full mt-auto pt-4 border-t border-white/10">
-                              {team.players && team.players.length > 0 ? (
-                                <>
-                                  <p className="text-xs text-white/50 mb-3 uppercase tracking-wider text-center">Spelers</p>
-                                  <div className="space-y-2 max-w-md mx-auto">
-                                    {team.players.map((player) => (
-                                      <div
-                                        key={player.id}
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10"
-                                      >
-                                        {player.avatarUrl ? (
-                                          <img
-                                            src={player.avatarUrl}
-                                            alt={player.name}
-                                            className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-                                          />
-                                        ) : (
-                                          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/60 flex-shrink-0">
-                                            {player.name.charAt(0)}
-                                          </div>
-                                        )}
-                                        <div className="text-xs flex-1 min-w-0">
-                                          <div className="text-white/90 font-medium">{player.name}</div>
-                                          {player.role && (
-                                            <div className="text-white/50 text-[10px]">{player.role}</div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="min-h-[40px]"></div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {teamsSettings.layout === 'list' && (
-                      <div className="space-y-4">
-                        {teamsSettings.teams.map((team) => (
-                          <div
-                            key={team.id}
-                            className="rounded-xl border p-4 flex items-center gap-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg"
-                            style={{ 
-                              backgroundColor: teamsSettings.colors.cardBackground,
-                              borderColor: teamsSettings.colors.cardBorder,
-                            }}
-                          >
-                            {team.logoUrl ? (
-                              <img
-                                src={team.logoUrl}
-                                alt={team.name}
-                                className="w-16 h-16 object-contain flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 text-white/40">
-                                {team.name.charAt(0)}
-                              </div>
-                            )}
-                            <div className="flex-1">
-                              <HeadingText
-                                level="h3"
-                                className="mb-1"
-                                color={teamsSettings.colors.teamNameColor}
-                                style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
-                              >
-                                {team.name}
-                              </HeadingText>
-                              <div className="min-h-[40px] mb-3">
-                                {team.description ? (
-                                  <BodyText
-                                    variant="small"
-                                    className="opacity-80"
-                                    color={teamsSettings.colors.descriptionColor}
-                                    style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
-                                  >
-                                    {team.description}
-                                  </BodyText>
-                                ) : null}
-                              </div>
-                              <div className="w-full mt-auto pt-3 border-t border-white/10">
-                                {team.players && team.players.length > 0 ? (
-                                  <>
-                                    <p className="text-xs text-white/50 mb-2 uppercase tracking-wider">Spelers</p>
-                                    <div className="space-y-2">
-                                      {team.players.map((player) => (
-                                        <div
-                                          key={player.id}
-                                          className="flex items-center gap-2 px-2 py-1 rounded bg-white/5 border border-white/10"
-                                        >
-                                          {player.avatarUrl ? (
-                                            <img
-                                              src={player.avatarUrl}
-                                              alt={player.name}
-                                              className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-                                            />
-                                          ) : (
-                                            <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 flex-shrink-0">
-                                              {player.name.charAt(0)}
-                                            </div>
-                                          )}
-                                          <div className="text-xs flex-1 min-w-0">
-                                            <div className="text-white/90 font-medium">{player.name}</div>
-                                            {player.role && (
-                                              <div className="text-white/50 text-[10px]">{player.role}</div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="min-h-[20px]"></div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {teamsSettings.layout === 'cards' && (
-                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {teamsSettings.teams.map((team) => (
-                          <div
-                            key={team.id}
-                            className="rounded-xl border p-6 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-lg h-full"
-                            style={{ 
-                              backgroundColor: teamsSettings.colors.cardBackground,
-                              borderColor: teamsSettings.colors.cardBorder,
-                            }}
-                          >
-                            <div className="flex items-center gap-4 mb-4">
-                              {team.logoUrl ? (
-                                <img
-                                  src={team.logoUrl}
-                                  alt={team.name}
-                                  className="w-16 h-16 object-contain flex-shrink-0"
-                                />
-                              ) : (
-                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0 text-white/40">
-                                  {team.name.charAt(0)}
-                                </div>
-                              )}
-                              <HeadingText
-                                level="h3"
-                                color={teamsSettings.colors.teamNameColor}
-                                style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
-                              >
-                                {team.name}
-                              </HeadingText>
-                            </div>
-                            <div className="min-h-[40px] mb-3">
-                              {team.description ? (
-                                <BodyText
-                                  variant="small"
-                                  className="opacity-80"
-                                  color={teamsSettings.colors.descriptionColor}
-                                  style={{ fontSize: `${teamsSettings.fontSizes.description}px` }}
-                                >
-                                  {team.description}
-                                </BodyText>
-                              ) : null}
-                            </div>
-                            <div className="w-full mt-auto pt-3 border-t border-white/10">
-                              {team.players && team.players.length > 0 ? (
-                                <>
-                                  <p className="text-xs text-white/50 mb-2 uppercase tracking-wider">Spelers</p>
-                                  <div className="space-y-2">
-                                    {team.players.map((player) => (
-                                      <div
-                                        key={player.id}
-                                        className="flex items-center gap-2 px-2 py-1 rounded bg-white/5 border border-white/10"
-                                      >
-                                        {player.avatarUrl ? (
-                                          <img
-                                            src={player.avatarUrl}
-                                            alt={player.name}
-                                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-                                          />
-                                        ) : (
-                                          <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] text-white/60 flex-shrink-0">
-                                            {player.name.charAt(0)}
-                                          </div>
-                                        )}
-                                        <div className="text-xs flex-1 min-w-0">
-                                          <div className="text-white/90 font-medium">{player.name}</div>
-                                          {player.role && (
-                                            <div className="text-white/50 text-[10px]">{player.role}</div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="min-h-[20px]"></div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-
               {componentState.socials && (
                 <section 
                   id="socials-section"
@@ -9194,11 +7325,13 @@ export default function CustomTemplatePage() {
 
               {/* Footer */}
               {componentState.footer && (
-                <div
+                <footer 
                   data-component-id="footer"
                   onClick={(e) => handleComponentClick('footer', e)}
-                  className="cursor-pointer relative group"
+                  className="py-12 px-6 border-t cursor-pointer relative group"
                   style={{ 
+                    backgroundColor: footerSettings.backgroundColor,
+                    borderColor: colorPalette.border,
                     order: componentOrderMap['footer'] ?? 13
                   }}
                 >
@@ -9206,20 +7339,114 @@ export default function CustomTemplatePage() {
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
                     style={{ borderColor: colorPalette.primary }}
                   />
-                  <FooterDisplay config={(() => {
-                    const mergedConfig = { ...defaultConfig, ...convertFooterSettingsToConfig };
-                    // Ensure navigationLinks are properly merged with subItems
-                    if (convertFooterSettingsToConfig.navigationLinks) {
-                      mergedConfig.navigationLinks = {
-                        home: convertFooterSettingsToConfig.navigationLinks.home || defaultConfig.navigationLinks.home,
-                        info: convertFooterSettingsToConfig.navigationLinks.info || defaultConfig.navigationLinks.info,
-                        bracket: convertFooterSettingsToConfig.navigationLinks.bracket || defaultConfig.navigationLinks.bracket,
-                        location: convertFooterSettingsToConfig.navigationLinks.location || defaultConfig.navigationLinks.location,
-                      };
-                    }
-                    return mergedConfig;
-                  })()} />
-                </div>
+                  <div className="container mx-auto max-w-6xl px-4 sm:px-6">
+                    <div
+                      className="grid mb-8"
+                      style={{ 
+                        gridTemplateColumns:
+                          footerSettings.layout === 'centered'
+                            ? '1fr'
+                            : footerSettings.layout === 'two-columns'
+                            ? 'repeat(2, minmax(0, 1fr))'
+                            : 'repeat(3, minmax(0, 1fr))',
+                        gap: footerSettings.spacing,
+                      }}
+                    >
+                      <div>
+                        <DroppableImageArea
+                          id="preview-footer-logo"
+                          value={footerSettings.logoUrl}
+                          onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+                          className="mb-4"
+                          minHeight="40px"
+                        >
+                          {footerSettings.logoUrl ? (
+                            <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 object-contain" />
+                          ) : (
+                            <HeadingText level="h1" color={footerSettings.textColor} className="text-lg sm:text-xl font-bold">
+                              Winter Championship 2026
+                            </HeadingText>
+                          )}
+                        </DroppableImageArea>
+                        <BodyText className="opacity-80" variant="small" color={footerSettings.textColor}>
+                          {footerSettings.description}
+                        </BodyText>
+                      </div>
+                      <div>
+                        <HeadingText
+                          level="h2"
+                          className="mb-4 uppercase tracking-wider"
+                          color={footerSettings.textColor}
+                        >
+                          Toernooi
+                        </HeadingText>
+                        <ul className="space-y-2">
+                          {footerSettings.links.tournament.map((link) => (
+                            <li key={link.id}>
+                              <a 
+                                href={link.link}
+                                className="text-sm opacity-80 hover:opacity-100 transition"
+                                style={{ color: footerSettings.textColor }}
+                              >
+                                {link.label}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <HeadingText
+                          level="h2"
+                          className="mb-4 uppercase tracking-wider"
+                          color={footerSettings.textColor}
+                        >
+                          Informatie
+                        </HeadingText>
+                        <ul className="space-y-2">
+                          {footerSettings.links.info.map((link) => (
+                            <li key={link.id}>
+                              <a 
+                                href={link.link}
+                                className="text-sm opacity-80 hover:opacity-100 transition"
+                                style={{ color: footerSettings.textColor }}
+                              >
+                                {link.label}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {footerSettings.showSocials && (
+                        <div>
+                          <HeadingText
+                            level="h2"
+                            className="mb-4 uppercase tracking-wider"
+                            color={footerSettings.textColor}
+                          >
+                            Social Media
+                          </HeadingText>
+                          <ul className="space-y-2">
+                            {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
+                              <li key={icon.id}>
+                                <a href={icon.link} className="text-sm opacity-80 hover:opacity-100 transition" style={{ color: footerSettings.textColor }}>
+                                  {icon.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    <BodyText
+                      className="pt-8 text-center opacity-60"
+                      variant="small"
+                      color={footerSettings.textColor}
+                      style={{ borderTop: footerSettings.divider ? `1px solid ${colorPalette.border}` : 'none' }}
+                    >
+                      {footerSettings.copyright}
+                    </BodyText>
+                  </div>
+                </footer>
               )}
             </div>
           </div>
@@ -9325,4 +7552,3 @@ export default function CustomTemplatePage() {
     </DndContext>
   );
 }
-
