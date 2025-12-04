@@ -1537,6 +1537,169 @@ const getDefaultFooterSettings = () => ({
   showSocials: true,
 });
 
+const getDefaultRegistrationSettings = () => ({
+  title: 'Doe mee aan Winter Championship',
+  subtitle: 'Inschrijven',
+  description: 'Registratie sluit op 10 januari 2026. Wees er snel bij!',
+  buttonText: 'Schrijf team in',
+  formFields: {
+    teamName: { enabled: true, label: 'Teamnaam', placeholder: 'Voer je teamnaam in' },
+    teamTag: { enabled: true, label: 'Team Tag', placeholder: 'bijv. WC26' },
+    captainName: { enabled: true, label: 'Captain Naam', placeholder: 'Volledige naam' },
+    captainEmail: { enabled: true, label: 'Captain Email', placeholder: 'email@voorbeeld.nl' },
+  },
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    description: 14,
+    button: 16,
+    label: 14,
+  },
+  colors: {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    descriptionColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    inputBackground: '#05060D',
+    inputBorder: '#755DFF',
+    inputText: '#FFFFFF',
+    labelColor: '#FFFFFF',
+    buttonBackground: '#755DFF',
+    buttonText: '#FFFFFF',
+    buttonHover: '#8B6FFF',
+  },
+});
+
+const resetRegistrationFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+    description: 14,
+    button: 16,
+    label: 14,
+  };
+};
+
+const resetRegistrationColors = () => {
+  return {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    descriptionColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    inputBackground: '#05060D',
+    inputBorder: '#755DFF',
+    inputText: '#FFFFFF',
+    labelColor: '#FFFFFF',
+    buttonBackground: '#755DFF',
+    buttonText: '#FFFFFF',
+    buttonHover: '#8B6FFF',
+  };
+};
+
+const getDefaultTeamsSettings = () => ({
+  title: 'Geregistreerde Teams',
+  subtitle: 'Deelnemers',
+  teams: [
+    { 
+      id: createId(), 
+      initials: 'AR', 
+      name: 'Arctic Wolves', 
+      tag: 'ARCT', 
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Player1', avatarUrl: '' },
+        { id: createId(), name: 'Player2', avatarUrl: '' },
+        { id: createId(), name: 'Player3', avatarUrl: '' }
+      ] 
+    },
+    { 
+      id: createId(), 
+      initials: 'TH', 
+      name: 'Thunder Strike', 
+      tag: 'THND', 
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Player1', avatarUrl: '' },
+        { id: createId(), name: 'Player2', avatarUrl: '' },
+        { id: createId(), name: 'Player3', avatarUrl: '' }
+      ] 
+    },
+    { 
+      id: createId(), 
+      initials: 'IC', 
+      name: 'Ice Phoenix', 
+      tag: 'ICEP', 
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Player 1', avatarUrl: '' },
+        { id: createId(), name: 'Player 2', avatarUrl: '' },
+        { id: createId(), name: 'Player 3', avatarUrl: '' }
+      ] 
+    },
+    { 
+      id: createId(), 
+      initials: 'SN', 
+      name: 'Snow Leopards', 
+      tag: 'SNLP', 
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Player 1', avatarUrl: '' },
+        { id: createId(), name: 'Player 2', avatarUrl: '' },
+        { id: createId(), name: 'Player 3', avatarUrl: '' }
+      ] 
+    },
+  ],
+  columns: 4,
+  fontSizes: {
+    title: 36,
+    subtitle: 16,
+    teamName: 20,
+    teamTag: 14,
+    playerName: 14,
+  },
+  colors: {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    initialsBackground: '#755DFF',
+    initialsText: '#FFFFFF',
+    teamNameColor: '#FFFFFF',
+    teamTagColor: '#FFFFFF',
+    playerNameColor: '#FFFFFF',
+  },
+});
+
+const resetTeamsFontSizes = () => {
+  return {
+    title: 36,
+    subtitle: 16,
+    teamName: 20,
+    teamTag: 14,
+    playerName: 14,
+  };
+};
+
+const resetTeamsColors = () => {
+  return {
+    backgroundColor: '#05060D',
+    titleColor: '#FFFFFF',
+    subtitleColor: '#FFFFFF',
+    cardBackground: '#11132A',
+    cardBorder: '#755DFF',
+    initialsBackground: '#755DFF',
+    initialsText: '#FFFFFF',
+    teamNameColor: '#FFFFFF',
+    teamTagColor: '#FFFFFF',
+    playerNameColor: '#FFFFFF',
+  };
+};
+
 const getDefaultUploads = (): UploadItem[] =>
   DEFAULT_UPLOADS.map((upload) => ({ ...upload, usedIn: [...upload.usedIn] }));
 
@@ -1591,6 +1754,8 @@ export default function CustomTemplatePage() {
   const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
   const sponsorLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const teamLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const playerAvatarInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
   const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
@@ -1678,6 +1843,19 @@ export default function CustomTemplatePage() {
     return initial;
   });
   const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
+  const [expandedTeamItems, setExpandedTeamItems] = useState<Record<string, boolean>>({});
+  const [expandedRegistrationSections, setExpandedRegistrationSections] = useState<Record<string, boolean>>({
+    content: true,
+    formFields: true,
+    fontSizes: false,
+    colors: false,
+  });
+  const [expandedTeamsComponentSections, setExpandedTeamsComponentSections] = useState<Record<string, boolean>>({
+    content: true,
+    teams: true,
+    fontSizes: false,
+    colors: false,
+  });
 
   const [twitchSettings, setTwitchSettings] = useState(() => getDefaultTwitchSettings());
 
@@ -1686,6 +1864,10 @@ export default function CustomTemplatePage() {
   const [socialSettings, setSocialSettings] = useState(() => getDefaultSocialSettings());
 
   const [footerSettings, setFooterSettings] = useState(() => getDefaultFooterSettings());
+
+  const [registrationSettings, setRegistrationSettings] = useState(() => getDefaultRegistrationSettings());
+
+  const [teamsSettings, setTeamsSettings] = useState(() => getDefaultTeamsSettings());
   const loadedFontsRef = useRef<Record<string, boolean>>({});
 
   const ensureFontLoaded = useCallback((fontName: string) => {
@@ -2373,6 +2555,101 @@ export default function CustomTemplatePage() {
     }));
   };
 
+  const updateTeam = (id: string, field: 'initials' | 'name' | 'tag' | 'logoUrl', value: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) => (team.id === id ? { ...team, [field]: value } : team)),
+    }));
+  };
+
+  const addTeam = () => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: [
+        ...prev.teams,
+        { 
+          id: createId(), 
+          initials: 'TM', 
+          name: 'Nieuw Team', 
+          tag: 'NEW', 
+          logoUrl: '',
+          players: [
+            { id: createId(), name: 'Player 1', avatarUrl: '' },
+            { id: createId(), name: 'Player 2', avatarUrl: '' },
+            { id: createId(), name: 'Player 3', avatarUrl: '' }
+          ] 
+        },
+      ],
+    }));
+  };
+
+  const removeTeam = (id: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.filter((team) => team.id !== id),
+    }));
+  };
+
+  const moveTeam = (from: number, to: number) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: moveItem(prev.teams, from, to),
+    }));
+  };
+
+  const updateTeamPlayer = (teamId: string, playerId: string, field: 'name' | 'avatarUrl', value: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              players: team.players.map((player) => (player.id === playerId ? { ...player, [field]: value } : player)),
+            }
+          : team
+      ),
+    }));
+  };
+
+  const addTeamPlayer = (teamId: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId 
+          ? { 
+              ...team, 
+              players: [...team.players, { id: createId(), name: 'Nieuwe speler', avatarUrl: '' }] 
+            } 
+          : team
+      ),
+    }));
+  };
+
+  const removeTeamPlayer = (teamId: string, playerId: string) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId 
+          ? { ...team, players: team.players.filter((player) => player.id !== playerId) } 
+          : team
+      ),
+    }));
+  };
+
+  const moveTeamPlayer = (teamId: string, from: number, to: number) => {
+    setTeamsSettings((prev) => ({
+      ...prev,
+      teams: prev.teams.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              players: moveItem(team.players, from, to),
+            }
+          : team
+      ),
+    }));
+  };
+
   const updateBracketMatch = (roundId: string, matchId: string, field: string, value: string) => {
     setBracketSettings((prev) => ({
       ...prev,
@@ -2627,7 +2904,7 @@ export default function CustomTemplatePage() {
   );
 
   const renderSettingsPanel = () => {
-    const panelClass = 'flex-1 px-6 py-6 space-y-3';
+    const panelClass = 'flex-1 px-6 py-6 space-y-3 overflow-x-hidden';
     switch (activeComponent) {
       case 'navigation':
         return (
@@ -2953,7 +3230,7 @@ export default function CustomTemplatePage() {
               'Templates',
               expandedHeroSections.template,
               () => setExpandedHeroSections((prev) => ({ ...prev, template: !prev.template })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {HERO_TEMPLATES.map((template) => {
                   const isSelected = heroSettings.template === template.id;
                   return (
@@ -3151,7 +3428,7 @@ export default function CustomTemplatePage() {
               'Layouts',
               expandedAboutSections.layout,
               () => setExpandedAboutSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {ABOUT_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = aboutSettings.layout === layout.id;
                   return (
@@ -4358,7 +4635,7 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedSponsorSections.layout,
               () => setExpandedSponsorSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {SPONSOR_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = sponsorSettings.layout === layout.id;
                   return (
@@ -4816,7 +5093,7 @@ export default function CustomTemplatePage() {
               'Layout',
               expandedFAQSections.layout,
               () => setExpandedFAQSections((prev) => ({ ...prev, layout: !prev.layout })),
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {FAQ_LAYOUT_OPTIONS.map((layout) => {
                   const isSelected = faqSettings.layout === layout.id;
                   return (
@@ -5031,6 +5308,879 @@ export default function CustomTemplatePage() {
                 </div>
                 <button
                   onClick={() => setFaqSettings((prev) => ({ ...prev, colors: resetFAQColors() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      case 'registration':
+        return (
+          <div className={panelClass}>
+            {renderCollapsibleSection(
+              'registration-content',
+              'Content',
+              expandedRegistrationSections.content,
+              () => setExpandedRegistrationSections((prev) => ({ ...prev, content: !prev.content })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      value={registrationSettings.title}
+                      onChange={(e) => setRegistrationSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Ondertitel
+                    <input
+                      value={registrationSettings.subtitle}
+                      onChange={(e) => setRegistrationSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Ondertitel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Beschrijving
+                    <textarea
+                      value={registrationSettings.description}
+                      onChange={(e) => setRegistrationSettings((prev) => ({ ...prev, description: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Beschrijving"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Button tekst
+                    <input
+                      value={registrationSettings.buttonText}
+                      onChange={(e) => setRegistrationSettings((prev) => ({ ...prev, buttonText: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Button tekst"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'registration-formFields',
+              'Formulier velden',
+              expandedRegistrationSections.formFields,
+              () => setExpandedRegistrationSections((prev) => ({ ...prev, formFields: !prev.formFields })),
+              <div className="space-y-3">
+                {Object.entries(registrationSettings.formFields).map(([key, field]) => (
+                  <div key={key} className="rounded-2xl border border-white/10 bg-[#0E1020] p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-white">{field.label}</h4>
+                      <label className="flex items-center gap-2 text-xs text-white/70">
+                        <input
+                          type="checkbox"
+                          checked={field.enabled}
+                          onChange={(e) =>
+                            setRegistrationSettings((prev) => ({
+                              ...prev,
+                              formFields: { ...prev.formFields, [key]: { ...field, enabled: e.target.checked } },
+                            }))
+                          }
+                        />
+                        Ingeschakeld
+                      </label>
+                    </div>
+                    {field.enabled && (
+                      <div className="space-y-2">
+                        <label className="text-xs text-white/60 flex flex-col gap-1">
+                          Label
+                          <input
+                            value={field.label}
+                            onChange={(e) =>
+                              setRegistrationSettings((prev) => ({
+                                ...prev,
+                                formFields: { ...prev.formFields, [key]: { ...field, label: e.target.value } },
+                              }))
+                            }
+                            className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                            placeholder="Label"
+                          />
+                        </label>
+                        <label className="text-xs text-white/60 flex flex-col gap-1">
+                          Placeholder
+                          <input
+                            value={field.placeholder}
+                            onChange={(e) =>
+                              setRegistrationSettings((prev) => ({
+                                ...prev,
+                                formFields: { ...prev.formFields, [key]: { ...field, placeholder: e.target.value } },
+                              }))
+                            }
+                            className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                            placeholder="Placeholder"
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'registration-fontSizes',
+              'Tekst grootte',
+              expandedRegistrationSections.fontSizes,
+              () => setExpandedRegistrationSections((prev) => ({ ...prev, fontSizes: !prev.fontSizes })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Titel (H1) ({registrationSettings.fontSizes.title}px)
+                    <input
+                      type="range"
+                      min={20}
+                      max={60}
+                      value={registrationSettings.fontSizes.title}
+                      onChange={(e) =>
+                        setRegistrationSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, title: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Ondertitel (H2) ({registrationSettings.fontSizes.subtitle}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={24}
+                      value={registrationSettings.fontSizes.subtitle}
+                      onChange={(e) =>
+                        setRegistrationSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Beschrijving ({registrationSettings.fontSizes.description}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={20}
+                      value={registrationSettings.fontSizes.description}
+                      onChange={(e) =>
+                        setRegistrationSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, description: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Button ({registrationSettings.fontSizes.button}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={24}
+                      value={registrationSettings.fontSizes.button}
+                      onChange={(e) =>
+                        setRegistrationSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, button: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Label ({registrationSettings.fontSizes.label}px)
+                    <input
+                      type="range"
+                      min={10}
+                      max={18}
+                      value={registrationSettings.fontSizes.label}
+                      onChange={(e) =>
+                        setRegistrationSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, label: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+                <button
+                  onClick={() => setRegistrationSettings((prev) => ({ ...prev, fontSizes: resetRegistrationFontSizes() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'registration-colors',
+              'Kleuren',
+              expandedRegistrationSections.colors,
+              () => setExpandedRegistrationSections((prev) => ({ ...prev, colors: !prev.colors })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={registrationSettings.colors.backgroundColor}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, backgroundColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={registrationSettings.colors.titleColor}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, titleColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={registrationSettings.colors.subtitleColor}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, subtitleColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Beschrijving kleur"
+                    value={registrationSettings.colors.descriptionColor}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, descriptionColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={registrationSettings.colors.cardBackground}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, cardBackground: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={registrationSettings.colors.cardBorder}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, cardBorder: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Input achtergrond"
+                    value={registrationSettings.colors.inputBackground}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, inputBackground: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Input border"
+                    value={registrationSettings.colors.inputBorder}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, inputBorder: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Input tekst"
+                    value={registrationSettings.colors.inputText}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, inputText: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Label kleur"
+                    value={registrationSettings.colors.labelColor}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, labelColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Button achtergrond"
+                    value={registrationSettings.colors.buttonBackground}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, buttonBackground: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Button tekst"
+                    value={registrationSettings.colors.buttonText}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, buttonText: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Button hover"
+                    value={registrationSettings.colors.buttonHover}
+                    onChange={(value) =>
+                      setRegistrationSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, buttonHover: value },
+                      }))
+                    }
+                  />
+                </div>
+                <button
+                  onClick={() => setRegistrationSettings((prev) => ({ ...prev, colors: resetRegistrationColors() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      case 'teams':
+        return (
+          <div className={panelClass}>
+            {renderCollapsibleSection(
+              'teams-content',
+              'Content',
+              expandedTeamsComponentSections.content,
+              () => setExpandedTeamsComponentSections((prev) => ({ ...prev, content: !prev.content })),
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Titel
+                    <input
+                      value={teamsSettings.title}
+                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Titel"
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-1">
+                    Ondertitel
+                    <input
+                      value={teamsSettings.subtitle}
+                      onChange={(e) => setTeamsSettings((prev) => ({ ...prev, subtitle: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                      placeholder="Ondertitel"
+                    />
+                  </label>
+                </div>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Kolommen ({teamsSettings.columns})
+                  <input
+                    type="range"
+                    min={1}
+                    max={6}
+                    value={teamsSettings.columns}
+                    onChange={(e) => setTeamsSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))}
+                  />
+                </label>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'teams-teams',
+              'Teams',
+              expandedTeamsComponentSections.teams,
+              () => setExpandedTeamsComponentSections((prev) => ({ ...prev, teams: !prev.teams })),
+              <div className="space-y-2">
+                {teamsSettings.teams.map((team, index) => {
+                  const isTeamExpanded = expandedTeamItems[team.id] ?? false;
+                  return (
+                    <div key={team.id} className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
+                      <button
+                        onClick={() => setExpandedTeamItems((prev) => ({ ...prev, [team.id]: !isTeamExpanded }))}
+                        className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <svg
+                            className={`w-4 h-4 text-white/60 transition-transform ${isTeamExpanded ? 'rotate-90' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                          <div className="flex items-center gap-2">
+                            {team.logoUrl ? (
+                              <img src={team.logoUrl} alt={team.name} className="w-8 h-8 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold" style={{ backgroundColor: teamsSettings.colors.initialsBackground, color: teamsSettings.colors.initialsText }}>
+                                {team.initials}
+                              </div>
+                            )}
+                            <span className="text-sm font-semibold text-white">{team.name || `Team ${index + 1}`}</span>
+                            <span className="text-xs text-white/40">({team.players.length} spelers)</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={index === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveTeam(index, index - 1);
+                            }}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            disabled={index === teamsSettings.teams.length - 1}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveTeam(index, index + 1);
+                            }}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTeam(team.id);
+                            }}
+                            className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </button>
+                      {isTeamExpanded && (
+                        <div className="px-3 pb-3 space-y-3 border-t border-white/10 pt-3">
+                          <DroppableImageField
+                            id={`team-logo-${team.id}`}
+                            value={team.logoUrl}
+                            onChange={(url) => updateTeam(team.id, 'logoUrl', url)}
+                            label="Team Logo"
+                          >
+                            <div className="rounded-xl border border-white/10 bg-[#05060F] p-3 space-y-2">
+                              <div className="flex items-center gap-3">
+                                <div className="w-16 h-16 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+                                  {team.logoUrl ? (
+                                    <img src={team.logoUrl} alt="Team logo" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <Icon name="image" className="w-6 h-6 text-white/30" />
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <input
+                                    type="text"
+                                    value={team.logoUrl}
+                                    onChange={(e) => updateTeam(team.id, 'logoUrl', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                                    placeholder="https://images.rosh.gg/team-logo.png"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => teamLogoInputRefs.current[team.id]?.click()}
+                                      className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                                    >
+                                      Upload bestand
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setActiveTab('uploads')}
+                                      className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                                    >
+                                      Media library
+                                    </button>
+                                    {team.logoUrl && (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateTeam(team.id, 'logoUrl', '')}
+                                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition"
+                                      >
+                                        Verwijder
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <input
+                                ref={(el) => { teamLogoInputRefs.current[team.id] = el; }}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageUpload(e, (url) => updateTeam(team.id, 'logoUrl', url))}
+                              />
+                            </div>
+                          </DroppableImageField>
+                          
+                          <div className="grid grid-cols-2 gap-2">
+                            <label className="text-xs text-white/60 flex flex-col gap-1">
+                              Initials
+                              <input
+                                value={team.initials}
+                                onChange={(e) => updateTeam(team.id, 'initials', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                                placeholder="AR"
+                                maxLength={4}
+                              />
+                            </label>
+                            <label className="text-xs text-white/60 flex flex-col gap-1">
+                              Tag
+                              <input
+                                value={team.tag}
+                                onChange={(e) => updateTeam(team.id, 'tag', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                                placeholder="ARCT"
+                                maxLength={6}
+                              />
+                            </label>
+                          </div>
+                          
+                          <label className="text-xs text-white/60 flex flex-col gap-1">
+                            Team naam
+                            <input
+                              value={team.name}
+                              onChange={(e) => updateTeam(team.id, 'name', e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                              placeholder="Team naam"
+                            />
+                          </label>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-semibold text-white/80">Spelers</h4>
+                              <button
+                                onClick={() => addTeamPlayer(team.id)}
+                                className="text-xs px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
+                              >
+                                + Speler
+                              </button>
+                            </div>
+                            <div className="space-y-2">
+                              {team.players.map((player, playerIndex) => {
+                                return (
+                                  <div key={player.id} className="rounded-xl border border-white/10 bg-[#05060F] p-2 space-y-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <DroppableImageField
+                                        id={`player-avatar-${player.id}`}
+                                        value={player.avatarUrl}
+                                        onChange={(url) => updateTeamPlayer(team.id, player.id, 'avatarUrl', url)}
+                                        label=""
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() => playerAvatarInputRefs.current[player.id]?.click()}
+                                          className="w-10 h-10 flex-shrink-0 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-white/30 transition"
+                                        >
+                                          {player.avatarUrl ? (
+                                            <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <div className="w-5 h-5 text-white/30 flex items-center justify-center text-xs">👤</div>
+                                          )}
+                                        </button>
+                                        <input
+                                          ref={(el) => { playerAvatarInputRefs.current[player.id] = el; }}
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => handleImageUpload(e, (url) => updateTeamPlayer(team.id, player.id, 'avatarUrl', url))}
+                                        />
+                                      </DroppableImageField>
+                                      <input
+                                        value={player.name}
+                                        onChange={(e) => updateTeamPlayer(team.id, player.id, 'name', e.target.value)}
+                                        className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                                        placeholder="Speler naam"
+                                      />
+                                      <div className="flex gap-1 flex-shrink-0">
+                                        <button
+                                          disabled={playerIndex === 0}
+                                          onClick={() => moveTeamPlayer(team.id, playerIndex, playerIndex - 1)}
+                                          className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                                        >
+                                          ↑
+                                        </button>
+                                        <button
+                                          disabled={playerIndex === team.players.length - 1}
+                                          onClick={() => moveTeamPlayer(team.id, playerIndex, playerIndex + 1)}
+                                          className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                                        >
+                                          ↓
+                                        </button>
+                                        <button
+                                          onClick={() => removeTeamPlayer(team.id, player.id)}
+                                          className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    </div>
+                                    {player.avatarUrl && (
+                                      <div className="flex gap-2 min-w-0">
+                                        <input
+                                          type="text"
+                                          value={player.avatarUrl}
+                                          onChange={(e) => updateTeamPlayer(team.id, player.id, 'avatarUrl', e.target.value)}
+                                          className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                          placeholder="Avatar URL"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => playerAvatarInputRefs.current[player.id]?.click()}
+                                          className="px-2 py-1 flex-shrink-0 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                                        >
+                                          Upload
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <button
+                  onClick={addTeam}
+                  className="w-full border border-dashed border-white/20 rounded-lg py-2 text-sm text-white/70 hover:text-white"
+                >
+                  + Voeg team toe
+                </button>
+              </div>,
+              `${teamsSettings.teams.length} teams`
+            )}
+
+            {renderCollapsibleSection(
+              'teams-fontSizes',
+              'Tekst grootte',
+              expandedTeamsComponentSections.fontSizes,
+              () => setExpandedTeamsComponentSections((prev) => ({ ...prev, fontSizes: !prev.fontSizes })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Titel (H1) ({teamsSettings.fontSizes.title}px)
+                    <input
+                      type="range"
+                      min={20}
+                      max={60}
+                      value={teamsSettings.fontSizes.title}
+                      onChange={(e) =>
+                        setTeamsSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, title: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Ondertitel (H2) ({teamsSettings.fontSizes.subtitle}px)
+                    <input
+                      type="range"
+                      min={12}
+                      max={24}
+                      value={teamsSettings.fontSizes.subtitle}
+                      onChange={(e) =>
+                        setTeamsSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, subtitle: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Team naam ({teamsSettings.fontSizes.teamName}px)
+                    <input
+                      type="range"
+                      min={14}
+                      max={32}
+                      value={teamsSettings.fontSizes.teamName}
+                      onChange={(e) =>
+                        setTeamsSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, teamName: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Team tag ({teamsSettings.fontSizes.teamTag}px)
+                    <input
+                      type="range"
+                      min={10}
+                      max={20}
+                      value={teamsSettings.fontSizes.teamTag}
+                      onChange={(e) =>
+                        setTeamsSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, teamTag: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                  <label className="text-xs text-white/60 flex flex-col gap-2">
+                    Speler naam ({teamsSettings.fontSizes.playerName}px)
+                    <input
+                      type="range"
+                      min={10}
+                      max={18}
+                      value={teamsSettings.fontSizes.playerName}
+                      onChange={(e) =>
+                        setTeamsSettings((prev) => ({
+                          ...prev,
+                          fontSizes: { ...prev.fontSizes, playerName: Number(e.target.value) },
+                        }))
+                      }
+                    />
+                  </label>
+                </div>
+                <button
+                  onClick={() => setTeamsSettings((prev) => ({ ...prev, fontSizes: resetTeamsFontSizes() }))}
+                  className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
+                >
+                  Standaard
+                </button>
+              </div>
+            )}
+
+            {renderCollapsibleSection(
+              'teams-colors',
+              'Kleuren',
+              expandedTeamsComponentSections.colors,
+              () => setExpandedTeamsComponentSections((prev) => ({ ...prev, colors: !prev.colors })),
+              <div className="space-y-3">
+                <div className="space-y-3">
+                  <ColorInputField
+                    label="Achtergrondkleur"
+                    value={teamsSettings.colors.backgroundColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, backgroundColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Titel kleur"
+                    value={teamsSettings.colors.titleColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, titleColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Ondertitel kleur"
+                    value={teamsSettings.colors.subtitleColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, subtitleColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Card achtergrond"
+                    value={teamsSettings.colors.cardBackground}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, cardBackground: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Card border"
+                    value={teamsSettings.colors.cardBorder}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, cardBorder: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Initials achtergrond"
+                    value={teamsSettings.colors.initialsBackground}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, initialsBackground: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Initials tekst"
+                    value={teamsSettings.colors.initialsText}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, initialsText: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Team naam kleur"
+                    value={teamsSettings.colors.teamNameColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, teamNameColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Team tag kleur"
+                    value={teamsSettings.colors.teamTagColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, teamTagColor: value },
+                      }))
+                    }
+                  />
+                  <ColorInputField
+                    label="Speler naam kleur"
+                    value={teamsSettings.colors.playerNameColor}
+                    onChange={(value) =>
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        colors: { ...prev.colors, playerNameColor: value },
+                      }))
+                    }
+                  />
+                </div>
+                <button
+                  onClick={() => setTeamsSettings((prev) => ({ ...prev, colors: resetTeamsColors() }))}
                   className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
                 >
                   Standaard
@@ -6481,7 +7631,7 @@ export default function CustomTemplatePage() {
                   data-component-id="teams"
                   onClick={(e) => handleComponentClick('teams', e)}
                   className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['teams'] ?? 6 }}
+                  style={{ backgroundColor: teamsSettings.colors.backgroundColor, order: componentOrderMap['teams'] ?? 6 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
@@ -6491,49 +7641,97 @@ export default function CustomTemplatePage() {
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
-                      color={colorPalette.mutedText}
+                      color={teamsSettings.colors.subtitleColor}
+                      style={{ fontSize: `${teamsSettings.fontSizes.subtitle}px` }}
                     >
-                      Deelnemers
+                      {teamsSettings.subtitle}
                     </HeadingText>
-                    <HeadingText level="h1" className="text-center mb-12">
-                      Geregistreerde Teams
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-12"
+                      color={teamsSettings.colors.titleColor}
+                      style={{ fontSize: `${teamsSettings.fontSizes.title}px` }}
+                    >
+                      {teamsSettings.title}
                     </HeadingText>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {[
-                        { initials: 'AR', name: 'Arctic Wolves', tag: 'ARCT', players: ['Player1', 'Player2', 'Player3'] },
-                        { initials: 'TH', name: 'Thunder Strike', tag: 'THND', players: ['Player1', 'Player2', 'Player3'] },
-                        { initials: 'IC', name: 'Ice Phoenix', tag: 'ICEP', players: ['Player 1', 'Player 2', 'Player 3'] },
-                        { initials: 'SN', name: 'Snow Leopards', tag: 'SNLP', players: ['Player 1', 'Player 2', 'Player 3'] }
-                      ].map((team, idx) => (
+                    <div 
+                      className="grid gap-6"
+                      style={{ 
+                        gridTemplateColumns: `repeat(${Math.min(teamsSettings.columns, 6)}, 1fr)`,
+                        display: 'grid'
+                      }}
+                    >
+                      {teamsSettings.teams.map((team) => (
                         <div 
-                          key={idx}
-                          className="p-6 rounded-xl border"
+                          key={team.id}
+                          className="p-6 rounded-xl border flex flex-col h-full"
                           style={{ 
-                            backgroundColor: colorPalette.cardBackground,
-                            borderColor: colorPalette.border
+                            backgroundColor: teamsSettings.colors.cardBackground,
+                            borderColor: teamsSettings.colors.cardBorder
                           }}
                         >
-                          <div 
-                            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold mb-4 mx-auto"
-                            style={{ backgroundColor: colorPalette.primary, color: 'white' }}
-                          >
-                            {team.initials}
-                          </div>
-                          <HeadingText level="h2" className="text-center mb-2">
-                            {team.name}
-                          </HeadingText>
-                          <BodyText className="text-center opacity-60 mb-4" variant="small">
-                            {team.tag}
-                          </BodyText>
-                          <div className="space-y-1">
-                            {team.players.map((player, pIdx) => (
-                              <BodyText
-                                key={pIdx}
-                                className="text-center opacity-80"
-                                variant="small"
+                          <div className="flex justify-center mb-4">
+                            {team.logoUrl ? (
+                              <img 
+                                src={team.logoUrl} 
+                                alt={team.name}
+                                className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-xl object-cover"
+                              />
+                            ) : (
+                              <div 
+                                className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold"
+                                style={{ 
+                                  backgroundColor: teamsSettings.colors.initialsBackground, 
+                                  color: teamsSettings.colors.initialsText 
+                                }}
                               >
-                                {player}
-                              </BodyText>
+                                {team.initials}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-center mb-4 min-h-[60px] justify-center">
+                            <HeadingText 
+                              level="h2" 
+                              className="text-center mb-2"
+                              color={teamsSettings.colors.teamNameColor}
+                              style={{ fontSize: `${teamsSettings.fontSizes.teamName}px` }}
+                            >
+                              {team.name}
+                            </HeadingText>
+                            <BodyText 
+                              className="text-center opacity-60" 
+                              variant="small"
+                              color={teamsSettings.colors.teamTagColor}
+                              style={{ fontSize: `${teamsSettings.fontSizes.teamTag}px` }}
+                            >
+                              {team.tag}
+                            </BodyText>
+                          </div>
+                          <div className="space-y-2 mt-auto">
+                            {team.players.map((player) => (
+                              <div key={player.id} className="flex items-center gap-2 justify-center">
+                                <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                                  {player.avatarUrl ? (
+                                    <img 
+                                      src={player.avatarUrl} 
+                                      alt={player.name}
+                                      className="w-6 h-6 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs">
+                                      {player.name.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
+                                </div>
+                                <BodyText
+                                  className="opacity-80 flex-1 text-center"
+                                  variant="small"
+                                  color={teamsSettings.colors.playerNameColor}
+                                  style={{ fontSize: `${teamsSettings.fontSizes.playerName}px` }}
+                                >
+                                  {player.name}
+                                </BodyText>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -6710,7 +7908,7 @@ export default function CustomTemplatePage() {
                   data-component-id="registration"
                   onClick={(e) => handleComponentClick('registration', e)}
                   className="py-12 px-4 sm:py-16 md:py-20 sm:px-6 cursor-pointer relative group"
-                  style={{ backgroundColor: colorPalette.pageBackground, order: componentOrderMap['registration'] ?? 8 }}
+                  style={{ backgroundColor: registrationSettings.colors.backgroundColor, order: componentOrderMap['registration'] ?? 8 }}
                 >
                   <div
                     className="absolute inset-0 border-2 opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none z-10"
@@ -6720,98 +7918,141 @@ export default function CustomTemplatePage() {
                     <HeadingText
                       level="h2"
                       className="text-center mb-4 uppercase tracking-widest opacity-70"
-                      color={colorPalette.mutedText}
+                      color={registrationSettings.colors.subtitleColor}
+                      style={{ fontSize: `${registrationSettings.fontSizes.subtitle}px` }}
                     >
-                      Inschrijven
+                      {registrationSettings.subtitle}
                     </HeadingText>
-                    <HeadingText level="h1" className="text-center mb-6">
-                      Doe mee aan Winter Championship
+                    <HeadingText 
+                      level="h1" 
+                      className="text-center mb-6"
+                      color={registrationSettings.colors.titleColor}
+                      style={{ fontSize: `${registrationSettings.fontSizes.title}px` }}
+                    >
+                      {registrationSettings.title}
                     </HeadingText>
-                    <BodyText className="text-center mb-8 opacity-90">
-                      Registratie sluit op 10 januari 2026. Wees er snel bij!
+                    <BodyText 
+                      className="text-center mb-8 opacity-90"
+                      color={registrationSettings.colors.descriptionColor}
+                      style={{ fontSize: `${registrationSettings.fontSizes.description}px` }}
+                    >
+                      {registrationSettings.description}
                     </BodyText>
                     <form 
                       className="space-y-6 p-8 rounded-xl border"
                       style={{ 
-                        backgroundColor: colorPalette.cardBackground,
-                        borderColor: colorPalette.border
+                        backgroundColor: registrationSettings.colors.cardBackground,
+                        borderColor: registrationSettings.colors.cardBorder
                       }}
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="flex flex-col gap-2">
-                          <span className="text-sm font-medium" style={{ color: colorPalette.headingText }}>
-                            Teamnaam
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="Voer je teamnaam in"
-                            className="px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
-                            style={{ 
-                              backgroundColor: colorPalette.pageBackground,
-                              borderColor: colorPalette.border,
-                              color: colorPalette.bodyText
-                            }}
-                          />
-                        </label>
-                        <label className="flex flex-col gap-2">
-                          <span className="text-sm font-medium" style={{ color: colorPalette.headingText }}>
-                            Team Tag
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="bijv. WC26"
-                            className="px-4 py-3 rounded-lg border focus:outline-none"
-                            style={{ 
-                              backgroundColor: colorPalette.pageBackground,
-                              borderColor: colorPalette.border,
-                              color: colorPalette.bodyText
-                            }}
-                          />
-                        </label>
+                        {registrationSettings.formFields.teamName.enabled && (
+                          <label className="flex flex-col gap-2">
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ 
+                                color: registrationSettings.colors.labelColor,
+                                fontSize: `${registrationSettings.fontSizes.label}px`
+                              }}
+                            >
+                              {registrationSettings.formFields.teamName.label}
+                            </span>
+                            <input
+                              type="text"
+                              placeholder={registrationSettings.formFields.teamName.placeholder}
+                              className="px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+                              style={{ 
+                                backgroundColor: registrationSettings.colors.inputBackground,
+                                borderColor: registrationSettings.colors.inputBorder,
+                                color: registrationSettings.colors.inputText
+                              }}
+                            />
+                          </label>
+                        )}
+                        {registrationSettings.formFields.teamTag.enabled && (
+                          <label className="flex flex-col gap-2">
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ 
+                                color: registrationSettings.colors.labelColor,
+                                fontSize: `${registrationSettings.fontSizes.label}px`
+                              }}
+                            >
+                              {registrationSettings.formFields.teamTag.label}
+                            </span>
+                            <input
+                              type="text"
+                              placeholder={registrationSettings.formFields.teamTag.placeholder}
+                              className="px-4 py-3 rounded-lg border focus:outline-none"
+                              style={{ 
+                                backgroundColor: registrationSettings.colors.inputBackground,
+                                borderColor: registrationSettings.colors.inputBorder,
+                                color: registrationSettings.colors.inputText
+                              }}
+                            />
+                          </label>
+                        )}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label className="flex flex-col gap-2">
-                          <span className="text-sm font-medium" style={{ color: colorPalette.headingText }}>
-                            Captain Naam
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="Volledige naam"
-                            className="px-4 py-3 rounded-lg border focus:outline-none"
-                            style={{ 
-                              backgroundColor: colorPalette.pageBackground,
-                              borderColor: colorPalette.border,
-                              color: colorPalette.bodyText
-                            }}
-                          />
-                        </label>
-                        <label className="flex flex-col gap-2">
-                          <span className="text-sm font-medium" style={{ color: colorPalette.headingText }}>
-                            Captain Email
-                          </span>
-                          <input
-                            type="email"
-                            placeholder="email@voorbeeld.nl"
-                            className="px-4 py-3 rounded-lg border focus:outline-none"
-                            style={{ 
-                              backgroundColor: colorPalette.pageBackground,
-                              borderColor: colorPalette.border,
-                              color: colorPalette.bodyText
-                            }}
-                          />
-                        </label>
+                        {registrationSettings.formFields.captainName.enabled && (
+                          <label className="flex flex-col gap-2">
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ 
+                                color: registrationSettings.colors.labelColor,
+                                fontSize: `${registrationSettings.fontSizes.label}px`
+                              }}
+                            >
+                              {registrationSettings.formFields.captainName.label}
+                            </span>
+                            <input
+                              type="text"
+                              placeholder={registrationSettings.formFields.captainName.placeholder}
+                              className="px-4 py-3 rounded-lg border focus:outline-none"
+                              style={{ 
+                                backgroundColor: registrationSettings.colors.inputBackground,
+                                borderColor: registrationSettings.colors.inputBorder,
+                                color: registrationSettings.colors.inputText
+                              }}
+                            />
+                          </label>
+                        )}
+                        {registrationSettings.formFields.captainEmail.enabled && (
+                          <label className="flex flex-col gap-2">
+                            <span 
+                              className="text-sm font-medium"
+                              style={{ 
+                                color: registrationSettings.colors.labelColor,
+                                fontSize: `${registrationSettings.fontSizes.label}px`
+                              }}
+                            >
+                              {registrationSettings.formFields.captainEmail.label}
+                            </span>
+                            <input
+                              type="email"
+                              placeholder={registrationSettings.formFields.captainEmail.placeholder}
+                              className="px-4 py-3 rounded-lg border focus:outline-none"
+                              style={{ 
+                                backgroundColor: registrationSettings.colors.inputBackground,
+                                borderColor: registrationSettings.colors.inputBorder,
+                                color: registrationSettings.colors.inputText
+                              }}
+                            />
+                          </label>
+                        )}
                       </div>
                       <button
                         type="submit"
                         className="w-full px-6 py-4 rounded-lg font-semibold transition-all hover:scale-105"
                         style={{ 
-                          backgroundColor: colorPalette.buttonPrimary,
-                          color: colorPalette.buttonPrimaryText
+                          backgroundColor: registrationSettings.colors.buttonBackground,
+                          color: registrationSettings.colors.buttonText,
+                          fontSize: `${registrationSettings.fontSizes.button}px`
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colorPalette.buttonPrimaryHover}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colorPalette.buttonPrimary}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = registrationSettings.colors.buttonHover}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = registrationSettings.colors.buttonBackground}
                       >
-                        Schrijf team in
+                        {registrationSettings.buttonText}
                       </button>
                     </form>
                   </div>
