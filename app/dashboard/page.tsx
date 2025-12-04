@@ -1158,7 +1158,14 @@ export default function Dashboard() {
           
           // Check of response bestaat
           if (!response) {
-            console.error('Failed to load tournaments: No response object')
+            const errorLogData: Record<string, string> = {
+              status: 'N/A',
+              statusText: 'No response object',
+              error: 'Network error: No response received from server'
+            }
+            // Log altijd met duidelijke informatie - gebruik JSON.stringify om zeker te zijn dat het wordt getoond
+            console.error('Failed to load tournaments:', JSON.stringify(errorLogData, null, 2))
+            console.error('Failed to load tournaments (object):', errorLogData)
             setTournaments([])
             return
           }
@@ -1189,12 +1196,12 @@ export default function Dashboard() {
               try {
                 const errorData = JSON.parse(responseText)
                 if (errorData.error) {
-                  errorMessage = errorData.error
+                  errorMessage = String(errorData.error)
                 } else if (errorData.message) {
-                  errorMessage = errorData.message
+                  errorMessage = String(errorData.message)
                 }
                 if (errorData.code) {
-                  errorCode = errorData.code
+                  errorCode = String(errorData.code)
                 }
               } catch {
                 // Response is geen JSON, gebruik als plain text als het niet leeg is
@@ -1209,20 +1216,24 @@ export default function Dashboard() {
           }
           
           // Log error - altijd met betekenisvolle informatie
-          // Zorg dat alle velden altijd een waarde hebben
-          const errorLogData: Record<string, string | number> = {
-            status: status,
-            statusText: response?.statusText ?? 'No status text',
-            error: errorMessage
+          // Zorg dat alle velden altijd een waarde hebben en strings zijn voor logging
+          const statusValue = status || 0
+          const statusTextValue = response?.statusText || 'No status text'
+          const errorMessageValue = errorMessage || 'Unknown error'
+          
+          const errorLogData: Record<string, string> = {
+            status: String(statusValue),
+            statusText: String(statusTextValue),
+            error: String(errorMessageValue)
           }
           
-          // Voeg code alleen toe als het bestaat
           if (errorCode) {
-            errorLogData.code = errorCode
+            errorLogData.code = String(errorCode)
           }
           
-          // Log altijd met duidelijke informatie
-          console.error('Failed to load tournaments:', errorLogData)
+          // Log altijd met duidelijke informatie - gebruik JSON.stringify om zeker te zijn dat het wordt getoond
+          console.error('Failed to load tournaments:', JSON.stringify(errorLogData, null, 2))
+          console.error('Failed to load tournaments (object):', errorLogData)
           
           // Fallback naar localStorage als API faalt
           const localTournaments = localStorage.getItem('tournaments')
@@ -1240,7 +1251,22 @@ export default function Dashboard() {
           }
         }
       } catch (error) {
-        console.error('Error loading tournaments:', error)
+        // Handle network errors and other fetch failures
+        const errorMessage = error instanceof Error ? error.message : 'Unknown network error'
+        const errorLogData: Record<string, string> = {
+          status: 'N/A',
+          statusText: 'Network error',
+          error: `Failed to fetch tournaments: ${errorMessage}`
+        }
+        
+        if (error instanceof Error && error.stack) {
+          errorLogData.stack = error.stack
+        }
+        
+        // Log altijd met duidelijke informatie - gebruik JSON.stringify om zeker te zijn dat het wordt getoond
+        console.error('Error loading tournaments:', JSON.stringify(errorLogData, null, 2))
+        console.error('Error loading tournaments (object):', errorLogData)
+        
         // Fallback naar localStorage als API faalt
         const localTournaments = localStorage.getItem('tournaments')
         if (localTournaments) {
@@ -1399,25 +1425,8 @@ export default function Dashboard() {
 
     const handleTemplateSelect = (templateId: string) => {
       if (templateId === 'custom') {
-        // Custom template - alleen livestream
-        setEnabledComponents({
-          header: false,
-          description: false,
-          tournamentDetails: false,
-          registration: false,
-          stats: false,
-          schedule: false,
-          rules: false,
-          prizes: false,
-          sponsors: false,
-          social: false,
-          contact: false,
-          livestream: true
-        });
-        setComponentOrder(['livestream']);
-      
-      // Naar create-tournament view
-      setCurrentView('create-tournament');
+        router.push('/custom');
+        return;
       }
     };
 
@@ -3996,7 +4005,7 @@ export default function Dashboard() {
                     <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
                       {/* Preview Header */}
                       <div 
-                        className="relative w-full h-40 overflow-hidden"
+                        className="relative w-full min-h-[160px] overflow-hidden"
                         style={{ 
                           background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
                           borderBottom: `2px solid ${tournament.primaryColor}40`
@@ -4007,9 +4016,9 @@ export default function Dashboard() {
                         }}></div>
                         
                         <div className="relative h-full flex items-center justify-between p-5">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 flex-1 min-w-0 pr-2">
                             <div 
-                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0"
                               style={{ 
                                 backgroundColor: tournament.primaryColor,
                                 boxShadow: `0 4px 20px ${tournament.primaryColor}50`
@@ -4017,9 +4026,9 @@ export default function Dashboard() {
                             >
                               {tournament.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
-                              <span className="text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
+                            <div className="flex-1 min-w-0 overflow-visible">
+                              <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
+                              <span className="inline-block text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
                                 Draft
                               </span>
                             </div>
@@ -4181,7 +4190,7 @@ export default function Dashboard() {
                     <div key={tournament.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group">
                       {/* Preview Header */}
                       <div 
-                        className="relative w-full h-40 overflow-hidden"
+                        className="relative w-full min-h-[160px] overflow-hidden"
                         style={{ 
                           background: `linear-gradient(135deg, ${tournament.primaryColor}15 0%, ${tournament.secondaryColor || tournament.primaryColor}25 50%, ${tournament.primaryColor}15 100%)`,
                           borderBottom: `2px solid ${tournament.primaryColor}40`
@@ -4192,9 +4201,9 @@ export default function Dashboard() {
                         }}></div>
                         
                         <div className="relative h-full flex items-center justify-between p-5">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 flex-1 min-w-0 pr-2">
                             <div 
-                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
+                              className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0"
                               style={{ 
                                 backgroundColor: tournament.primaryColor,
                                 boxShadow: `0 4px 20px ${tournament.primaryColor}50`
@@ -4202,9 +4211,9 @@ export default function Dashboard() {
                             >
                               {tournament.name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <h3 className="text-white font-bold text-lg mb-1">{tournament.name}</h3>
-                              <span className="text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm" style={{ backgroundColor: '#482CFF40' }}>
+                            <div className="flex-1 min-w-0 overflow-visible">
+                              <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
+                              <span className="inline-block text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: '#482CFF40' }}>
                                 Published
                               </span>
                             </div>
