@@ -1145,6 +1145,7 @@ const getDefaultNavigationSettings = (): NavigationSettingsState => ({
 const getDefaultHeroSettings = () => ({
   template: 'classic-center',
   heroImageUrl: 'https://images.rosh.gg/hero-banner.jpg',
+  backgroundImageUrl: '',
   title: 'Het grootste Rocket League toernooi van de winter',
   subtitle: 'Het grootste Rocket League toernooi van de winter',
   overlayColor: '#05060D',
@@ -1511,7 +1512,39 @@ const getDefaultSocialSettings = () => ({
   ],
 });
 
+const FOOTER_TEMPLATES = [
+  {
+    id: 'three-columns',
+    label: 'Classic',
+    description: 'Logo + beschrijving links, drie link kolommen rechts (Toernooi, Informatie, Contact)',
+    layout: 'three-columns' as const,
+    showSocials: true,
+  },
+  {
+    id: 'two-columns',
+    label: 'Two Column',
+    description: 'Logo + beschrijving links, alle links in één kolom rechts, socials onderaan',
+    layout: 'two-columns' as const,
+    showSocials: true,
+  },
+  {
+    id: 'centered',
+    label: 'Stacked',
+    description: 'Alles verticaal gestapeld en gecentreerd: logo, beschrijving, links, socials',
+    layout: 'centered' as const,
+    showSocials: true,
+  },
+  {
+    id: 'minimal',
+    label: 'Minimal',
+    description: 'Alleen logo, beschrijving en copyright gecentreerd',
+    layout: 'centered' as const,
+    showSocials: false,
+  },
+];
+
 const getDefaultFooterSettings = () => ({
+  template: 'three-columns',
   logoUrl: '',
   description: 'Het grootste wintertoernooi van het jaar',
   copyright: '© 2026 Winter Championship. Alle rechten voorbehouden.',
@@ -1531,7 +1564,11 @@ const getDefaultFooterSettings = () => ({
       { id: createId(), label: 'Inschrijven', link: '#register-section' },
       { id: createId(), label: 'FAQ', link: '#faq-section' },
       { id: createId(), label: 'Reglement', link: '#' },
-      { id: createId(), label: 'Contact', link: '#' },
+    ],
+    contact: [
+      { id: createId(), label: 'Email', link: 'mailto:info@example.com' },
+      { id: createId(), label: 'Discord', link: '#' },
+      { id: createId(), label: 'Twitter', link: '#' },
     ],
   },
   showSocials: true,
@@ -1653,6 +1690,8 @@ const getDefaultTeamsSettings = () => ({
       ] 
     },
   ],
+  numberOfTeams: 4,
+  playersPerTeam: 3,
   columns: 4,
   fontSizes: {
     title: 36,
@@ -1707,7 +1746,7 @@ const getDefaultComponentOrder = () => COMPONENTS.map((comp) => comp.id);
 
 const getDefaultComponentVisibility = () =>
   COMPONENTS.reduce((acc, comp) => {
-    acc[comp.id] = true;
+    acc[comp.id] = false;
     return acc;
   }, {} as Record<string, boolean>);
 
@@ -1753,9 +1792,13 @@ export default function CustomTemplatePage() {
   const [overlayOpacity, setOverlayOpacity] = useState(DEFAULT_OVERLAY_OPACITY);
   const [copiedColorKey, setCopiedColorKey] = useState<BaseColorKey | null>(null);
   const navigationLogoInputRef = useRef<HTMLInputElement | null>(null);
+  const heroImageInputRef = useRef<HTMLInputElement | null>(null);
+  const heroBackgroundImageInputRef = useRef<HTMLInputElement | null>(null);
+  const aboutImageInputRef = useRef<HTMLInputElement | null>(null);
   const sponsorLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const teamLogoInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const playerAvatarInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const footerLogoInputRef = useRef<HTMLInputElement | null>(null);
   const [fontSettings, setFontSettings] = useState<FontSettings>(() => getDefaultFontSettings());
   const [uploads, setUploads] = useState<UploadItem[]>(() => getDefaultUploads());
 
@@ -1824,6 +1867,7 @@ export default function CustomTemplatePage() {
     style: false,
   });
   const [expandedFooterSections, setExpandedFooterSections] = useState<Record<string, boolean>>({
+    template: true,
     content: true,
     links: true,
     style: false,
@@ -1869,6 +1913,20 @@ export default function CustomTemplatePage() {
 
   const [teamsSettings, setTeamsSettings] = useState(() => getDefaultTeamsSettings());
   const loadedFontsRef = useRef<Record<string, boolean>>({});
+
+  // Ensure numberOfTeams and playersPerTeam are always defined
+  useEffect(() => {
+    setTeamsSettings((prev) => {
+      if (prev.numberOfTeams === undefined || prev.playersPerTeam === undefined) {
+        return {
+          ...prev,
+          numberOfTeams: prev.numberOfTeams ?? prev.teams.length,
+          playersPerTeam: prev.playersPerTeam ?? (prev.teams[0]?.players.length ?? 3),
+        };
+      }
+      return prev;
+    });
+  }, []);
 
   const ensureFontLoaded = useCallback((fontName: string) => {
     if (typeof document === 'undefined') {
@@ -2588,6 +2646,20 @@ export default function CustomTemplatePage() {
       ...prev,
       teams: prev.teams.filter((team) => team.id !== id),
     }));
+    // Clean up refs and state
+    delete teamLogoInputRefs.current[id];
+    setExpandedTeamItems((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    // Clean up player avatar refs for this team
+    const team = teamsSettings.teams.find((t) => t.id === id);
+    if (team) {
+      team.players.forEach((player) => {
+        delete playerAvatarInputRefs.current[`${id}-${player.id}`];
+      });
+    }
   };
 
   const moveTeam = (from: number, to: number) => {
@@ -2634,6 +2706,8 @@ export default function CustomTemplatePage() {
           : team
       ),
     }));
+    // Clean up player avatar ref
+    delete playerAvatarInputRefs.current[`${teamId}-${playerId}`];
   };
 
   const moveTeamPlayer = (teamId: string, from: number, to: number) => {
@@ -2716,7 +2790,7 @@ export default function CustomTemplatePage() {
     }));
   };
 
-  const updateFooterLinks = (section: 'tournament' | 'info', id: string, field: 'label' | 'link', value: string) => {
+  const updateFooterLinks = (section: 'tournament' | 'info' | 'contact', id: string, field: 'label' | 'link', value: string) => {
     setFooterSettings((prev) => ({
       ...prev,
       links: {
@@ -2726,12 +2800,32 @@ export default function CustomTemplatePage() {
     }));
   };
 
-  const addFooterLink = (section: 'tournament' | 'info') => {
+  const addFooterLink = (section: 'tournament' | 'info' | 'contact') => {
     setFooterSettings((prev) => ({
       ...prev,
       links: {
         ...prev.links,
         [section]: [...prev.links[section], { id: createId(), label: 'Nieuwe link', link: '#' }],
+      },
+    }));
+  };
+
+  const removeFooterLink = (section: 'tournament' | 'info' | 'contact', id: string) => {
+    setFooterSettings((prev) => ({
+      ...prev,
+      links: {
+        ...prev.links,
+        [section]: prev.links[section].filter((link) => link.id !== id),
+      },
+    }));
+  };
+
+  const moveFooterLink = (section: 'tournament' | 'info' | 'contact', from: number, to: number) => {
+    setFooterSettings((prev) => ({
+      ...prev,
+      links: {
+        ...prev.links,
+        [section]: moveItem(prev.links[section], from, to),
       },
     }));
   };
@@ -2881,30 +2975,30 @@ export default function CustomTemplatePage() {
     children: React.ReactNode,
     badge?: string
   ) => (
-    <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
-      <button
+    <div className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden min-w-0">
+      <div
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition"
+        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition min-w-0 cursor-pointer"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <svg
-            className={`w-4 h-4 text-white/60 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+            className={`w-4 h-4 text-white/60 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span className="text-sm font-semibold text-white">{title}</span>
-          {badge && <span className="text-xs text-white/40">({badge})</span>}
+          <span className="text-sm font-semibold text-white truncate">{title}</span>
+          {badge && <span className="text-xs text-white/40 flex-shrink-0">({badge})</span>}
         </div>
-      </button>
-      {isExpanded && <div className="px-4 pb-4">{children}</div>}
+      </div>
+      {isExpanded && <div className="px-4 pb-4 min-w-0 overflow-x-hidden">{children}</div>}
     </div>
   );
 
   const renderSettingsPanel = () => {
-    const panelClass = 'flex-1 px-6 py-6 space-y-3 overflow-x-hidden';
+    const panelClass = 'flex-1 px-6 py-6 space-y-3 overflow-x-hidden min-w-0';
     switch (activeComponent) {
       case 'navigation':
         return (
@@ -2951,51 +3045,38 @@ export default function CustomTemplatePage() {
               onChange={(url) => setNavigationSettings((prev) => ({ ...prev, logoUrl: url }))}
               label="Logo"
             >
-              <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-3">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-20 h-20 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-                    {navigationSettings.logoUrl ? (
-                      <img src={navigationSettings.logoUrl} alt="Logo preview" className="w-full h-full object-contain" />
-                    ) : (
-                      <Icon name="image" className="w-7 h-7 text-white/30" />
-                    )}
-                  </div>
-                  <div className="flex-1 w-full space-y-2 text-left">
-                    <p className="text-sm font-semibold text-white">Upload een logo</p>
-                    <p className="text-xs text-white/60">Sleep een afbeelding hierheen of kies een optie hieronder.</p>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => navigationLogoInputRef.current?.click()}
-                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
-                      >
-                        Upload bestand
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab('uploads')}
-                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
-                      >
-                        Media library
-                      </button>
-                      {navigationSettings.logoUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setNavigationSettings((prev) => ({ ...prev, logoUrl: '' }))}
-                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition"
-                        >
-                          Verwijder logo
-                        </button>
-                      )}
-                    </div>
-                  </div>
+              <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2 min-w-0">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => navigationLogoInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                  >
+                    Upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('uploads')}
+                    className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                  >
+                    Library
+                  </button>
+                  {navigationSettings.logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNavigationSettings((prev) => ({ ...prev, logoUrl: '' }))}
+                      className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
                 <input
                   type="text"
                   value={navigationSettings.logoUrl}
                   onChange={(e) => setNavigationSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
-                  placeholder="https://images.rosh.gg/logo.png"
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
+                  placeholder="URL"
+                  className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
                 />
               </div>
               <input
@@ -3287,21 +3368,103 @@ export default function CustomTemplatePage() {
               expandedHeroSections.image,
               () => setExpandedHeroSections((prev) => ({ ...prev, image: !prev.image })),
               <div className="space-y-3">
-                {selectedHeroTemplate.requiresImage && (
+                {selectedHeroTemplate.requiresImage ? (
                   <DroppableImageField
                     id="hero-image"
                     value={heroSettings.heroImageUrl}
                     onChange={(url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url }))}
                     label="Hero afbeelding"
                   >
+                    <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2 min-w-0">
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => heroImageInputRef.current?.click()}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                        >
+                          Upload
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('uploads')}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                        >
+                          Library
+                        </button>
+                        {heroSettings.heroImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setHeroSettings((prev) => ({ ...prev, heroImageUrl: '' }))}
+                            className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={heroSettings.heroImageUrl}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
+                        placeholder="URL"
+                        className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                      />
+                    </div>
                     <input
-                      type="text"
-                      value={heroSettings.heroImageUrl}
-                      onChange={(e) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                      placeholder="Afbeelding URL"
+                      ref={heroImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))}
                     />
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, heroImageUrl: url })))} />
+                  </DroppableImageField>
+                ) : (
+                  <DroppableImageField
+                    id="hero-background-image"
+                    value={heroSettings.backgroundImageUrl}
+                    onChange={(url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url }))}
+                    label="Achtergrond afbeelding"
+                  >
+                    <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2 min-w-0">
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => heroBackgroundImageInputRef.current?.click()}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                        >
+                          Upload
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('uploads')}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                        >
+                          Library
+                        </button>
+                        {heroSettings.backgroundImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: '' }))}
+                            className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={heroSettings.backgroundImageUrl}
+                        onChange={(e) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: e.target.value }))}
+                        placeholder="URL"
+                        className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                      />
+                    </div>
+                    <input
+                      ref={heroBackgroundImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e, (url) => setHeroSettings((prev) => ({ ...prev, backgroundImageUrl: url })))}
+                    />
                   </DroppableImageField>
                 )}
               </div>
@@ -3459,49 +3622,58 @@ export default function CustomTemplatePage() {
               'Afbeelding',
               expandedAboutSections.image,
               () => setExpandedAboutSections((prev) => ({ ...prev, image: !prev.image })),
-              <DroppableImageField
-                id="about-image"
-                value={aboutSettings.imageUrl}
-                onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
-                label="Afbeelding"
-              >
-              <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-4">
-                <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[200px] flex items-center justify-center overflow-hidden">
-                  {aboutSettings.imageUrl ? (
-                    <img
-                      src={aboutSettings.imageUrl}
-                      alt="About visual"
-                      className="w-full h-full object-cover"
-                      style={{ borderRadius: aboutSettings.imageRadius }}
-                    />
-                  ) : (
-                    <div className="text-sm text-white/50 text-center px-4">Sleep een afbeelding hierheen of gebruik de velden hieronder.</div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs text-white/60 flex flex-col gap-1">
-                    Afbeelding URL
-              <input
-                type="text"
-                value={aboutSettings.imageUrl}
-                onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                      placeholder="https://"
-              />
-                  </label>
-              <label className="text-xs text-white/60 flex flex-col gap-1">
-                    Upload bestand
+              <div className="space-y-3">
+                <DroppableImageField
+                  id="about-image"
+                  value={aboutSettings.imageUrl}
+                  onChange={(url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url }))}
+                  label=""
+                >
+                  <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2 min-w-0">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => aboutImageInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                      >
+                        Upload
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('uploads')}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                      >
+                        Library
+                      </button>
+                      {aboutSettings.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setAboutSettings((prev) => ({ ...prev, imageUrl: '' }))}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                     <input
+                      type="text"
+                      value={aboutSettings.imageUrl}
+                      onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                      className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                      placeholder="URL"
+                    />
+                    <input
+                      ref={aboutImageInputRef}
                       type="file"
                       accept="image/*"
+                      className="hidden"
                       onChange={(e) => handleImageUpload(e, (url) => setAboutSettings((prev) => ({ ...prev, imageUrl: url })))}
-                      className="w-full text-white/70 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-[#755DFF] file:text-white file:text-xs"
                     />
-                  </label>
-                </div>
-                <div className="grid gap-3 text-xs text-white/60">
+                  </div>
+                </DroppableImageField>
+                <div className="space-y-2 text-xs text-white/60">
                   <label className="flex flex-col gap-1">
-                Ronde hoeken ({aboutSettings.imageRadius}px)
+                    Ronde hoeken ({aboutSettings.imageRadius}px)
                     <input
                       type="range"
                       min={0}
@@ -3509,18 +3681,17 @@ export default function CustomTemplatePage() {
                       value={aboutSettings.imageRadius}
                       onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageRadius: Number(e.target.value) }))}
                     />
-              </label>
-              <label className="flex items-center gap-2 text-sm text-white/70">
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-white/70">
                     <input
                       type="checkbox"
                       checked={aboutSettings.imageShadow}
                       onChange={(e) => setAboutSettings((prev) => ({ ...prev, imageShadow: e.target.checked }))}
                     />
-                Shadow effect
-              </label>
+                    Shadow effect
+                  </label>
                 </div>
               </div>
-              </DroppableImageField>
             )}
 
             {renderCollapsibleSection(
@@ -4684,47 +4855,61 @@ export default function CustomTemplatePage() {
                       onChange={(url) => updateSponsorLogo(logo.id, 'url', url)}
                       label="Logo afbeelding"
                     >
-                      <div className="rounded-2xl border border-white/10 bg-[#0E1020] p-4 space-y-3">
-                        <div className="w-full rounded-2xl border border-dashed border-white/10 bg-[#05060F] min-h-[120px] flex items-center justify-center overflow-hidden">
-                          {logo.url ? (
-                            <img
-                              src={logo.url}
-                              alt={logo.name || 'Logo preview'}
-                              className="max-w-full max-h-[100px] object-contain"
-                            />
-                          ) : (
-                            <div className="text-sm text-white/50 text-center px-4">Sleep een logo hierheen of kies een optie hieronder.</div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs text-white/60 flex flex-col gap-1">
-                            Logo URL
+                      <div className="rounded-xl border border-white/10 bg-[#0E1020] p-3 space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-16 h-16 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {logo.url ? (
+                              <img
+                                src={logo.url}
+                                alt={logo.name || 'Logo preview'}
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <Icon name="image" className="w-6 h-6 text-white/30" />
+                            )}
+                          </div>
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => sponsorLogoInputRefs.current[logo.id]?.click()}
+                                className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                              >
+                                Upload
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab('uploads')}
+                                className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
+                              >
+                                Library
+                              </button>
+                              {logo.url && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateSponsorLogo(logo.id, 'url', '')}
+                                  className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
                             <input
                               type="text"
                               value={logo.url}
                               onChange={(e) => updateSponsorLogo(logo.id, 'url', e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                              placeholder="https://"
+                              className="w-full px-2 py-1.5 rounded-lg bg-[#11132A] border border-white/10 text-xs"
+                              placeholder="URL"
                             />
-                          </label>
-                          <label className="text-xs text-white/60 flex flex-col gap-1">
-                            Upload bestand
-                            <input
-                              ref={(el) => { sponsorLogoInputRefs.current[logo.id] = el; }}
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleImageUpload(e, (url) => updateSponsorLogo(logo.id, 'url', url))}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => sponsorLogoInputRefs.current[logo.id]?.click()}
-                              className="w-full px-3 py-2 rounded-lg border border-white/10 bg-[#11132A] text-sm text-white/70 hover:text-white hover:border-white/30 transition"
-                            >
-                              Kies bestand
-                            </button>
-                          </label>
+                          </div>
                         </div>
+                        <input
+                          ref={(el) => { sponsorLogoInputRefs.current[logo.id] = el; }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e, (url) => updateSponsorLogo(logo.id, 'url', url))}
+                        />
                       </div>
                     </DroppableImageField>
                     <div className="space-y-2">
@@ -4970,8 +5155,39 @@ export default function CustomTemplatePage() {
           </div>
         );
       case 'footer':
+        const selectedFooterTemplate = FOOTER_TEMPLATES.find((t) => t.id === footerSettings.template) ?? FOOTER_TEMPLATES[0];
         return (
           <div className={panelClass}>
+            {renderCollapsibleSection(
+              'footer-template',
+              'Template',
+              expandedFooterSections.template,
+              () => setExpandedFooterSections((prev) => ({ ...prev, template: !prev.template })),
+              <div className="space-y-2">
+                {FOOTER_TEMPLATES.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => {
+                      setFooterSettings((prev) => ({
+                        ...prev,
+                        template: template.id,
+                        layout: template.layout,
+                        showSocials: template.showSocials,
+                      }));
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition ${
+                      footerSettings.template === template.id
+                        ? 'border-[#755DFF] bg-[#755DFF]/10'
+                        : 'border-white/10 bg-[#0E1020] hover:border-white/20'
+                    }`}
+                  >
+                    <div className="font-semibold text-sm text-white mb-1">{template.label}</div>
+                    <div className="text-xs text-white/60">{template.description}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
             {renderCollapsibleSection(
               'footer-content',
               'Content',
@@ -4982,29 +5198,69 @@ export default function CustomTemplatePage() {
                   id="footer-logo"
                   value={footerSettings.logoUrl}
                   onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
-                  label="Footer content"
+                  label="Logo"
                 >
-              <input
-                value={footerSettings.logoUrl}
-                onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                placeholder="Logo URL"
-              />
-                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))} />
+                  <div className="rounded-xl border border-white/10 bg-[#05060F] p-3 space-y-2 min-w-0">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => footerLogoInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                      >
+                        Upload
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('uploads')}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                      >
+                        Library
+                      </button>
+                      {footerSettings.logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setFooterSettings((prev) => ({ ...prev, logoUrl: '' }))}
+                          className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={footerSettings.logoUrl}
+                      onChange={(e) => setFooterSettings((prev) => ({ ...prev, logoUrl: e.target.value }))}
+                      className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                      placeholder="URL"
+                    />
+                    <input
+                      ref={footerLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e, (url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url })))}
+                    />
+                  </div>
                 </DroppableImageField>
-                <textarea
-                  value={footerSettings.description}
-                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  rows={2}
-                  placeholder="Beschrijving"
-                />
-                <input
-                  value={footerSettings.copyright}
-                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                  placeholder="Copyright tekst"
-                />
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Beschrijving
+                  <textarea
+                    value={footerSettings.description}
+                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                    rows={2}
+                    placeholder="Beschrijving"
+                  />
+                </label>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Copyright
+                  <input
+                    value={footerSettings.copyright}
+                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, copyright: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                    placeholder="Copyright tekst"
+                  />
+                </label>
               </div>
             )}
 
@@ -5013,31 +5269,64 @@ export default function CustomTemplatePage() {
               'Navigatie links',
               expandedFooterSections.links,
               () => setExpandedFooterSections((prev) => ({ ...prev, links: !prev.links })),
-              <div className="space-y-2">
-              {['tournament', 'info'].map((section) => (
-                <div key={section} className="space-y-2">
-                  <p className="text-xs uppercase text-white/50">{section === 'tournament' ? 'Toernooi' : 'Informatie'}</p>
-                  {footerSettings.links[section as 'tournament' | 'info'].map((link) => (
-                    <div key={link.id} className="flex gap-2">
-                      <input
-                        value={link.label}
-                        onChange={(e) => updateFooterLinks(section as 'tournament' | 'info', link.id, 'label', e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                        placeholder="Label"
-                      />
-                      <input
-                        value={link.link}
-                        onChange={(e) => updateFooterLinks(section as 'tournament' | 'info', link.id, 'link', e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                        placeholder="Link"
-                      />
+              <div className="space-y-3">
+                {['tournament', 'info', 'contact'].map((section) => (
+                  <div key={section} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold text-white/80">
+                        {section === 'tournament' ? 'Toernooi' : section === 'info' ? 'Informatie' : 'Contact'}
+                      </h4>
+                      <button
+                        onClick={() => addFooterLink(section as 'tournament' | 'info' | 'contact')}
+                        className="text-xs px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70"
+                      >
+                        + Link
+                      </button>
                     </div>
-                  ))}
-                  <button onClick={() => addFooterLink(section as 'tournament' | 'info')} className="text-xs px-3 py-1 border border-dashed border-white/20 rounded-lg text-white/70">
-                    + Link toevoegen
-                  </button>
-                </div>
-              ))}
+                    <div className="space-y-2">
+                      {footerSettings.links[section as 'tournament' | 'info' | 'contact'].map((link, linkIndex) => (
+                        <div key={link.id} className="rounded-xl border border-white/10 bg-[#05060F] p-2 space-y-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <input
+                              value={link.label}
+                              onChange={(e) => updateFooterLinks(section as 'tournament' | 'info' | 'contact', link.id, 'label', e.target.value)}
+                              className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
+                              placeholder="Label"
+                            />
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button
+                                disabled={linkIndex === 0}
+                                onClick={() => moveFooterLink(section as 'tournament' | 'info' | 'contact', linkIndex, linkIndex - 1)}
+                                className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                disabled={linkIndex === footerSettings.links[section as 'tournament' | 'info' | 'contact'].length - 1}
+                                onClick={() => moveFooterLink(section as 'tournament' | 'info' | 'contact', linkIndex, linkIndex + 1)}
+                                className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
+                              >
+                                ↓
+                              </button>
+                              <button
+                                onClick={() => removeFooterLink(section as 'tournament' | 'info' | 'contact', link.id)}
+                                className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <input
+                            value={link.link}
+                            onChange={(e) => updateFooterLinks(section as 'tournament' | 'info' | 'contact', link.id, 'link', e.target.value)}
+                            className="w-full px-2 py-1 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                            placeholder="URL"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -5046,41 +5335,68 @@ export default function CustomTemplatePage() {
               'Stijl',
               expandedFooterSections.style,
               () => setExpandedFooterSections((prev) => ({ ...prev, style: !prev.style })),
-              <div className="space-y-2 text-xs text-white/60">
-                <label>
-                  Layout
-                <select
-                  value={footerSettings.layout}
-                  onChange={(e) => setFooterSettings((prev) => ({ ...prev, layout: e.target.value as typeof footerSettings.layout }))}
-                  className="w-full px-3 py-2 rounded-lg bg-[#11132A] border border-white/10 text-sm"
-                >
-                  <option value="two-columns">2 koloms</option>
-                  <option value="three-columns">3 koloms</option>
-                  <option value="centered">Centered</option>
-                </select>
-              </label>
-              <label>
-                Spacing ({footerSettings.spacing}px)
-                <input type="range" min={16} max={64} value={footerSettings.spacing} onChange={(e) => setFooterSettings((prev) => ({ ...prev, spacing: Number(e.target.value) }))} />
-              </label>
-              <ColorInputField
-                label="Achtergrondkleur"
-                value={footerSettings.backgroundColor}
-                onChange={(value) => setFooterSettings((prev) => ({ ...prev, backgroundColor: value }))}
-              />
-              <ColorInputField
-                label="Tekstkleur"
-                value={footerSettings.textColor}
-                onChange={(value) => setFooterSettings((prev) => ({ ...prev, textColor: value }))}
-              />
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={footerSettings.divider} onChange={(e) => setFooterSettings((prev) => ({ ...prev, divider: e.target.checked }))} />
-                Divider
-              </label>
-              <label className="flex items-center gap-2 text-sm text-white/70">
-                <input type="checkbox" checked={footerSettings.showSocials} onChange={(e) => setFooterSettings((prev) => ({ ...prev, showSocials: e.target.checked }))} />
-                Socials
-              </label>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-white/80">Layout</h4>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'two-columns', label: '2 Kolommen' },
+                      { value: 'three-columns', label: '3 Kolommen' },
+                      { value: 'centered', label: 'Gecentreerd' },
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 p-2 rounded-lg border border-white/10 bg-[#05060F] cursor-pointer hover:border-white/20 transition">
+                        <input
+                          type="radio"
+                          name="footer-layout"
+                          value={option.value}
+                          checked={footerSettings.layout === option.value}
+                          onChange={(e) => setFooterSettings((prev) => ({ ...prev, layout: e.target.value as typeof footerSettings.layout }))}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-sm text-white/80">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Spacing ({footerSettings.spacing}px)
+                  <input
+                    type="range"
+                    min={16}
+                    max={64}
+                    value={footerSettings.spacing}
+                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, spacing: Number(e.target.value) }))}
+                    className="w-full"
+                  />
+                </label>
+                <ColorInputField
+                  label="Achtergrondkleur"
+                  value={footerSettings.backgroundColor}
+                  onChange={(value) => setFooterSettings((prev) => ({ ...prev, backgroundColor: value }))}
+                />
+                <ColorInputField
+                  label="Tekstkleur"
+                  value={footerSettings.textColor}
+                  onChange={(value) => setFooterSettings((prev) => ({ ...prev, textColor: value }))}
+                />
+                <label className="flex items-center gap-2 text-sm text-white/70">
+                  <input
+                    type="checkbox"
+                    checked={footerSettings.divider}
+                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, divider: e.target.checked }))}
+                    className="w-4 h-4"
+                  />
+                  Divider
+                </label>
+                <label className="flex items-center gap-2 text-sm text-white/70">
+                  <input
+                    type="checkbox"
+                    checked={footerSettings.showSocials}
+                    onChange={(e) => setFooterSettings((prev) => ({ ...prev, showSocials: e.target.checked }))}
+                    className="w-4 h-4"
+                  />
+                  Socials weergeven
+                </label>
               </div>
             )}
           </div>
@@ -5707,6 +6023,109 @@ export default function CustomTemplatePage() {
                     onChange={(e) => setTeamsSettings((prev) => ({ ...prev, columns: Number(e.target.value) }))}
                   />
                 </label>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Aantal Teams ({teamsSettings.numberOfTeams ?? teamsSettings.teams.length})
+                  <input
+                    type="range"
+                    min={1}
+                    max={12}
+                    value={teamsSettings.numberOfTeams ?? teamsSettings.teams.length}
+                    onChange={(e) => {
+                      const newValue = Number(e.target.value);
+                      setTeamsSettings((prev) => {
+                        const currentCount = prev.teams.length;
+                        let updatedTeams = [...prev.teams];
+                        
+                        if (newValue > currentCount) {
+                          // Add teams
+                          const teamsToAdd = newValue - currentCount;
+                          const teamNames = ['Arctic Wolves', 'Thunder Strike', 'Ice Phoenix', 'Snow Leopards', 'Fire Dragons', 'Storm Riders', 'Shadow Hunters', 'Crystal Guardians', 'Blaze Warriors', 'Frost Titans', 'Lightning Bolts', 'Dark Knights'];
+                          const teamInitials = ['AR', 'TH', 'IC', 'SN', 'FD', 'SR', 'SH', 'CG', 'BW', 'FT', 'LB', 'DK'];
+                          const teamTags = ['ARCT', 'THND', 'ICEP', 'SNLP', 'FDRG', 'SRID', 'SHUN', 'CGUA', 'BWAR', 'FTIT', 'LBOL', 'DKNI'];
+                          
+                          for (let i = 0; i < teamsToAdd; i++) {
+                            const index = currentCount + i;
+                            const playersPerTeam = prev.playersPerTeam ?? (prev.teams[0]?.players.length ?? 3);
+                            const defaultPlayers = Array.from({ length: playersPerTeam }, (_, j) => ({
+                              id: createId(),
+                              name: `Player ${j + 1}`,
+                              avatarUrl: ''
+                            }));
+                            
+                            updatedTeams.push({
+                              id: createId(),
+                              initials: teamInitials[index] || `T${index + 1}`,
+                              name: teamNames[index] || `Team ${index + 1}`,
+                              tag: teamTags[index] || `T${index + 1}`,
+                              logoUrl: '',
+                              players: defaultPlayers
+                            });
+                          }
+                        } else if (newValue < currentCount) {
+                          // Remove teams and clean up refs
+                          const removedTeams = prev.teams.slice(newValue);
+                          removedTeams.forEach((team) => {
+                            delete teamLogoInputRefs.current[team.id];
+                            team.players.forEach((player) => {
+                              delete playerAvatarInputRefs.current[`${team.id}-${player.id}`];
+                            });
+                          });
+                          updatedTeams = prev.teams.slice(0, newValue);
+                        }
+                        
+                        return {
+                          ...prev,
+                          numberOfTeams: newValue,
+                          teams: updatedTeams
+                        };
+                      });
+                    }}
+                  />
+                </label>
+                <label className="text-xs text-white/60 flex flex-col gap-1">
+                  Spelers per Team ({teamsSettings.playersPerTeam ?? (teamsSettings.teams[0]?.players.length ?? 3)})
+                  <input
+                    type="range"
+                    min={1}
+                    max={10}
+                    value={teamsSettings.playersPerTeam ?? (teamsSettings.teams[0]?.players.length ?? 3)}
+                    onChange={(e) => {
+                      const newValue = Number(e.target.value);
+                      setTeamsSettings((prev) => ({
+                        ...prev,
+                        playersPerTeam: newValue,
+                        teams: prev.teams.map((team) => {
+                          const currentPlayerCount = team.players.length;
+                          let updatedPlayers = [...team.players];
+                          
+                          if (newValue > currentPlayerCount) {
+                            // Add players
+                            const playersToAdd = newValue - currentPlayerCount;
+                            for (let i = 0; i < playersToAdd; i++) {
+                              updatedPlayers.push({
+                                id: createId(),
+                                name: `Player ${currentPlayerCount + i + 1}`,
+                                avatarUrl: ''
+                              });
+                            }
+                          } else if (newValue < currentPlayerCount) {
+                            // Remove players and clean up refs
+                            const removedPlayers = team.players.slice(newValue);
+                            removedPlayers.forEach((player) => {
+                              delete playerAvatarInputRefs.current[`${team.id}-${player.id}`];
+                            });
+                            updatedPlayers = team.players.slice(0, newValue);
+                          }
+                          
+                          return {
+                            ...team,
+                            players: updatedPlayers
+                          };
+                        })
+                      }));
+                    }}
+                  />
+                </label>
               </div>
             )}
 
@@ -5720,11 +6139,11 @@ export default function CustomTemplatePage() {
                   const isTeamExpanded = expandedTeamItems[team.id] ?? false;
                   return (
                     <div key={team.id} className="rounded-2xl border border-white/10 bg-[#0E1020] overflow-hidden">
-                      <button
-                        onClick={() => setExpandedTeamItems((prev) => ({ ...prev, [team.id]: !isTeamExpanded }))}
-                        className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition"
-                      >
-                        <div className="flex items-center gap-3">
+                      <div className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition">
+                        <button
+                          onClick={() => setExpandedTeamItems((prev) => ({ ...prev, [team.id]: !isTeamExpanded }))}
+                          className="flex items-center gap-3 flex-1 text-left"
+                        >
                           <svg
                             className={`w-4 h-4 text-white/60 transition-transform ${isTeamExpanded ? 'rotate-90' : ''}`}
                             fill="none"
@@ -5744,39 +6163,30 @@ export default function CustomTemplatePage() {
                             <span className="text-sm font-semibold text-white">{team.name || `Team ${index + 1}`}</span>
                             <span className="text-xs text-white/40">({team.players.length} spelers)</span>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
+                        </button>
+                        <div className="flex gap-2 flex-shrink-0">
                           <button
                             disabled={index === 0}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveTeam(index, index - 1);
-                            }}
+                            onClick={() => moveTeam(index, index - 1)}
                             className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
                           >
                             ↑
                           </button>
                           <button
                             disabled={index === teamsSettings.teams.length - 1}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveTeam(index, index + 1);
-                            }}
+                            onClick={() => moveTeam(index, index + 1)}
                             className="px-2 py-1 border border-white/10 rounded-lg hover:border-white/40 transition text-white/70 disabled:opacity-30 text-xs"
                           >
                             ↓
                           </button>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeTeam(team.id);
-                            }}
+                            onClick={() => removeTeam(team.id)}
                             className="px-2 py-1 border border-white/10 rounded-lg hover:border-red-400 transition text-red-300 text-xs"
                           >
                             ×
                           </button>
                         </div>
-                      </button>
+                      </div>
                       {isTeamExpanded && (
                         <div className="px-3 pb-3 space-y-3 border-t border-white/10 pt-3">
                           <DroppableImageField
@@ -5785,50 +6195,39 @@ export default function CustomTemplatePage() {
                             onChange={(url) => updateTeam(team.id, 'logoUrl', url)}
                             label="Team Logo"
                           >
-                            <div className="rounded-xl border border-white/10 bg-[#05060F] p-3 space-y-2">
-                              <div className="flex items-center gap-3">
-                                <div className="w-16 h-16 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-                                  {team.logoUrl ? (
-                                    <img src={team.logoUrl} alt="Team logo" className="w-full h-full object-cover" />
-                                  ) : (
-                                    <Icon name="image" className="w-6 h-6 text-white/30" />
-                                  )}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                  <input
-                                    type="text"
-                                    value={team.logoUrl}
-                                    onChange={(e) => updateTeam(team.id, 'logoUrl', e.target.value)}
-                                    className="w-full px-3 py-2 rounded-lg bg-[#0B0D1E] border border-white/10 text-sm"
-                                    placeholder="https://images.rosh.gg/team-logo.png"
-                                  />
-                                  <div className="flex gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => teamLogoInputRefs.current[team.id]?.click()}
-                                      className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
-                                    >
-                                      Upload bestand
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setActiveTab('uploads')}
-                                      className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
-                                    >
-                                      Media library
-                                    </button>
-                                    {team.logoUrl && (
-                                      <button
-                                        type="button"
-                                        onClick={() => updateTeam(team.id, 'logoUrl', '')}
-                                        className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition"
-                                      >
-                                        Verwijder
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
+                            <div className="rounded-xl border border-white/10 bg-[#05060F] p-3 space-y-2 min-w-0">
+                              <div className="flex gap-2 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => teamLogoInputRefs.current[team.id]?.click()}
+                                  className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                                >
+                                  Upload
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab('uploads')}
+                                  className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition flex-shrink-0"
+                                >
+                                  Library
+                                </button>
+                                {team.logoUrl && (
+                                  <button
+                                    type="button"
+                                    onClick={() => updateTeam(team.id, 'logoUrl', '')}
+                                    className="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-300 hover:border-red-400 transition flex-shrink-0"
+                                  >
+                                    ×
+                                  </button>
+                                )}
                               </div>
+                              <input
+                                type="text"
+                                value={team.logoUrl}
+                                onChange={(e) => updateTeam(team.id, 'logoUrl', e.target.value)}
+                                className="w-full min-w-0 px-2 py-1.5 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                placeholder="URL"
+                              />
                               <input
                                 ref={(el) => { teamLogoInputRefs.current[team.id] = el; }}
                                 type="file"
@@ -5887,31 +6286,24 @@ export default function CustomTemplatePage() {
                                 return (
                                   <div key={player.id} className="rounded-xl border border-white/10 bg-[#05060F] p-2 space-y-2">
                                     <div className="flex items-center gap-2 min-w-0">
-                                      <DroppableImageField
-                                        id={`player-avatar-${player.id}`}
-                                        value={player.avatarUrl}
-                                        onChange={(url) => updateTeamPlayer(team.id, player.id, 'avatarUrl', url)}
-                                        label=""
+                                      <button
+                                        type="button"
+                                        onClick={() => playerAvatarInputRefs.current[`${team.id}-${player.id}`]?.click()}
+                                        className="w-10 h-10 flex-shrink-0 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-white/30 transition"
                                       >
-                                        <button
-                                          type="button"
-                                          onClick={() => playerAvatarInputRefs.current[player.id]?.click()}
-                                          className="w-10 h-10 flex-shrink-0 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-white/30 transition"
-                                        >
-                                          {player.avatarUrl ? (
-                                            <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
-                                          ) : (
-                                            <div className="w-5 h-5 text-white/30 flex items-center justify-center text-xs">👤</div>
-                                          )}
-                                        </button>
-                                        <input
-                                          ref={(el) => { playerAvatarInputRefs.current[player.id] = el; }}
-                                          type="file"
-                                          accept="image/*"
-                                          className="hidden"
-                                          onChange={(e) => handleImageUpload(e, (url) => updateTeamPlayer(team.id, player.id, 'avatarUrl', url))}
-                                        />
-                                      </DroppableImageField>
+                                        {player.avatarUrl ? (
+                                          <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <div className="w-5 h-5 text-white/30 flex items-center justify-center text-xs">👤</div>
+                                        )}
+                                      </button>
+                                      <input
+                                        ref={(el) => { playerAvatarInputRefs.current[`${team.id}-${player.id}`] = el; }}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => handleImageUpload(e, (url) => updateTeamPlayer(team.id, player.id, 'avatarUrl', url))}
+                                      />
                                       <input
                                         value={player.name}
                                         onChange={(e) => updateTeamPlayer(team.id, player.id, 'name', e.target.value)}
@@ -5942,22 +6334,13 @@ export default function CustomTemplatePage() {
                                       </div>
                                     </div>
                                     {player.avatarUrl && (
-                                      <div className="flex gap-2 min-w-0">
-                                        <input
-                                          type="text"
-                                          value={player.avatarUrl}
-                                          onChange={(e) => updateTeamPlayer(team.id, player.id, 'avatarUrl', e.target.value)}
-                                          className="flex-1 min-w-0 px-2 py-1 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
-                                          placeholder="Avatar URL"
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() => playerAvatarInputRefs.current[player.id]?.click()}
-                                          className="px-2 py-1 flex-shrink-0 rounded-lg border border-white/10 text-xs text-white/80 hover:border-white/40 transition"
-                                        >
-                                          Upload
-                                        </button>
-                                      </div>
+                                      <input
+                                        type="text"
+                                        value={player.avatarUrl}
+                                        onChange={(e) => updateTeamPlayer(team.id, player.id, 'avatarUrl', e.target.value)}
+                                        className="w-full px-2 py-1 rounded-lg bg-[#0B0D1E] border border-white/10 text-xs"
+                                        placeholder="URL"
+                                      />
                                     )}
                                   </div>
                                 );
@@ -6443,9 +6826,9 @@ export default function CustomTemplatePage() {
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden relative pt-[85px]">
+      <main className="flex-1 overflow-hidden relative pt-[85px]">
         {/* Left panel */}
-        <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10">
+        <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10 flex-shrink-0">
           <div className="w-20 border-r border-white/10 flex flex-col items-center py-6 px-3 gap-4">
             {[
               { id: 'components', label: 'Components', icon: 'components' as IconName },
@@ -6497,11 +6880,62 @@ export default function CustomTemplatePage() {
             <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-5 py-5 pr-10 -mr-6 space-y-4">
               {activeTab === 'components' && (
                 isHydrated ? (
-                <SortableContext
-                  items={componentOrder}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {sortedComponents.map((component) => {
+                <>
+                  <div className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border-2 transition-all ${
+                    COMPONENTS.every(comp => componentState[comp.id]) 
+                      ? 'border-[#4AD4FF] bg-gradient-to-r from-[#755DFF]/20 to-[#4AD4FF]/20' 
+                      : 'border-white/20 bg-[#11132A] hover:border-white/40'
+                  }`}>
+                    <div className="flex items-center gap-3 text-left flex-1">
+                      <div className={`p-2 rounded-lg ${
+                        COMPONENTS.every(comp => componentState[comp.id]) 
+                          ? 'bg-gradient-to-br from-[#755DFF] to-[#4AD4FF]' 
+                          : 'bg-white/10'
+                      }`}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                          <polyline points="9 11 12 14 22 4" />
+                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">Select All</p>
+                        <p className="text-xs text-white/50">
+                          {COMPONENTS.every(comp => componentState[comp.id]) ? 'all components visible' : 'click to show all'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const allVisible = COMPONENTS.every(comp => componentState[comp.id]);
+                        setComponentState((prev) => {
+                          const newState = COMPONENTS.reduce((acc, comp) => {
+                            acc[comp.id] = !allVisible;
+                            return acc;
+                          }, {} as Record<string, boolean>);
+                          return { ...prev, ...newState };
+                        });
+                      }}
+                      className={`relative inline-flex items-center h-6 w-11 rounded-full transition-all duration-300 shadow-lg ${
+                        COMPONENTS.every(comp => componentState[comp.id]) 
+                          ? 'bg-gradient-to-r from-[#755DFF] to-[#4AD4FF] shadow-[#755DFF]/50' 
+                          : 'bg-white/20 shadow-none'
+                      }`}
+                      role="switch"
+                      aria-checked={COMPONENTS.every(comp => componentState[comp.id])}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 bg-white rounded-full transform transition-all duration-300 shadow-md ${
+                          COMPONENTS.every(comp => componentState[comp.id]) ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <SortableContext
+                    items={componentOrder}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {sortedComponents.map((component) => {
                     const isActive = activeComponent === component.id;
                     return (
                       <SortableComponentItem
@@ -6520,7 +6954,8 @@ export default function CustomTemplatePage() {
                       />
                     );
                   })}
-                </SortableContext>
+                  </SortableContext>
+                </>
                 ) : (
                   <div className="text-sm text-white/50">Componenten laden...</div>
                 )
@@ -6849,7 +7284,7 @@ export default function CustomTemplatePage() {
         </aside>
 
         {/* Middle preview area */}
-        <section className="flex-1 bg-[#03040B] relative flex flex-col ml-[420px] mr-[360px] h-[calc(100vh-85px)] overflow-hidden">
+        <section className="bg-[#03040B] absolute left-[420px] right-[368px] top-[85px] bottom-0 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
             <div 
               className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col mx-auto"
@@ -6941,14 +7376,36 @@ export default function CustomTemplatePage() {
                       ? 'py-12 px-4 sm:py-16 md:py-24 lg:py-32 sm:px-6' 
                       : 'py-12 px-4 sm:py-16 md:py-20 sm:px-6'
                   }`}
-                  style={{ backgroundColor: colorPalette.sectionBackground, order: componentOrderMap['hero'] ?? 1 }}
+                  style={{ 
+                    backgroundColor: colorPalette.sectionBackground, 
+                    order: componentOrderMap['hero'] ?? 1,
+                    ...(heroSettings.backgroundImageUrl && !selectedHeroTemplate.requiresImage ? {
+                      backgroundImage: `url(${heroSettings.backgroundImageUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    } : {})
+                  }}
                 >
+                  {heroSettings.backgroundImageUrl && !selectedHeroTemplate.requiresImage && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        backgroundImage: `url(${heroSettings.backgroundImageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        zIndex: 0,
+                      }}
+                    />
+                  )}
                   <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       backgroundColor: heroSettings.overlayColor,
                       opacity: heroSettings.overlayOpacity / 100,
                       filter: heroSettings.blurOverlay ? 'blur(8px)' : 'none',
+                      zIndex: 1,
                     }}
                   />
                   <div
@@ -7066,7 +7523,7 @@ export default function CustomTemplatePage() {
 
                     return (
                       <div
-                        className={`container mx-auto relative z-20 ${isSplitLayout ? 'max-w-6xl grid gap-12 md:grid-cols-2 items-center px-4' : 'max-w-5xl flex flex-col gap-6 px-4'}`}
+                        className={`container mx-auto relative z-10 ${isSplitLayout ? 'max-w-6xl grid gap-12 md:grid-cols-2 items-center px-4' : 'max-w-5xl flex flex-col gap-6 px-4'}`}
                         style={{ justifyContent: isSplitLayout ? undefined : justifyContent }}
                       >
                         {isSplitLayout && imageFirst && imageBlock}
@@ -8581,111 +9038,345 @@ export default function CustomTemplatePage() {
                     style={{ borderColor: colorPalette.primary }}
                   />
                   <div className="container mx-auto max-w-6xl px-4 sm:px-6">
-                    <div
-                      className="grid mb-8"
-                      style={{ 
-                        gridTemplateColumns:
-                          footerSettings.layout === 'centered'
-                            ? '1fr'
-                            : footerSettings.layout === 'two-columns'
-                            ? 'repeat(2, minmax(0, 1fr))'
-                            : 'repeat(3, minmax(0, 1fr))',
-                        gap: footerSettings.spacing,
-                      }}
-                    >
-                      <div>
+                    {/* Minimal template - only logo, description and copyright */}
+                    {footerSettings.template === 'minimal' ? (
+                      <div className="flex flex-col items-center text-center space-y-4 mb-6">
                         <DroppableImageArea
                           id="preview-footer-logo"
                           value={footerSettings.logoUrl}
                           onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
-                          className="mb-4"
+                          className="mb-3"
                           minHeight="40px"
                         >
                           {footerSettings.logoUrl ? (
-                            <img src={footerSettings.logoUrl} alt="Footer logo" className="h-10 object-contain" />
+                            <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
                           ) : (
-                            <HeadingText level="h1" color={footerSettings.textColor} className="text-lg sm:text-xl font-bold">
+                            <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
                               Winter Championship 2026
-                            </HeadingText>
+                            </div>
                           )}
                         </DroppableImageArea>
-                        <BodyText className="opacity-80" variant="small" color={footerSettings.textColor}>
+                        <p className="text-xs opacity-80 leading-relaxed max-w-md" style={{ color: footerSettings.textColor }}>
                           {footerSettings.description}
-                        </BodyText>
+                        </p>
                       </div>
-                      <div>
-                        <HeadingText
-                          level="h2"
-                          className="mb-4 uppercase tracking-wider"
-                          color={footerSettings.textColor}
-                        >
-                          Toernooi
-                        </HeadingText>
-                        <ul className="space-y-2">
-                          {footerSettings.links.tournament.map((link) => (
-                            <li key={link.id}>
-                              <a 
-                                href={link.link}
-                                className="text-sm opacity-80 hover:opacity-100 transition"
-                                style={{ color: footerSettings.textColor }}
+                    ) : (
+                      <div
+                        className={`mb-6 ${
+                          footerSettings.template === 'centered'
+                            ? 'flex flex-col items-center text-center'
+                            : 'grid'
+                        }`}
+                        style={{ 
+                          gridTemplateColumns:
+                            footerSettings.template === 'centered'
+                              ? undefined
+                              : footerSettings.template === 'three-columns' || footerSettings.template === 'two-columns'
+                              ? 'repeat(4, minmax(0, 1fr))'
+                              : 'repeat(3, minmax(0, 1fr))',
+                          gap: footerSettings.spacing,
+                        }}
+                      >
+                        {/* Logo column - only shown for three-columns, hidden for two-columns */}
+                        {footerSettings.template === 'three-columns' && (
+                          <div>
+                            <DroppableImageArea
+                              id="preview-footer-logo"
+                              value={footerSettings.logoUrl}
+                              onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+                              className="mb-3"
+                              minHeight="40px"
+                            >
+                              {footerSettings.logoUrl ? (
+                                <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
+                              ) : (
+                                <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
+                                  Winter Championship 2026
+                                </div>
+                              )}
+                            </DroppableImageArea>
+                            <p className="text-xs opacity-80 leading-relaxed" style={{ color: footerSettings.textColor }}>
+                              {footerSettings.description}
+                            </p>
+                          </div>
+                        )}
+                        {/* Classic template: 3 separate columns */}
+                        {footerSettings.template === 'three-columns' && (
+                            <>
+                              <div>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                  Toernooi
+                                </h3>
+                                <ul className="space-y-1.5">
+                                  {footerSettings.links.tournament.map((link) => (
+                                    <li key={link.id}>
+                                      <a 
+                                        href={link.link}
+                                        className="text-xs opacity-80 hover:opacity-100 transition"
+                                        style={{ color: footerSettings.textColor }}
+                                      >
+                                        {link.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                  Informatie
+                                </h3>
+                                <ul className="space-y-1.5">
+                                  {footerSettings.links.info.map((link) => (
+                                    <li key={link.id}>
+                                      <a 
+                                        href={link.link}
+                                        className="text-xs opacity-80 hover:opacity-100 transition"
+                                        style={{ color: footerSettings.textColor }}
+                                      >
+                                        {link.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                  Contact
+                                </h3>
+                                <ul className="space-y-1.5">
+                                  {footerSettings.links.contact.map((link) => (
+                                    <li key={link.id}>
+                                      <a 
+                                        href={link.link}
+                                        className="text-xs opacity-80 hover:opacity-100 transition"
+                                        style={{ color: footerSettings.textColor }}
+                                      >
+                                        {link.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </>
+                          )}
+
+                        {/* Two Column template: Logo in middle, 3 link columns */}
+                        {footerSettings.template === 'two-columns' && (
+                          <>
+                            {/* Empty first column */}
+                            <div></div>
+                            
+                            {/* Logo in middle (second column) */}
+                            <div className="flex flex-col items-center text-center">
+                              <DroppableImageArea
+                                id="preview-footer-logo-two"
+                                value={footerSettings.logoUrl}
+                                onChange={(url) => setFooterSettings((prev) => ({ ...prev, logoUrl: url }))}
+                                className="mb-3"
+                                minHeight="40px"
                               >
-                                {link.label}
+                                {footerSettings.logoUrl ? (
+                                  <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
+                                ) : (
+                                  <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
+                                    Winter Championship 2026
+                                  </div>
+                                )}
+                              </DroppableImageArea>
+                              <p className="text-xs opacity-80 leading-relaxed max-w-xs" style={{ color: footerSettings.textColor }}>
+                                {footerSettings.description}
+                              </p>
+                            </div>
+                            
+                            {/* Links column (third column) */}
+                            <div>
+                              <div className="space-y-4">
+                                <div>
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                    Toernooi
+                                  </h3>
+                                  <ul className="space-y-1.5">
+                                    {footerSettings.links.tournament.map((link) => (
+                                      <li key={link.id}>
+                                        <a 
+                                          href={link.link}
+                                          className="text-xs opacity-80 hover:opacity-100 transition"
+                                          style={{ color: footerSettings.textColor }}
+                                        >
+                                          {link.label}
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                    Informatie
+                                  </h3>
+                                  <ul className="space-y-1.5">
+                                    {footerSettings.links.info.map((link) => (
+                                      <li key={link.id}>
+                                        <a 
+                                          href={link.link}
+                                          className="text-xs opacity-80 hover:opacity-100 transition"
+                                          style={{ color: footerSettings.textColor }}
+                                        >
+                                          {link.label}
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Contact column (fourth column) */}
+                            <div>
+                              <div>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                  Contact
+                                </h3>
+                                <ul className="space-y-1.5">
+                                  {footerSettings.links.contact.map((link) => (
+                                    <li key={link.id}>
+                                      <a 
+                                        href={link.link}
+                                        className="text-xs opacity-80 hover:opacity-100 transition"
+                                        style={{ color: footerSettings.textColor }}
+                                      >
+                                        {link.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              {footerSettings.showSocials && (
+                                <div className="pt-4 mt-4 border-t" style={{ borderColor: colorPalette.border }}>
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                    Social Media
+                                  </h3>
+                                  <ul className="space-y-1.5">
+                                    {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
+                                      <li key={icon.id}>
+                                        <a href={icon.link} className="text-xs opacity-80 hover:opacity-100 transition" style={{ color: footerSettings.textColor }}>
+                                          {icon.label}
+                                        </a>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+
+                        {/* Stacked/Centered template: All links vertically stacked */}
+                        {footerSettings.template === 'centered' && (
+                          <div className="w-full space-y-6">
+                            <div>
+                              <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                Toernooi
+                              </h3>
+                              <ul className="space-y-1.5">
+                                {footerSettings.links.tournament.map((link) => (
+                                  <li key={link.id}>
+                                    <a 
+                                      href={link.link}
+                                      className="text-xs opacity-80 hover:opacity-100 transition"
+                                      style={{ color: footerSettings.textColor }}
+                                    >
+                                      {link.label}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                Informatie
+                              </h3>
+                              <ul className="space-y-1.5">
+                                {footerSettings.links.info.map((link) => (
+                                  <li key={link.id}>
+                                    <a 
+                                      href={link.link}
+                                      className="text-xs opacity-80 hover:opacity-100 transition"
+                                      style={{ color: footerSettings.textColor }}
+                                    >
+                                      {link.label}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div>
+                              <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                Contact
+                              </h3>
+                              <ul className="space-y-1.5">
+                                {footerSettings.links.contact.map((link) => (
+                                  <li key={link.id}>
+                                    <a 
+                                      href={link.link}
+                                      className="text-xs opacity-80 hover:opacity-100 transition"
+                                      style={{ color: footerSettings.textColor }}
+                                    >
+                                      {link.label}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            {footerSettings.showSocials && (
+                              <div className="pt-4 border-t" style={{ borderColor: colorPalette.border }}>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: footerSettings.textColor }}>
+                                  Social Media
+                                </h3>
+                                <ul className="flex flex-wrap justify-center gap-4">
+                                  {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
+                                    <li key={icon.id}>
+                                      <a href={icon.link} className="text-xs opacity-80 hover:opacity-100 transition" style={{ color: footerSettings.textColor }}>
+                                        {icon.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Social Media for Classic template - shown below links */}
+                    {footerSettings.showSocials && footerSettings.template === 'three-columns' && (
+                      <div className="mt-6 pt-6 border-t w-full" style={{ borderColor: colorPalette.border }}>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider mb-3 text-center" style={{ color: footerSettings.textColor }}>
+                          Volg ons
+                        </h3>
+                        <ul className="flex flex-wrap justify-center gap-4">
+                          {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
+                            <li key={icon.id}>
+                              <a href={icon.link} className="text-xs opacity-80 hover:opacity-100 transition" style={{ color: footerSettings.textColor }}>
+                                {icon.label}
                               </a>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div>
-                        <HeadingText
-                          level="h2"
-                          className="mb-4 uppercase tracking-wider"
-                          color={footerSettings.textColor}
-                        >
-                          Informatie
-                        </HeadingText>
-                        <ul className="space-y-2">
-                          {footerSettings.links.info.map((link) => (
-                            <li key={link.id}>
-                              <a 
-                                href={link.link}
-                                className="text-sm opacity-80 hover:opacity-100 transition"
-                                style={{ color: footerSettings.textColor }}
-                              >
-                                {link.label}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      {footerSettings.showSocials && (
-                        <div>
-                          <HeadingText
-                            level="h2"
-                            className="mb-4 uppercase tracking-wider"
-                            color={footerSettings.textColor}
-                          >
-                            Social Media
-                          </HeadingText>
-                          <ul className="space-y-2">
-                            {socialSettings.icons.filter((icon) => icon.enabled).map((icon) => (
-                              <li key={icon.id}>
-                                <a href={icon.link} className="text-sm opacity-80 hover:opacity-100 transition" style={{ color: footerSettings.textColor }}>
-                                  {icon.label}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                    <BodyText
-                      className="pt-8 text-center opacity-60"
-                      variant="small"
-                      color={footerSettings.textColor}
-                      style={{ borderTop: footerSettings.divider ? `1px solid ${colorPalette.border}` : 'none' }}
+                    )}
+
+                    <div
+                      className="pt-6 text-center"
+                      style={{ 
+                        borderTop: footerSettings.divider && footerSettings.template !== 'three-columns' ? `1px solid ${colorPalette.border}` : 'none',
+                        paddingTop: footerSettings.divider && footerSettings.template !== 'three-columns' ? '1.5rem' : footerSettings.template === 'three-columns' && footerSettings.showSocials ? '0' : '1.5rem'
+                      }}
                     >
-                      {footerSettings.copyright}
-                    </BodyText>
+                      <p className="text-xs opacity-60" style={{ color: footerSettings.textColor }}>
+                        {footerSettings.copyright}
+                      </p>
+                    </div>
                   </div>
                 </footer>
               )}
@@ -8694,7 +9385,7 @@ export default function CustomTemplatePage() {
         </section>
 
         {/* Right panel */}
-        <aside className="w-[360px] bg-[#0E1020] border-l border-white/10 flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10">
+        <aside className="w-[400px] bg-[#0E1020] border-l border-white/10 flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10 flex-shrink-0">
           <div className="px-6 py-5 border-b border-white/10">
             <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">{activeComponentLabel}</p>
             <h2 className="text-lg font-semibold">Configureer de {activeComponentLabel}</h2>

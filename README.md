@@ -53,6 +53,41 @@ Open [http://localhost:3000](http://localhost:3000) in je browser.
 
 - **Toernooi Pagina** (`/[slug]`) - Bekijk gepubliceerde toernooien
 
+- **Custom Page Editor** (`/custom`) - Visuele editor voor toernooi websites
+
+  - **Wat is het?** Een visuele drag-and-drop editor waarmee je volledige toernooi websites kunt bouwen zonder code te schrijven. Alles gebeurt visueel met live preview.
+
+  - **Hoe werkt het?**
+    1. **Componenten selecteren**: Kies in het linker paneel welke componenten je wilt gebruiken (Navigation, Hero, About, Teams, etc.)
+    2. **Volgorde aanpassen**: Sleep componenten omhoog of omlaag om de volgorde te wijzigen
+    3. **Componenten configureren**: Klik op een component in de lijst om het rechter paneel te openen met alle instellingen
+    4. **Live preview**: Alle wijzigingen zie je direct in het midden van het scherm
+    5. **Aanpassen**: Pas tekst, kleuren, fonts, afbeeldingen, layouts en meer aan via de instellingen panelen
+
+  - **Beschikbare componenten**:
+    - **Navigation**: Logo, menu items, CTA button
+    - **Hero**: Verschillende templates met tekst, buttons en afbeeldingen
+    - **About**: Informatie sectie met afbeelding en tekst
+    - **Program**: Programma/schema weergave
+    - **Teams**: Team overzicht met spelers en logo's
+    - **Bracket**: Toernooi bracket visualisatie
+    - **FAQ**: Veelgestelde vragen sectie
+    - **Footer**: Verschillende footer layouts
+
+  - **Features**:
+    - 🎨 **Kleuren**: Pas globale kleuren aan die door de hele website worden gebruikt
+    - 🔤 **Fonts**: Kies fonts en pas groottes aan
+    - 🖼️ **Afbeeldingen**: Upload afbeeldingen of gebruik URLs
+    - 📱 **Responsive**: Bekijk hoe je website eruit ziet op desktop, tablet of mobile
+    - 🔄 **Drag & Drop**: Sleep componenten om de volgorde te wijzigen
+    - 👁️ **Live Preview**: Zie alle wijzigingen direct in real-time
+
+  - **Tips**:
+    - Gebruik de viewport switcher (bovenaan rechts) om te zien hoe je site eruit ziet op verschillende schermen
+    - Klik op "Fullscreen" voor een volledig scherm preview
+    - Gebruik de "Reset" knop om alle instellingen terug te zetten naar standaardwaarden
+    - Componenten kunnen worden verborgen door het oog-icoon uit te zetten
+
 ## 🛠️ Tech Stack
 
 - **Next.js 15** - React framework
