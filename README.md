@@ -97,10 +97,9 @@ A multi-step wizard that uses AI (Claude) to generate complete tournament websit
    - Code is parsed and separated into HTML/CSS/JS components
 
 6. **Live Editor**
-   - After generation, opens the Component Editor
+   - After generation, opens the live code editor
    - Edit HTML, CSS, and JavaScript in real-time
    - Live preview with iframe
-   - Component-based editing (select components to edit)
    - Save as draft or publish
 
 **Technical Details:**
@@ -160,55 +159,7 @@ A drag-and-drop visual editor for building tournament websites without writing c
 - FAQ
 - Group Stage
 
-### 4. Auto Editor (`/editor/auto`)
-
-A live configuration editor with real-time AI regeneration.
-
-**Features:**
-
-- **Live Configuration Panel**: Edit tournament settings in real-time
-- **Auto-Regeneration**: Changes automatically trigger AI regeneration
-- **Manual Regeneration**: Button to manually regenerate
-- **Preview Tab**: See generated website
-- **Code Tab**: View generated HTML/CSS/JS code
-- **Save Changes**: Save edits to database (when editing existing tournament)
-
-**How it works:**
-
-- Configuration state triggers automatic regeneration
-- Uses same AI generation as wizard
-- Falls back to mock generator if Claude API fails
-- Can load existing tournament for editing
-
-### 5. Component Editor
-
-A shared component used by the AI Wizard for editing generated code.
-
-**Features:**
-
-- **Three-Tab Code Editor**: HTML, CSS, JavaScript tabs
-- **Component List**: Automatically parses and lists all components
-- **Component Selection**: Click components to highlight and edit
-- **Live Preview**: Real-time iframe preview
-- **Viewport Switching**: Desktop, tablet, mobile views
-- **Color Customization**: Global color settings
-- **Font Customization**: Title and text font settings
-- **Save & Publish**: Save as draft or publish tournament
-
-**Component Parsing:**
-
-- Scans HTML for `data-component` attributes
-- Groups components by type
-- Allows editing individual components
-- Updates preview in real-time
-
-**Code Structure:**
-
-- HTML: Component structure with semantic elements
-- CSS: CSS Variables for customization, component-scoped styles
-- JavaScript: Modular functions per component, config objects
-
-### 6. Tournament Pages (`/[slug]`)
+### 3. Tournament Pages (`/[slug]`)
 
 Public-facing pages for published tournaments.
 
@@ -241,16 +192,13 @@ app/
 │   ├── openai/         # Claude API proxy
 │   └── tournaments/    # Tournament CRUD endpoints
 ├── components/
-│   ├── ComponentEditor.tsx    # Shared code editor
 │   ├── LiveCodeEditor.tsx      # Code editor with preview
 │   ├── LivePreview.tsx          # Preview component
 │   └── ...
 ├── custom/             # Visual drag-and-drop editor
 ├── dashboard/          # Tournament management
 ├── editor/
-│   ├── wizard/         # AI wizard editor
-│   ├── auto/           # Auto-regeneration editor
-│   └── page.tsx        # Manual config editor
+│   └── wizard/         # AI wizard editor
 └── utils/
     ├── claude-template-generator.ts  # AI generation logic
     ├── component-parser.ts           # Component parsing
@@ -301,7 +249,7 @@ app/
 2. **JSON + System Prompt** → Combined into complete prompt
 3. **Claude API** → Generates HTML/CSS/JS code
 4. **Code Parsing** → Extracts HTML, CSS, JS from response
-5. **Component Editor** → Displays code for editing
+5. **Live Editor** → Displays code for editing
 6. **Database Save** → Stores code in separate columns
 
 **System Prompt:**
@@ -354,8 +302,7 @@ The AI Live Editor combines:
 1. **Wizard Interface**: Step-by-step questionnaire
 2. **AI Generation**: Claude API generates complete websites
 3. **Code Editor**: Edit generated code in real-time
-4. **Component Parsing**: Automatically identifies and lists components
-5. **Live Preview**: See changes instantly in iframe
+4. **Live Preview**: See changes instantly in iframe
 
 **Use Case**: Users who want AI to generate a website, then fine-tune it manually.
 
@@ -370,16 +317,6 @@ The Custom Live Editor provides:
 5. **Responsive Preview**: Test on different screen sizes
 
 **Use Case**: Users who want full control without writing code.
-
-### Component-Based Architecture
-
-Both editors use a component-based approach:
-
-- Components are identified by `data-component` attributes
-- Each component is self-contained (HTML/CSS/JS)
-- Components can be edited individually
-- CSS Variables allow easy theming
-- Modular JavaScript for maintainability
 
 ## ❓ Troubleshooting
 
@@ -410,7 +347,7 @@ Both editors use a component-based approach:
 - `app/dashboard/page.tsx` - Tournament management dashboard
 - `app/editor/wizard/page.tsx` - AI wizard editor
 - `app/custom/page.tsx` - Visual drag-and-drop editor
-- `app/components/ComponentEditor.tsx` - Shared code editor component
+- `app/components/LiveCodeEditor.tsx` - Code editor with preview
 - `app/utils/claude-template-generator.ts` - AI generation logic
 - `app/api/tournaments/route.ts` - Tournament API endpoints
 - `lib/supabase.ts` - Supabase client configuration
@@ -433,7 +370,7 @@ Both editors use a component-based approach:
 2. Load tournament data → Fetch from `/api/tournaments/{id}`
 3. Pre-fill wizard → Load `wizard_answers` into state
 4. Load code → Display in editor
-5. Make changes → Edit code/components
+5. Make changes → Edit code
 6. Save → Update database
 
 ## 🎨 Customization
