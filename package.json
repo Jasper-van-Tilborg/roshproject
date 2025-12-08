@@ -17,7 +17,7 @@
     "color": "^5.0.3",
     "contrast": "^1.0.1",
     "gsap": "^3.13.0",
-    "next": "15.5.3",
+    "next": "15.5.7",
     "ogl": "^1.0.11",
     "openai": "^4.0.0",
     "react": "19.1.0",
@@ -30,7 +30,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.3",
+    "eslint-config-next": "15.5.7",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
