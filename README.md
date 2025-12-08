@@ -1,10 +1,10 @@
-# Rosh Project
+# Rosh Project - Tournament Website Builder
 
-Een Next.js applicatie voor het maken en beheren van toernooi websites met AI-ondersteuning.
+A Next.js application for creating and managing tournament websites with AI-powered generation and visual editing capabilities.
 
-## 🚀 Snel Starten
+## 🚀 Quick Start
 
-### Installatie
+### Installation
 
 ```bash
 npm install
@@ -12,18 +12,18 @@ npm install
 
 ### Environment Variables
 
-Maak een `.env.local` bestand aan met:
+Create a `.env.local` file with:
 
 ```env
-# Supabase (verplicht)
-NEXT_PUBLIC_SUPABASE_URL=je_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=je_supabase_anon_key
+# Supabase (required)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Anthropic Claude API (verplicht voor AI)
-ANTHROPIC_API_KEY=je_anthropic_api_key
+# Anthropic Claude API (required for AI generation)
+ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
-**Waar haal je deze vandaan?**
+**Where to get these:**
 
 - **Supabase**: [supabase.com/dashboard](https://supabase.com/dashboard) → Project → Settings → API
 - **Anthropic**: [console.anthropic.com](https://console.anthropic.com/) → API Keys
@@ -34,101 +34,428 @@ ANTHROPIC_API_KEY=je_anthropic_api_key
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in je browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📋 Wat kan je doen?
+## 📋 Features
 
-- **Dashboard** (`/dashboard`) - Beheer toernooien
+### 1. Dashboard (`/dashboard`)
 
-  - Login: `admin` / `admin123`
-  - Maak nieuwe toernooien aan
-  - Bewerk bestaande toernooien
-  - Publiceer of verwijder toernooien
+The central hub for managing tournaments.
 
-- **AI Wizard** (`/editor/wizard`) - Maak websites met AI
+**Features:**
 
-  - Beantwoord vragen over je toernooi
-  - AI genereert automatisch een website
-  - Bewerk de code in real-time
+- Login system (default: `admin` / `admin123`)
+- Create new tournaments
+- Edit existing tournaments
+- Publish or delete tournaments
+- View tournament list with status indicators (draft/published)
 
-- **Toernooi Pagina** (`/[slug]`) - Bekijk gepubliceerde toernooien
+**How it works:**
 
-- **Custom Page Editor** (`/custom`) - Visuele editor voor toernooi websites
+- Tournaments are stored in Supabase database
+- Each tournament has: name, description, dates, location, colors, generated code
+- Status can be set to `draft` or `published`
+- Published tournaments are accessible via `/[slug]` route
 
-  - **Wat is het?** Een visuele drag-and-drop editor waarmee je volledige toernooi websites kunt bouwen zonder code te schrijven. Alles gebeurt visueel met live preview.
+### 2. AI Wizard Editor (`/editor/wizard`)
 
-  - **Hoe werkt het?**
-    1. **Componenten selecteren**: Kies in het linker paneel welke componenten je wilt gebruiken (Navigation, Hero, About, Teams, etc.)
-    2. **Volgorde aanpassen**: Sleep componenten omhoog of omlaag om de volgorde te wijzigen
-    3. **Componenten configureren**: Klik op een component in de lijst om het rechter paneel te openen met alle instellingen
-    4. **Live preview**: Alle wijzigingen zie je direct in het midden van het scherm
-    5. **Aanpassen**: Pas tekst, kleuren, fonts, afbeeldingen, layouts en meer aan via de instellingen panelen
+A multi-step wizard that uses AI (Claude) to generate complete tournament websites.
 
-  - **Beschikbare componenten**:
-    - **Navigation**: Logo, menu items, CTA button
-    - **Hero**: Verschillende templates met tekst, buttons en afbeeldingen
-    - **About**: Informatie sectie met afbeelding en tekst
-    - **Program**: Programma/schema weergave
-    - **Teams**: Team overzicht met spelers en logo's
-    - **Bracket**: Toernooi bracket visualisatie
-    - **FAQ**: Veelgestelde vragen sectie
-    - **Footer**: Verschillende footer layouts
+**How it works:**
 
-  - **Features**:
-    - 🎨 **Kleuren**: Pas globale kleuren aan die door de hele website worden gebruikt
-    - 🔤 **Fonts**: Kies fonts en pas groottes aan
-    - 🖼️ **Afbeeldingen**: Upload afbeeldingen of gebruik URLs
-    - 📱 **Responsive**: Bekijk hoe je website eruit ziet op desktop, tablet of mobile
-    - 🔄 **Drag & Drop**: Sleep componenten om de volgorde te wijzigen
-    - 👁️ **Live Preview**: Zie alle wijzigingen direct in real-time
+1. **Step 1: Basic Information**
 
-  - **Tips**:
-    - Gebruik de viewport switcher (bovenaan rechts) om te zien hoe je site eruit ziet op verschillende schermen
-    - Klik op "Fullscreen" voor een volledig scherm preview
-    - Gebruik de "Reset" knop om alle instellingen terug te zetten naar standaardwaarden
-    - Componenten kunnen worden verborgen door het oog-icoon uit te zetten
+   - Tournament name, description, date, location
+   - All fields are required
 
-## 🛠️ Tech Stack
+2. **Step 2: Game Details**
 
-- **Next.js 15** - React framework
+   - Game type (CS2, Valorant, League of Legends, etc.)
+   - Number of participants
+   - Bracket type (Single/Double Elimination, Group Stage, Round Robin)
+
+3. **Step 3: Design & Styling**
+
+   - Primary and secondary colors (with color picker)
+   - Font family selection
+
+4. **Step 4: Components**
+
+   - Optional components via checkboxes:
+     - Teams/Bracket display
+     - Twitch livestream
+     - Sponsors section
+     - Schedule/Program
+     - Registration form
+     - Social media links
+
+5. **AI Generation**
+
+   - Answers are formatted into a JSON object
+   - Sent to Claude API with a detailed system prompt
+   - Claude generates complete HTML, CSS, and JavaScript code
+   - Code is parsed and separated into HTML/CSS/JS components
+
+6. **Live Editor**
+   - After generation, opens the Component Editor
+   - Edit HTML, CSS, and JavaScript in real-time
+   - Live preview with iframe
+   - Component-based editing (select components to edit)
+   - Save as draft or publish
+
+**Technical Details:**
+
+- Uses Anthropic Claude Sonnet 4.5 model
+- System prompt instructs AI to generate editable, component-based code
+- Code uses `data-component` and `data-editable` attributes
+- CSS Variables for easy customization
+- Modular JavaScript structure
+
+**Edit Mode:**
+
+- Access via `/editor/wizard?edit=true&id={tournamentId}`
+- Loads existing tournament data from database
+- Pre-fills wizard answers
+- Loads generated code into editor
+
+### 3. Custom Visual Editor (`/custom`)
+
+A drag-and-drop visual editor for building tournament websites without writing code.
+
+**Features:**
+
+- **Component Library**: Pre-built components (Navigation, Hero, About, Teams, Bracket, Twitch, Sponsors, etc.)
+- **Drag & Drop**: Add components by dragging from sidebar
+- **Reorder**: Drag components to reorder them
+- **Edit Components**: Click components to edit their properties
+- **Color Customization**: Global color settings with live preview
+- **Font Settings**: Customize title and text fonts
+- **Image Uploads**: Upload and use images in components
+- **Live Preview**: See changes in real-time
+- **Responsive Viewports**: Desktop, tablet, mobile preview
+
+**How it works:**
+
+- Components are React components with editable props
+- Uses `@dnd-kit` for drag-and-drop functionality
+- Component state is managed in a centralized array
+- Each component has a unique ID and type
+- Changes are reflected immediately in preview
+
+**Available Components:**
+
+- Navigation
+- Hero
+- About
+- Program/Schedule
+- Bracket
+- Teams
+- Twitch Stream
+- Sponsors
+- Social Media Links
+- Footer
+- Image
+- Stats
+- Registration
+- FAQ
+- Group Stage
+
+### 4. Auto Editor (`/editor/auto`)
+
+A live configuration editor with real-time AI regeneration.
+
+**Features:**
+
+- **Live Configuration Panel**: Edit tournament settings in real-time
+- **Auto-Regeneration**: Changes automatically trigger AI regeneration
+- **Manual Regeneration**: Button to manually regenerate
+- **Preview Tab**: See generated website
+- **Code Tab**: View generated HTML/CSS/JS code
+- **Save Changes**: Save edits to database (when editing existing tournament)
+
+**How it works:**
+
+- Configuration state triggers automatic regeneration
+- Uses same AI generation as wizard
+- Falls back to mock generator if Claude API fails
+- Can load existing tournament for editing
+
+### 5. Component Editor
+
+A shared component used by the AI Wizard for editing generated code.
+
+**Features:**
+
+- **Three-Tab Code Editor**: HTML, CSS, JavaScript tabs
+- **Component List**: Automatically parses and lists all components
+- **Component Selection**: Click components to highlight and edit
+- **Live Preview**: Real-time iframe preview
+- **Viewport Switching**: Desktop, tablet, mobile views
+- **Color Customization**: Global color settings
+- **Font Customization**: Title and text font settings
+- **Save & Publish**: Save as draft or publish tournament
+
+**Component Parsing:**
+
+- Scans HTML for `data-component` attributes
+- Groups components by type
+- Allows editing individual components
+- Updates preview in real-time
+
+**Code Structure:**
+
+- HTML: Component structure with semantic elements
+- CSS: CSS Variables for customization, component-scoped styles
+- JavaScript: Modular functions per component, config objects
+
+### 6. Tournament Pages (`/[slug]`)
+
+Public-facing pages for published tournaments.
+
+**Features:**
+
+- Displays tournament information
+- Shows generated website code in iframe
+- Responsive design
+- SEO-friendly URLs
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+- **Next.js 15.5.7** - React framework with App Router
+- **React 19.1.0** - UI library
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Supabase** - Database
-- **Anthropic Claude** - AI website generatie
+- **Tailwind CSS 4** - Styling
+- **Supabase** - PostgreSQL database and authentication
+- **Anthropic Claude API** - AI website generation
+- **@dnd-kit** - Drag and drop functionality
+- **GSAP** - Animations
+
+### Project Structure
+
+```
+app/
+├── [slug]/              # Public tournament pages
+├── api/
+│   ├── openai/         # Claude API proxy
+│   └── tournaments/    # Tournament CRUD endpoints
+├── components/
+│   ├── ComponentEditor.tsx    # Shared code editor
+│   ├── LiveCodeEditor.tsx      # Code editor with preview
+│   ├── LivePreview.tsx          # Preview component
+│   └── ...
+├── custom/             # Visual drag-and-drop editor
+├── dashboard/          # Tournament management
+├── editor/
+│   ├── wizard/         # AI wizard editor
+│   ├── auto/           # Auto-regeneration editor
+│   └── page.tsx        # Manual config editor
+└── utils/
+    ├── claude-template-generator.ts  # AI generation logic
+    ├── component-parser.ts           # Component parsing
+    └── mock-template-generator.ts    # Fallback generator
+```
+
+### Database Schema
+
+**Tournaments Table:**
+
+- `id` - UUID primary key
+- `name` - Tournament name
+- `slug` - URL-friendly identifier
+- `description` - Tournament description
+- `start_date`, `end_date` - Event dates
+- `location` - Event location
+- `max_participants` - Participant limit
+- `primary_color`, `secondary_color` - Theme colors
+- `generated_code_html`, `generated_code_css`, `generated_code_js` - Generated code
+- `generated_code_full` - Complete HTML page
+- `wizard_answers` - JSON of wizard responses
+- `custom_components` - Array of component types
+- `status` - `draft` or `published`
+- `created_at`, `updated_at` - Timestamps
+
+### API Routes
+
+**`/api/openai`** (POST)
+
+- Proxies requests to Anthropic Claude API
+- Handles API key securely (server-side only)
+- Returns generated code
+
+**`/api/tournaments`** (GET, POST, PUT, DELETE)
+
+- GET: List tournaments (with optional filters)
+- POST: Create new tournament
+- PUT: Update existing tournament
+- DELETE: Delete tournament
+
+**`/api/tournaments/[slug]`** (GET)
+
+- Get single tournament by slug
+
+### AI Generation Flow
+
+1. **Wizard Answers** → Formatted to JSON object
+2. **JSON + System Prompt** → Combined into complete prompt
+3. **Claude API** → Generates HTML/CSS/JS code
+4. **Code Parsing** → Extracts HTML, CSS, JS from response
+5. **Component Editor** → Displays code for editing
+6. **Database Save** → Stores code in separate columns
+
+**System Prompt:**
+
+- 750+ lines of instructions
+- Specifies component structure
+- Requires `data-component` attributes
+- Enforces CSS Variables
+- Modular JavaScript structure
+- Responsive design requirements
 
 ## 📦 Scripts
 
 ```bash
-npm run dev      # Start development server
-npm run build    # Build voor productie
-npm start        # Start productie server
-npm run lint     # Check code kwaliteit
+npm run dev      # Start development server with Turbopack
+npm run build    # Build for production
+npm start        # Start production server
+npm run lint     # Check code quality
 ```
 
-## 🚢 Deployment naar Vercel
+## 🚢 Deployment
 
-1. Push code naar GitHub
-2. Importeer project in [Vercel](https://vercel.com)
-3. Voeg environment variables toe in Vercel Dashboard
+### Vercel Deployment
+
+1. Push code to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Add environment variables in Vercel Dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `ANTHROPIC_API_KEY`
 4. Deploy!
 
-Zie `SUPABASE_SETUP.md` voor database setup instructies.
+### Database Setup
 
-## 📝 Belangrijke Bestanden
+See `SUPABASE_SETUP.md` for database schema and setup instructions.
 
-- `app/dashboard/page.tsx` - Dashboard voor toernooi beheer
-- `app/editor/wizard/page.tsx` - AI wizard voor website generatie
-- `app/api/tournaments/route.ts` - API endpoints voor toernooien
-- `lib/supabase.ts` - Supabase client configuratie
+## 🔒 Security
 
-## 🔒 Veiligheid
+- **API Keys**: Never expose API keys in client-side code
+- **Supabase**: Use only the `anon`/`public` key (not `service_role`)
+- **Environment Variables**: `.env.local` is automatically ignored by git
+- **RLS**: Supabase Row Level Security should be configured
 
-- Gebruik alleen de **anon/public** key van Supabase (niet service_role)
-- Deel je API keys nooit publiekelijk
-- `.env.local` wordt automatisch genegeerd door git
+## 🎯 Key Features Explained
 
-## ❓ Problemen?
+### AI Live Editor
 
-- **Build faalt?** Controleer of alle environment variables zijn ingesteld
-- **Database errors?** Zie `SUPABASE_SETUP.md` voor setup instructies
-- **AI werkt niet?** Controleer of `ANTHROPIC_API_KEY` correct is ingesteld
+The AI Live Editor combines:
+
+1. **Wizard Interface**: Step-by-step questionnaire
+2. **AI Generation**: Claude API generates complete websites
+3. **Code Editor**: Edit generated code in real-time
+4. **Component Parsing**: Automatically identifies and lists components
+5. **Live Preview**: See changes instantly in iframe
+
+**Use Case**: Users who want AI to generate a website, then fine-tune it manually.
+
+### Custom Live Editor
+
+The Custom Live Editor provides:
+
+1. **Visual Building**: Drag-and-drop interface
+2. **No Code Required**: Build websites visually
+3. **Pre-built Components**: Ready-to-use tournament components
+4. **Real-time Editing**: Edit component properties instantly
+5. **Responsive Preview**: Test on different screen sizes
+
+**Use Case**: Users who want full control without writing code.
+
+### Component-Based Architecture
+
+Both editors use a component-based approach:
+
+- Components are identified by `data-component` attributes
+- Each component is self-contained (HTML/CSS/JS)
+- Components can be edited individually
+- CSS Variables allow easy theming
+- Modular JavaScript for maintainability
+
+## ❓ Troubleshooting
+
+**Build fails?**
+
+- Check all environment variables are set
+- Verify Next.js version compatibility
+
+**Database errors?**
+
+- See `SUPABASE_SETUP.md` for setup instructions
+- Check Supabase connection and RLS policies
+
+**AI not working?**
+
+- Verify `ANTHROPIC_API_KEY` is correct
+- Check API quota/limits
+- Review console for error messages
+
+**Editor not loading code?**
+
+- Check browser console for errors
+- Verify code format (should have HTML/CSS/JS separated)
+- Check component parsing logic
+
+## 📝 Important Files
+
+- `app/dashboard/page.tsx` - Tournament management dashboard
+- `app/editor/wizard/page.tsx` - AI wizard editor
+- `app/custom/page.tsx` - Visual drag-and-drop editor
+- `app/components/ComponentEditor.tsx` - Shared code editor component
+- `app/utils/claude-template-generator.ts` - AI generation logic
+- `app/api/tournaments/route.ts` - Tournament API endpoints
+- `lib/supabase.ts` - Supabase client configuration
+
+## 🔄 Data Flow
+
+### Creating a Tournament
+
+1. User fills wizard → Answers stored in state
+2. Click "Generate" → Answers formatted to JSON
+3. JSON sent to Claude API → AI generates code
+4. Code parsed → Separated into HTML/CSS/JS
+5. Code displayed in editor → User can edit
+6. Click "Save" → Code saved to database
+7. Click "Publish" → Status set to `published`
+
+### Editing a Tournament
+
+1. Click "Edit" in dashboard → Navigate to `/editor/wizard?edit=true&id={id}`
+2. Load tournament data → Fetch from `/api/tournaments/{id}`
+3. Pre-fill wizard → Load `wizard_answers` into state
+4. Load code → Display in editor
+5. Make changes → Edit code/components
+6. Save → Update database
+
+## 🎨 Customization
+
+### Adding New Components
+
+1. Create component in `app/custom/page.tsx`
+2. Add to component library array
+3. Define component props interface
+4. Add edit form in component editor
+5. Update component parser if needed
+
+### Modifying AI Generation
+
+1. Edit `app/utils/claude-template-generator.ts`
+2. Update `CLAUDE_SYSTEM_PROMPT` for new requirements
+3. Modify `buildClaudePrompt()` for new data format
+4. Adjust code parsing logic if output format changes
+
+## 📚 Additional Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Anthropic Claude API](https://docs.anthropic.com/)
+- [Tailwind CSS](https://tailwindcss.com/docs)
