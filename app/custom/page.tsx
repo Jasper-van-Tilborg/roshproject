@@ -969,6 +969,19 @@ const BASE_COLOR_FIELDS: Array<{ key: BaseColorKey; label: string; helper?: stri
 
 const THEME_PRESETS: Array<{ id: string; name: string; baseColors: Partial<Record<BaseColorKey, string>> }> = [
   {
+    id: 'default',
+    name: 'Default Purple',
+    baseColors: {
+      primary: '#755DFF',
+      secondary: '#3A7AFE',
+      accent: '#FF5F8D',
+      background: '#05060D',
+      text: '#FFFFFF',
+      surface: '#090B18',
+      surfaceAlt: '#11132A',
+    },
+  },
+  {
     id: 'neon',
     name: 'Neon Pulse',
     baseColors: {
@@ -977,6 +990,8 @@ const THEME_PRESETS: Array<{ id: string; name: string; baseColors: Partial<Recor
       accent: '#FF4ECD',
       background: '#01040E',
       text: '#F7F7FF',
+      surface: '#020510',
+      surfaceAlt: '#030718',
     },
   },
   {
@@ -988,6 +1003,8 @@ const THEME_PRESETS: Array<{ id: string; name: string; baseColors: Partial<Recor
       accent: '#FFD447',
       background: '#120404',
       text: '#FFF8F2',
+      surface: '#1A0505',
+      surfaceAlt: '#220606',
     },
   },
   {
@@ -999,6 +1016,60 @@ const THEME_PRESETS: Array<{ id: string; name: string; baseColors: Partial<Recor
       accent: '#B8FFCB',
       background: '#030711',
       text: '#E2F4FF',
+      surface: '#050A15',
+      surfaceAlt: '#080E1D',
+    },
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald Rush',
+    baseColors: {
+      primary: '#10B981',
+      secondary: '#059669',
+      accent: '#34D399',
+      background: '#041B0D',
+      text: '#ECFDF5',
+      surface: '#052E16',
+      surfaceAlt: '#064E2B',
+    },
+  },
+  {
+    id: 'crimson',
+    name: 'Crimson Arena',
+    baseColors: {
+      primary: '#EF4444',
+      secondary: '#DC2626',
+      accent: '#F87171',
+      background: '#0F0202',
+      text: '#FEF2F2',
+      surface: '#1A0404',
+      surfaceAlt: '#240606',
+    },
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Depth',
+    baseColors: {
+      primary: '#3B82F6',
+      secondary: '#2563EB',
+      accent: '#60A5FA',
+      background: '#020617',
+      text: '#EFF6FF',
+      surface: '#030A1C',
+      surfaceAlt: '#050F26',
+    },
+  },
+  {
+    id: 'gold',
+    name: 'Champion Gold',
+    baseColors: {
+      primary: '#F59E0B',
+      secondary: '#D97706',
+      accent: '#FBBF24',
+      background: '#0F0A00',
+      text: '#FFFBEB',
+      surface: '#1A1200',
+      surfaceAlt: '#241A00',
     },
   },
 ];
@@ -1075,22 +1146,7 @@ const DEFAULT_FONT_SETTINGS: FontSettings = {
   letterSpacing: 2,
 };
 
-const DEFAULT_UPLOADS: UploadItem[] = [
-  {
-    id: 'logo',
-    name: 'team-legion-logo.png',
-    url: 'https://images.rosh.gg/logo.png',
-    size: '320 KB',
-    usedIn: ['Navigation', 'Hero'],
-  },
-  {
-    id: 'banner',
-    name: 'hero-banner.jpg',
-    url: 'https://images.rosh.gg/banner.jpg',
-    size: '1.2 MB',
-    usedIn: ['Hero section'],
-  },
-];
+const DEFAULT_UPLOADS: UploadItem[] = [];
 
 const DEFAULT_OVERLAY_OPACITY = 0.72;
 
@@ -2009,6 +2065,13 @@ export default function CustomTemplatePage() {
     ensureFontLoaded(fontSettings.headingFamily);
     ensureFontLoaded(fontSettings.bodyFamily);
   }, [fontSettings.headingFamily, fontSettings.bodyFamily, ensureFontLoaded]);
+
+  // Ensure colorPalette is always in sync with baseColors
+  useEffect(() => {
+    const newPalette = generateColorPalette(baseColors);
+    setColorPalette(newPalette);
+    colorPaletteRef.current = newPalette;
+  }, [baseColors]);
 
   useEffect(() => {
     const prevPalette = colorPaletteRef.current;
