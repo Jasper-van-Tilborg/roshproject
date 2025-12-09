@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import type { ReactNode, MouseEvent as ReactMouseEvent, ChangeEvent, CSSProperties, JSX } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   DndContext,
@@ -28,31 +27,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { LivestreamEmbed } from '../components/livestream';
 
 const createId = () => Math.random().toString(36).substring(2, 9);
-
-// Helper function to parse Twitch channel from URL or return the input if it's already a channel name
-const parseChannelFromUrl = (input: string): string | null => {
-  if (!input || !input.trim()) return null;
-  const trimmed = input.trim();
-  // If it doesn't look like a URL, assume it's a channel name
-  if (!trimmed.includes('://') && !trimmed.includes('.')) {
-    return trimmed.toLowerCase();
-  }
-  try {
-    const url = new URL(trimmed);
-    if (!/twitch\.tv$/i.test(url.hostname)) return null;
-    const segments = url.pathname.split('/').filter(Boolean);
-    if (segments.length >= 1) {
-      const first = segments[0].toLowerCase();
-      if (first !== 'videos' && first !== 'directory') {
-        return first;
-      }
-    }
-    return null;
-  } catch {
-    // If URL parsing fails, treat as channel name
-    return trimmed.toLowerCase();
-  }
-};
 
 const moveItem = <T,>(list: T[], from: number, to: number) => {
   const updated = [...list];
@@ -384,17 +358,13 @@ function DraggableUploadItem({
 // Droppable Image Field Component (for settings panel)
 function DroppableImageField({ 
   id, 
-  value, 
   onChange, 
   label, 
-  placeholder,
   children 
 }: { 
   id: string; 
-  value: string; 
   onChange: (url: string) => void;
   label?: string;
-  placeholder?: string;
   children: ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -419,20 +389,16 @@ function DroppableImageField({
 // Droppable Image Area Component (for preview)
 function DroppableImageArea({ 
   id, 
-  value, 
   onChange, 
   className = '',
   style,
-  children,
-  minHeight = '100px'
+  children
 }: { 
   id: string; 
-  value: string; 
   onChange: (url: string) => void;
   className?: string;
   style?: React.CSSProperties;
   children: ReactNode;
-  minHeight?: string;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id,
@@ -783,12 +749,6 @@ const WEIGHT_OPTIONS = [
   { value: 600, label: 'Semi-bold (600)' },
   { value: 700, label: 'Bold (700)' },
   { value: 800, label: 'Extra-bold (800)' },
-];
-const LINE_HEIGHT_OPTIONS = [
-  { value: 120, label: 'Compact (120%)' },
-  { value: 135, label: 'Comfort (135%)' },
-  { value: 150, label: 'Ruim (150%)' },
-  { value: 165, label: 'Extra ruim (165%)' },
 ];
 
 const GOOGLE_FONT_CONFIG: Record<string, string> = {
@@ -2202,13 +2162,6 @@ export default function CustomTemplatePage() {
     [activeComponent]
   );
 
-  const handleToggleComponent = (id: string) => {
-    setComponentState((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-    setActiveComponent(id);
-  };
 
   const scrollToComponent = (id: string, element?: HTMLElement) => {
     setTimeout(() => {
@@ -4539,7 +4492,7 @@ export default function CustomTemplatePage() {
                 </button>
                 {expandedStatsSections.stats && (
                   <div className="px-4 pb-4 space-y-3">
-                    {statsSettings.stats.map((stat, idx) => (
+                    {statsSettings.stats.map((stat) => (
                       <div key={stat.id} className="rounded-xl border border-white/5 bg-[#11132A]/50 p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs uppercase tracking-[0.2em] text-white/50">Stat {idx + 1}</span>
@@ -5188,7 +5141,6 @@ export default function CustomTemplatePage() {
           </div>
         );
       case 'footer':
-        const selectedFooterTemplate = FOOTER_TEMPLATES.find((t) => t.id === footerSettings.template) ?? FOOTER_TEMPLATES[0];
         return (
           <div className={panelClass}>
             {renderCollapsibleSection(
@@ -7848,7 +7800,7 @@ export default function CustomTemplatePage() {
                     </HeadingText>
                     {programSettings.layout === 'timeline' ? (
                       <div className="space-y-4">
-                        {programSettings.items.map((item, idx) => (
+                        {programSettings.items.map((item) => (
                           <div 
                             key={item.id}
                             className="flex gap-6 p-6 rounded-xl border"
@@ -7888,7 +7840,7 @@ export default function CustomTemplatePage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {programSettings.items.map((item, idx) => (
+                            {programSettings.items.map((item) => (
                               <tr key={item.id} style={{ borderTop: `1px solid ${programSettings.borderColor}` }}>
                                 <td className="px-6 py-3" style={{ color: programSettings.timeColor }}>{item.time}</td>
                                 <td className="px-6 py-3 text-white flex items-center gap-2">
@@ -8057,7 +8009,7 @@ export default function CustomTemplatePage() {
                       </BodyText>
                     )}
                     <div className={`grid gap-4 ${bracketSettings.rounds.length < 3 ? 'md:grid-cols-2' : 'md:grid-cols-4'}`}>
-                      {bracketSettings.rounds.map((round, roundIdx) => (
+                      {bracketSettings.rounds.map((round) => (
                         <div key={round.id} className="space-y-4">
                           <HeadingText
                             level="h2"
@@ -8066,7 +8018,7 @@ export default function CustomTemplatePage() {
                           >
                             {round.name}
                           </HeadingText>
-                          {round.matches.map((match, matchIdx) => (
+                          {round.matches.map((match) => (
                             <div 
                               key={match.id}
                               className={`p-4 rounded-lg border transition ${bracketSettings.style.animations ? 'hover:scale-[1.01]' : ''}`}

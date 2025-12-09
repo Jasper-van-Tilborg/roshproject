@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useCallback, useEffect, Suspense, useRef } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
-import Link from 'next/link'
 import LoadingOverlay from '../../components/LoadingOverlay'
 
 // Inline Color Picker Component
