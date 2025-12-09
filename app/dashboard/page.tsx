@@ -3764,10 +3764,10 @@ export default function Dashboard() {
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-5xl font-bold text-white mb-2">
-              Toernooi Beheren
+              {t('manage.title')}
             </h1>
             <p className="text-xl text-white">
-              Beheer je toernooien en bekijk hun status
+              {t('manage.subtitle')}
             </p>
           </div>
 
@@ -3844,7 +3844,7 @@ export default function Dashboard() {
                      className="text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
                      style={{ backgroundColor: '#482CFF' }}
                    >
-                     Eerste Toernooi Aanmaken
+                     {t('manage.create.first')}
                    </button>
                 </div>
               ) : (
@@ -3877,7 +3877,7 @@ export default function Dashboard() {
                             <div className="flex-1 min-w-0 overflow-visible">
                               <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
                               <span className="inline-block text-white/70 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: 'rgba(45, 62, 90, 0.6)' }}>
-                                Draft
+                                {t('manage.status.draft')}
                               </span>
                             </div>
                           </div>
@@ -3954,7 +3954,7 @@ export default function Dashboard() {
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        <span className="text-white font-semibold">Bekijk Pagina</span>
+                                        <span className="text-white font-semibold">{t('manage.view.page')}</span>
                                       </div>
                                     </a>
                                   )}
@@ -3970,7 +3970,7 @@ export default function Dashboard() {
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </div>
-                                  <p className="text-white/60 text-sm">Geen preview beschikbaar</p>
+                                  <p className="text-white/60 text-sm">{t('manage.no.preview')}</p>
                                 </div>
                               </div>
                             )
@@ -4139,7 +4139,7 @@ export default function Dashboard() {
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        <span className="text-white font-semibold">Bekijk Pagina</span>
+                                        <span className="text-white font-semibold">{t('manage.view.page')}</span>
                                       </div>
                                     </a>
                                   )}
@@ -4155,7 +4155,7 @@ export default function Dashboard() {
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                   </div>
-                                  <p className="text-white/60 text-sm">Geen preview beschikbaar</p>
+                                  <p className="text-white/60 text-sm">{t('manage.no.preview')}</p>
                                 </div>
                               </div>
                             )

@@ -59,6 +59,9 @@ const translations = {
     'manage.unpublish': 'Depubliceren',
     'manage.status.draft': 'Draft',
     'manage.status.published': 'Gepubliceerd',
+    'manage.create.first': 'Eerste Toernooi Aanmaken',
+    'manage.view.page': 'Bekijk Pagina',
+    'manage.no.preview': 'Geen preview beschikbaar',
   },
   en: {
     // Dashboard
@@ -106,6 +109,9 @@ const translations = {
     'manage.unpublish': 'Unpublish',
     'manage.status.draft': 'Draft',
     'manage.status.published': 'Published',
+    'manage.create.first': 'Create First Tournament',
+    'manage.view.page': 'View Page',
+    'manage.no.preview': 'No preview available',
   },
 };
 

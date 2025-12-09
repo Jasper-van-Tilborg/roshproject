@@ -1201,7 +1201,7 @@ function WizardPageContent() {
     return (
       <div className="h-screen flex flex-col radial-gradient relative overflow-hidden">
         {/* Back Button - Fixed position */}
-        <div className="fixed top-6 left-6 z-50">
+        <div className="fixed top-6 right-6 z-50">
           <BackButton onClick={() => router.push('/dashboard')} />
         </div>
         
