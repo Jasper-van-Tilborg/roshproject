@@ -201,8 +201,7 @@ app/
 │   └── wizard/         # AI wizard editor
 └── utils/
     ├── claude-template-generator.ts  # AI generation logic
-    ├── component-parser.ts           # Component parsing
-    └── mock-template-generator.ts    # Fallback generator
+    └── component-parser.ts           # Component parsing
 ```
 
 ### Database Schema

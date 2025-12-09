@@ -15,22 +15,17 @@ export default function LivePreview({ generatedCode, config }: LivePreviewProps)
     if (generatedCode) {
       setIsLoading(true)
       
-      // Check if it's HTML/CSS/JS format or React format
       const isHtmlFormat = generatedCode.includes('<!DOCTYPE html>') || 
                           generatedCode.includes('<html') ||
                           generatedCode.includes('index.html')
 
       if (isHtmlFormat) {
-        // Handle HTML/CSS/JS format
         let htmlContent = generatedCode
         
-        // Extract HTML from code blocks if present
         const htmlMatch = generatedCode.match(/```html\s*\n([\s\S]*?)\n```/)
         if (htmlMatch) {
           htmlContent = htmlMatch[1]
         }
-
-        // Create complete HTML page
         const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -64,158 +59,30 @@ export default function LivePreview({ generatedCode, config }: LivePreviewProps)
         return
       }
 
-      // Handle React format (fallback)
       let componentCode = generatedCode
       
-      // If the code contains markdown code blocks, extract the TypeScript code
       const codeBlockMatch = generatedCode.match(/```(?:typescript|tsx|jsx)?\s*\n([\s\S]*?)\n```/)
       if (codeBlockMatch) {
         componentCode = codeBlockMatch[1]
       }
 
-      // Check if code is complete (has closing tags and proper structure)
       const hasCompleteComponent = componentCode.includes('export default function') && 
                                    componentCode.includes('return (') && 
                                    componentCode.includes('</div>') &&
                                    componentCode.includes('}') &&
-                                   !componentCode.includes('prizes: {') && // Check for incomplete objects
-                                   !componentCode.includes('sponsors: {') && // Check for other incomplete objects
-                                   !componentCode.includes('rules: {') && // Check for other incomplete objects
-                                   componentCode.split('{').length === componentCode.split('}').length && // Balanced braces
-                                   componentCode.trim().endsWith('}') // Ends with closing brace
+                                   !componentCode.includes('prizes: {') &&
+                                   !componentCode.includes('sponsors: {') &&
+                                   !componentCode.includes('rules: {') &&
+                                   componentCode.split('{').length === componentCode.split('}').length &&
+                                   componentCode.trim().endsWith('}')
 
       if (!hasCompleteComponent) {
-        console.log('Code is incomplete, using mock template. Generated code length:', componentCode.length)
-        console.log('Code ends with:', componentCode.slice(-50))
-        // Use mock template if generated code is incomplete
-        const mockCode = `
-'use client'
-
-import { useState } from 'react'
-
-export default function TournamentPage() {
-  const config = {
-    theme: {
-      primaryColor: '${(config.theme as { primaryColor?: string })?.primaryColor || '#3B82F6'}',
-      secondaryColor: '${(config.theme as { secondaryColor?: string })?.secondaryColor || '#10B981'}',
-      fontFamily: '${(config.theme as { fontFamily?: string })?.fontFamily || 'Inter'}'
-    },
-    tournament: {
-      title: '${String(config.title || 'Championship Toernooi')}',
-      date: '${String(config.date || 'Datum nog te bepalen')}',
-      location: '${String(config.location || 'Online/TBA')}',
-      description: '${config.description || 'Een spannend toernooi voor alle deelnemers'}',
-      participants: ${config.participants || 8},
-      game: '${String(config.game || 'CS2')}'
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-sans">
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900"></div>
-        
-        <nav className="relative z-10 container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <div className="text-white font-bold text-2xl tracking-tight">
-              ${String(config.title || 'CHAMPIONSHIP').toUpperCase()}
-            </div>
-            <div className="hidden md:flex space-x-8 text-white">
-              <a href="#about" className="hover:text-purple-400 transition-colors duration-300">Over</a>
-              <a href="#teams" className="hover:text-purple-400 transition-colors duration-300">Teams</a>
-              <a href="#contact" className="hover:text-purple-400 transition-colors duration-300">Contact</a>
-            </div>
-          </div>
-        </nav>
-
-        <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
-          <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-block mb-6 px-6 py-2 bg-white bg-opacity-10 backdrop-blur-md rounded-full border border-white border-opacity-20">
-              <span className="text-purple-400 font-bold text-sm tracking-widest uppercase">Officieel Toernooi</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight tracking-tight">
-              ${String(config.title || 'CHAMPIONSHIP').toUpperCase()}
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                EVENT
-              </span>
-            </h1>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 text-white text-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-3xl">📅</span>
-                <span className="font-semibold">${String(config.date || 'Datum TBD')}</span>
-              </div>
-              <div className="hidden sm:block w-2 h-2 bg-purple-400 rounded-full"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl">📍</span>
-                <span className="font-semibold">${String(config.location || 'Online')}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-purple-500/50">
-                Schrijf Nu In
-              </button>
-              <button className="px-8 py-4 border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300">
-                Meer Info
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black text-white mb-6">
-              Over Het Toernooi
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              ${config.description || 'Een spannend toernooi voor alle deelnemers'}
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
-              <div className="text-5xl mb-4">🏆</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Prijs Pool</h3>
-              <p className="text-3xl font-black text-purple-400 mb-2">€5,000</p>
-              <p className="text-gray-300">Totaal prijzengeld</p>
-            </div>
-            
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
-              <div className="text-5xl mb-4">👥</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Teams</h3>
-              <p className="text-3xl font-black text-purple-400 mb-2">${String(config.participants || 8)}</p>
-              <p className="text-gray-300">Deelnemende teams</p>
-            </div>
-            
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-8 border border-white border-opacity-20 text-center">
-              <div className="text-5xl mb-4">🎮</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Game</h3>
-              <p className="text-3xl font-black text-purple-400 mb-2">${String(config.game || 'CS2')}</p>
-              <p className="text-gray-300">Counter-Strike 2</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <footer className="py-12 px-4 border-t border-white border-opacity-20">
-        <div className="container mx-auto max-w-6xl text-center">
-          <div className="text-white font-bold text-2xl mb-4">${String(config.title || 'CHAMPIONSHIP').toUpperCase()} EVENT</div>
-          <p className="text-gray-300 mb-6">Het ultieme ${String(config.game || 'CS2')} toernooi</p>
-          <p className="text-gray-400">&copy; 2025 ${String(config.title || 'Championship')} Event. Alle rechten voorbehouden.</p>
-        </div>
-      </footer>
-    </div>
-  )
-}`
-        componentCode = mockCode
+        console.error('Generated code is incomplete')
+        setPreviewHtml('<div class="error"><h3>Preview Error</h3><p>De gegenereerde code is incompleet of heeft syntax fouten.</p></div>')
+        setIsLoading(false)
+        return
       }
 
-      // Create a complete HTML page with the component
       const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -252,17 +119,12 @@ export default function TournamentPage() {
         const { useState } = React;
         
         try {
-            // Tournament configuration
             const tournamentConfig = ${JSON.stringify(config, null, 8)};
-            
-            // Component code
             ${componentCode}
-            
-            // Render the component
             ReactDOM.render(<TournamentPage />, document.getElementById('root'));
         } catch (error) {
             console.error('Preview error:', error);
-            document.getElementById('root').innerHTML = '<div class="error"><h3>Preview Error</h3><p>Error: ' + error.message + '</p><p>This usually means the generated code is incomplete or has syntax errors.</p></div>';
+            document.getElementById('root').innerHTML = '<div class="error"><h3>Preview Error</h3><p>Error: ' + error.message + '</p></div>';
         }
     </script>
 </body>

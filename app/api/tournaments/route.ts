@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase, Tournament, isSupabaseConfigured } from '../../../lib/supabase'
-import { mockTournaments } from '../../../data/mock-tournaments'
 
-// GET - Haal alle tournaments op (met optionele status filter)
 export async function GET(request: NextRequest) {
   try {
-    // Check if Supabase is properly configured
     if (!isSupabaseConfigured()) {
-      console.warn('Supabase not configured - serving mock tournaments')
+      console.error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
       return NextResponse.json(
         { 
-          warning: 'Supabase is not configured. Showing lokale mock data.',
-          tournaments: mockTournaments 
-        }
+          error: 'Supabase is not configured. Please configure your environment variables.',
+          tournaments: [] 
+        },
+        { status: 500 }
       )
     }
 
     const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get('status') // 'draft' of 'published' of null voor alle
+    const status = searchParams.get('status')
     
-    // Get fresh Supabase client with current env vars
     const supabase = getSupabase()
     
     let query = supabase
@@ -84,7 +81,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Maak nieuw tournament aan
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -106,7 +102,6 @@ export async function POST(request: NextRequest) {
       customComponents
     } = body
     
-    // Generate slug from name
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -114,7 +109,6 @@ export async function POST(request: NextRequest) {
       .replace(/-+/g, '-')
       .trim()
     
-    // Debug logging
     console.log('Received generatedCode:', {
       hasHtml: !!generatedCode?.html,
       htmlLength: generatedCode?.html?.length || 0,
@@ -154,7 +148,6 @@ export async function POST(request: NextRequest) {
       fullLength: tournamentData.generated_code_full.length
     });
     
-    // Get fresh Supabase client with current env vars
     const supabase = getSupabase()
     
     const { data, error } = await supabase
@@ -182,7 +175,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update bestaand tournament
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
@@ -212,7 +204,6 @@ export async function PUT(request: NextRequest) {
       )
     }
     
-    // Generate slug if name changed
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -236,7 +227,6 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
     
-    // Debug logging
     console.log('PUT - Received generatedCode:', {
       hasHtml: !!generatedCode?.html,
       htmlLength: generatedCode?.html?.length || 0,
@@ -299,7 +289,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Verwijder tournament
 export async function DELETE(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -312,7 +301,6 @@ export async function DELETE(request: NextRequest) {
       )
     }
     
-    // Get fresh Supabase client with current env vars
     const supabase = getSupabase()
     
     const { error } = await supabase

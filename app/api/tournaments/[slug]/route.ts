@@ -1,44 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase, isSupabaseConfigured } from '../../../../lib/supabase'
-import { findMockTournament, mockTournaments } from '../../../../data/mock-tournaments'
 
-// Helper om te detecteren of een string een UUID is
 function isUUID(str: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   return uuidRegex.test(str)
 }
 
-// GET - Haal tournament op via slug of ID
-// Detecteert automatisch of de parameter een UUID (ID) of een slug is
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    // Check if Supabase is properly configured
     const isConfigured = isSupabaseConfigured()
     
     const { slug } = await params
     
     if (!isConfigured) {
-      const mock = findMockTournament(slug)
-      if (mock) {
-        return NextResponse.json({ tournament: mock, warning: 'Supabase niet geconfigureerd - mock data' })
-      }
+      console.error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
       return NextResponse.json(
-        { error: 'Supabase niet geconfigureerd en mock toernooi niet gevonden', tournaments: mockTournaments },
-        { status: 404 }
+        { error: 'Supabase is not configured. Please configure your environment variables.' },
+        { status: 500 }
       )
     }
     const identifier = slug
     
-    console.log('API route received identifier:', identifier)
-    
-    // Check if it's a UUID (ID) or a slug
     const isId = isUUID(identifier)
-    console.log('Is UUID:', isId)
     
-    // Get fresh Supabase client with current env vars
     const supabase = getSupabase()
     
     let query = supabase
@@ -46,21 +33,14 @@ export async function GET(
       .select('*')
     
     if (isId) {
-      // It's an ID, fetch by ID (no status filter for editing)
-      console.log('Fetching by ID:', identifier)
       query = query.eq('id', identifier)
     } else {
-      // It's a slug, fetch by slug (only published tournaments)
-      console.log('Fetching by slug:', identifier)
       query = query.eq('slug', identifier).eq('status', 'published')
     }
     
-    console.log('Executing Supabase query...')
     const { data, error } = await query.single()
-    console.log('Query result:', { hasData: !!data, hasError: !!error })
     
     if (error) {
-      // Log de volledige error voor debugging
       console.error('Supabase error details:', {
         message: error.message,
         code: error.code,
@@ -71,9 +51,6 @@ export async function GET(
         fullError: JSON.stringify(error, null, 2)
       })
       
-      // Check for API key errors - alleen als het echt een API key error is
-      // PGRST302 = Invalid API key
-      // PGRST301 kan RLS zijn OF API key, check message
       const isApiKeyError = (
         error.code === 'PGRST302' ||
         (error.code === 'PGRST301' && (
@@ -86,7 +63,6 @@ export async function GET(
         (error.message?.includes('JWT') && error.message?.includes('invalid'))
       )
       
-      // Check for RLS/permission errors
       const isRLSError = (
         error.code === 'PGRST301' && !isApiKeyError ||
         error.message?.includes('permission') || 
@@ -141,14 +117,12 @@ export async function GET(
       }
       
       if (error.code === 'PGRST116') {
-        // No rows returned
         return NextResponse.json(
           { error: 'Tournament niet gevonden' },
           { status: 404 }
         )
       }
       
-      // Generic error - return the actual error message
       return NextResponse.json(
         { 
           error: error.message || 'Database fout',
