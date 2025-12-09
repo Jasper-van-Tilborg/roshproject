@@ -110,17 +110,10 @@ export default function Dashboard() {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showDemoCredentials, setShowDemoCredentials] = useState(false);
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'template-selection', 'create-tournament', 'manage-tournament', 'template-wizard', 'wizard-result'
+  const [currentView, setCurrentView] = useState('dashboard');
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
   
-  // Template wizard state - not used anymore (redirected to /editor/wizard)
-  // const [wizardStep, setWizardStep] = useState(0);
-  // const [wizardAnswers, setWizardAnswers] = useState<Record<string, string | number | boolean>>({});
-  // const [generatedCode, setGeneratedCode] = useState<string>('');
-  // const [isGenerating, setIsGenerating] = useState(false);
-  
-  // Toernooi configuratie state
   const [tournamentConfig, setTournamentConfig] = useState({
     name: '',
     description: '',
@@ -142,8 +135,6 @@ export default function Dashboard() {
     headerTextColor: '#000000',
     customComponents: [] as Array<{id: string, name: string, type: string, description: string, icon: string, category?: string}>
   });
-
-  // Componenten configuratie - alle componenten standaard uitgeschakeld
   const [enabledComponents, setEnabledComponents] = useState<Record<string, boolean>>({
     header: false,
     description: false,
@@ -1087,12 +1078,8 @@ export default function Dashboard() {
   };
 
   const handleEditTournament = (tournamentId: string) => {
-    // Navigeer naar wizard editor pagina met tournament ID in URL
-    // De wizard pagina haalt de data direct uit de database
     router.push(`/editor/wizard?edit=true&id=${tournamentId}`)
   };
-
-  // Template wizard view - Redirect naar nieuwe AI wizard (moet voor alle conditional returns)
   useEffect(() => {
     if (currentView === 'template-wizard') {
       router.push('/editor/wizard')
@@ -1106,7 +1093,6 @@ export default function Dashboard() {
         const response = await fetch('/api/tournaments')
         if (response.ok) {
           const data = await response.json()
-          // Map database format naar frontend format
           const mappedTournaments = (data.tournaments || []).map((t: {
             id: string
             name: string
@@ -1430,7 +1416,6 @@ export default function Dashboard() {
       }
     };
 
-    // WizardCard Component
     const WizardCard = ({ onSelect }: { onSelect: () => void }) => {
       const [isHovered, setIsHovered] = useState(false);
 
@@ -2310,66 +2295,6 @@ export default function Dashboard() {
     };
   };
 
-  // Oude wizard code is verwijderd - alle wizard functionaliteit is nu in /editor/wizard
-  
-  // Wizard resultaat view (voor oude flows die hier nog naartoe redirecten)
-  if (currentView === 'wizard-result') {
-    // const generatedWebsite = generateWebsiteFromAnswers(wizardAnswers);
-    // const generatedTemplate = generateTemplateFromAnswers(wizardAnswers);
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
-        {/* Header */}
-        <div className="bg-gray-800 shadow-lg border-b border-gray-700">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Template Wizard Voltooid!</h1>
-                  <p className="text-gray-300">Je gepersonaliseerde template is klaar</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <button
-                  onClick={() => router.push('/editor/wizard')}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <span>Nieuwe Wizard Starten</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Resultaat Content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="text-center">
-            <p className="text-gray-300 text-lg mb-4">Template gegenereerd met de oude wizard.</p>
-            <p className="text-gray-400 mb-8">Gebruik de nieuwe AI Wizard voor betere resultaten!</p>
-            <button
-              onClick={() => router.push('/editor/wizard')}
-              className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:from-green-700 hover:to-blue-700 transition-colors"
-            >
-              Ga naar Nieuwe AI Wizard
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Oude wizard code hier verwijderd - alle functionaliteit is nu in /editor/wizard
-  
-  // Wizard resultaat view - redirect naar nieuwe wizard
   if (currentView === 'wizard-result') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
@@ -2420,10 +2345,6 @@ export default function Dashboard() {
     );
   }
   
-  // Oude wizard resultaat view - verwijderd omdat wizardAnswers niet meer bestaat
-  // Deze code is vervangen door redirect naar /editor/wizard
-  
-  // Toernooi aanmaken view
   if (currentView === 'create-tournament') {
     return (
       <>

@@ -1445,11 +1445,7 @@ const getDefaultFAQSettings = () => ({
   layout: 'accordion' as FAQLayout,
   title: 'FAQ',
   subtitle: 'Veelgestelde vragen',
-  items: [
-    { id: createId(), question: 'Wat is het inschrijfgeld?', answer: 'Het inschrijfgeld bedraagt €150 per team. Dit dekt de volledige dag inclusief faciliteiten, setup en prijs contributions.' },
-    { id: createId(), question: 'Wat zijn de rank requirements?', answer: 'Minimaal één speler moet Champion I of hoger zijn. De gemiddelde team rank moet minimaal Diamond III zijn.' },
-    { id: createId(), question: 'Is een substitute speler toegestaan?', answer: 'Ja, elk team mag één officiële substitute registreren. Deze moet bij inschrijving worden opgegeven.' },
-  ],
+  items: [] as Array<{ id: string; question: string; answer: string }>,
   fontSizes: {
     title: 36,
     subtitle: 16,
@@ -1518,12 +1514,7 @@ const getDefaultSponsorSettings = () => ({
   grayscaleHover: true,
   backgroundColor: '#0E1020',
   divider: false,
-  logos: [
-    { id: createId(), name: 'Lenovo Legion', url: 'https://images.rosh.gg/lenovo.png', link: '#' },
-    { id: createId(), name: 'Intel', url: 'https://images.rosh.gg/intel.png', link: '#' },
-    { id: createId(), name: 'NVIDIA', url: 'https://images.rosh.gg/nvidia.png', link: '#' },
-    { id: createId(), name: 'Red Bull', url: 'https://images.rosh.gg/redbull.png', link: '#' },
-  ],
+  logos: [] as Array<{ id: string; name: string; url: string; link: string }>,
   fontSizes: {
     title: 36,
     subtitle: 16,
@@ -1696,56 +1687,7 @@ const resetRegistrationColors = () => {
 const getDefaultTeamsSettings = () => ({
   title: 'Geregistreerde Teams',
   subtitle: 'Deelnemers',
-  teams: [
-    { 
-      id: createId(), 
-      initials: 'AR', 
-      name: 'Arctic Wolves', 
-      tag: 'ARCT', 
-      logoUrl: '',
-      players: [
-        { id: createId(), name: 'Player1', avatarUrl: '' },
-        { id: createId(), name: 'Player2', avatarUrl: '' },
-        { id: createId(), name: 'Player3', avatarUrl: '' }
-      ] 
-    },
-    { 
-      id: createId(), 
-      initials: 'TH', 
-      name: 'Thunder Strike', 
-      tag: 'THND', 
-      logoUrl: '',
-      players: [
-        { id: createId(), name: 'Player1', avatarUrl: '' },
-        { id: createId(), name: 'Player2', avatarUrl: '' },
-        { id: createId(), name: 'Player3', avatarUrl: '' }
-      ] 
-    },
-    { 
-      id: createId(), 
-      initials: 'IC', 
-      name: 'Ice Phoenix', 
-      tag: 'ICEP', 
-      logoUrl: '',
-      players: [
-        { id: createId(), name: 'Player 1', avatarUrl: '' },
-        { id: createId(), name: 'Player 2', avatarUrl: '' },
-        { id: createId(), name: 'Player 3', avatarUrl: '' }
-      ] 
-    },
-    { 
-      id: createId(), 
-      initials: 'SN', 
-      name: 'Snow Leopards', 
-      tag: 'SNLP', 
-      logoUrl: '',
-      players: [
-        { id: createId(), name: 'Player 1', avatarUrl: '' },
-        { id: createId(), name: 'Player 2', avatarUrl: '' },
-        { id: createId(), name: 'Player 3', avatarUrl: '' }
-      ] 
-    },
-  ],
+  teams: [] as Array<{ id: string; initials: string; name: string; tag: string; logoUrl: string; players: Array<{ id: string; name: string; avatarUrl: string }> }>,
   numberOfTeams: 4,
   playersPerTeam: 3,
   columns: 4,
