@@ -1389,7 +1389,7 @@ const getDefaultFAQSettings = () => ({
   layout: 'accordion' as FAQLayout,
   title: 'FAQ',
   subtitle: 'Veelgestelde vragen',
-  items: [],
+  items: [] as Array<{ id: string; question: string; answer: string }>,
   fontSizes: {
     title: 36,
     subtitle: 16,
@@ -1458,7 +1458,7 @@ const getDefaultSponsorSettings = () => ({
   grayscaleHover: true,
   backgroundColor: '#0E1020',
   divider: false,
-  logos: [],
+  logos: [] as Array<{ id: string; name: string; url: string; link: string }>,
   fontSizes: {
     title: 36,
     subtitle: 16,
@@ -1631,7 +1631,7 @@ const resetRegistrationColors = () => {
 const getDefaultTeamsSettings = () => ({
   title: 'Geregistreerde Teams',
   subtitle: 'Deelnemers',
-  teams: [],
+  teams: [] as Array<{ id: string; initials: string; name: string; tag: string; logoUrl: string; players: Array<{ id: string; name: string; avatarUrl: string }> }>,
   numberOfTeams: 4,
   playersPerTeam: 3,
   columns: 4,
