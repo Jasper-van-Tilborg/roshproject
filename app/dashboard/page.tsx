@@ -1306,20 +1306,6 @@ export default function Dashboard() {
   if (currentView === 'template-selection') {
     // const TOURNAMENT_TEMPLATES: Array<{id: string, name: string, description: string}> = [];
 
-    const CUSTOM_TEMPLATE = {
-      id: 'custom',
-      name: 'Custom',
-      description: 'Start met een volledig lege pagina en bouw je eigen unieke layout vanaf nul. Geen vooraf ingestelde secties, volledige creatieve vrijheid.',
-      category: 'Custom',
-      layoutStyle: 'Vrije indeling, start vanaf nul',
-      components: [],
-      defaultConfig: {
-        primaryColor: '#0044cc',
-        secondaryColor: '#ff6600',
-        backgroundColor: '#ffffff'
-      }
-    };
-
     const handleTemplateSelect = (templateId: string) => {
       if (templateId === 'custom') {
         router.push('/custom');

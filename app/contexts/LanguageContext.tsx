@@ -59,7 +59,6 @@ const translations = {
     'manage.unpublish': 'Depubliceren',
     'manage.status.draft': 'Draft',
     'manage.status.published': 'Gepubliceerd',
-    'manage.published': 'Gepubliceerd',
   },
   en: {
     // Dashboard
@@ -107,7 +106,6 @@ const translations = {
     'manage.unpublish': 'Unpublish',
     'manage.status.draft': 'Draft',
     'manage.status.published': 'Published',
-    'manage.published': 'Published',
   },
 };
 
