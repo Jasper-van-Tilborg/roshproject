@@ -4,13 +4,14 @@ import { getSupabase, Tournament, isSupabaseConfigured } from '../../../lib/supa
 export async function GET(request: NextRequest) {
   try {
     if (!isSupabaseConfigured()) {
-      console.error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
+      // Return 200 with empty array instead of 500 - this is not a server error,
+      // just missing configuration. The client can handle empty arrays gracefully.
+      console.warn('Supabase is not configured. Returning empty tournaments array. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
       return NextResponse.json(
         { 
-          error: 'Supabase is not configured. Please configure your environment variables.',
           tournaments: [] 
         },
-        { status: 500 }
+        { status: 200 }
       )
     }
 

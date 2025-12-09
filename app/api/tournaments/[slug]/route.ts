@@ -16,10 +16,11 @@ export async function GET(
     const { slug } = await params
     
     if (!isConfigured) {
-      console.error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
+      // Return 404 instead of 500 - if Supabase isn't configured, we can't find the tournament
+      console.warn('Supabase is not configured. Returning 404. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment variables.')
       return NextResponse.json(
-        { error: 'Supabase is not configured. Please configure your environment variables.' },
-        { status: 500 }
+        { error: 'Tournament not found' },
+        { status: 404 }
       )
     }
     const identifier = slug

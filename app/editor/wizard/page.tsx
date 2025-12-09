@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, Suspense, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
 import Link from 'next/link'
@@ -444,7 +444,34 @@ const wizardSteps: WizardStep[] = [
   }
 ]
 
+// Back button component
+function BackButton({ onClick }: { onClick: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <button
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      className="group flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-x-1 cursor-pointer"
+    >
+      <svg 
+        className={`w-5 h-5 text-white transition-all duration-300 ${isHovered ? 'transform -translate-x-1' : ''}`}
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
+      <span className="text-white font-medium group-hover:text-purple-300 transition-colors duration-300">
+        Terug
+      </span>
+    </button>
+  );
+}
+
 function WizardPageContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const isEditMode = searchParams?.get('edit') === 'true'
   const tournamentId = searchParams?.get('id') || null
@@ -1291,12 +1318,7 @@ function WizardPageContent() {
       <div className="relative z-10 container mx-auto px-4 py-12 max-w-4xl">
         {/* Header met terug knop */}
         <div className="mb-6">
-          <Link href="/">
-            <button className="mb-4 px-4 py-2 bg-gray-800 bg-opacity-60 backdrop-blur-sm border border-gray-700 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2">
-              <span>←</span>
-              <span>Terug naar Home</span>
-            </button>
-          </Link>
+          <BackButton onClick={() => router.push('/dashboard')} />
         </div>
 
         {/* Progress Bar */}

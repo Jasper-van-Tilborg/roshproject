@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Header from '../components/header';
 import { useNotification } from '../hooks/useNotification';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 // Type definities
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,15 +106,39 @@ function SortableItem({
 export default function Dashboard() {
   const router = useRouter()
   const { showNotification, NotificationContainer } = useNotification()
+  const { t } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [showDemoCredentials, setShowDemoCredentials] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
+  
+  // Back button component
+  const BackButton = ({ onClick }: { onClick: () => void }) => {
+    const [isHovered, setIsHovered] = useState(false);
+    
+    return (
+      <button
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={onClick}
+        className="group flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-x-1 cursor-pointer"
+      >
+        <svg 
+          className={`w-5 h-5 text-white transition-all duration-300 ${isHovered ? 'transform -translate-x-1' : ''}`}
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        <span className="text-white font-medium group-hover:text-purple-300 transition-colors duration-300">
+          {t('back')}
+        </span>
+      </button>
+    );
+  };
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
   const [editingTournamentStatus, setEditingTournamentStatus] = useState<'draft' | 'published' | null>(null);
+  const [isCreateButtonHovered, setIsCreateButtonHovered] = useState(false);
+  const [isManageButtonHovered, setIsManageButtonHovered] = useState(false);
   
   const [tournamentConfig, setTournamentConfig] = useState({
     name: '',
@@ -282,31 +308,28 @@ export default function Dashboard() {
 
   // Laad toernooien uit localStorage bij component mount - wordt later gedefinieerd na addCustomComponentsToLibrary
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoggingIn(true);
-    setLoginError('');
+  // Check login status on mount
+  useEffect(() => {
+    // Use a small delay to ensure localStorage is available (client-side only)
+    const checkAuth = () => {
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      if (!loggedIn) {
+        router.push('/login');
+      } else {
+        setIsLoggedIn(true);
+      }
+    };
     
-    // Simuleer een kleine vertraging voor betere UX
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Simpele login check (in echte app zou je dit via een API doen)
-    if (username === 'admin' && password === 'admin123') {
-      setIsLoggedIn(true);
-      setLoginError('');
-    } else {
-      setLoginError('Ongeldige gebruikersnaam of wachtwoord');
-    }
-    
-    setIsLoggingIn(false);
-  };
+    // Small delay to ensure we're on client side
+    const timer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timer);
+  }, [router]);
 
   const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
     setIsLoggedIn(false);
-    setUsername('');
-    setPassword('');
-    setLoginError('');
     setCurrentView('dashboard');
+    router.push('/login');
   };
 
   const handleConfigChange = (field: string, value: string) => {
@@ -1274,121 +1297,9 @@ export default function Dashboard() {
     }
   }, [isLoggedIn])
 
-  // Login form
+  // Redirect to login if not logged in (handled by useEffect)
   if (!isLoggedIn) {
-    return (
-      <>
-      <div className="min-h-screen flex items-center justify-center p-8 relative radial-gradient">
-        <div className="max-w-md w-full relative z-10">
-          <div className="glass-card rounded-xl p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <h1 className="text-3xl font-bold text-white mb-2">
-                Admin Login
-              </h1>
-              <p className="text-white">
-                Log in om toegang te krijgen tot het toernooi dashboard
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="floating-label-input">
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 rounded-lg"
-                  required
-                />
-                <label 
-                  htmlFor="username" 
-                  className={`floating-label ${username ? 'floating-label-active' : ''}`}
-                >
-                  Username
-                </label>
-              </div>
-
-              <div className="floating-label-input">
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 rounded-lg"
-                  required
-                />
-                <label 
-                  htmlFor="password" 
-                  className={`floating-label ${password ? 'floating-label-active' : ''}`}
-                >
-                  Password
-                </label>
-              </div>
-
-              {loginError && (
-                <div className="text-red-400 text-sm text-center">
-                  {loginError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                className="w-full bg-white text-[#1A2335] py-3 px-6 rounded-lg font-medium hover:bg-white/90 transition-colors flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isLoggingIn ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Bezig met inloggen...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span>Log In</span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 pt-6 border-t border-white/20 text-center text-sm">
-              <button
-                type="button"
-                onClick={() => setShowDemoCredentials(!showDemoCredentials)}
-                className="w-full flex items-center justify-center space-x-2 text-white hover:text-white/80 transition-colors"
-              >
-                <span className="font-medium">Demo Credentials</span>
-                <svg 
-                  className={`w-4 h-4 transition-transform duration-200 ${showDemoCredentials ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {showDemoCredentials && (
-                <div className="mt-3 space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <p className="text-white">Username: admin</p>
-                  <p className="text-white">Password: admin123</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-      <NotificationContainer />
-      </>
-    );
+    return null; // Will redirect via useEffect
   }
 
   // Template selectie view
@@ -1421,35 +1332,41 @@ export default function Dashboard() {
 
       return (
         <div
-          className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden transition-all duration-300 hover:border-green-500 hover:shadow-xl cursor-pointer"
+          className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden transition-all duration-300 hover:border-purple-500 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 cursor-pointer"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={onSelect}
         >
           {/* Wizard Badge */}
           <div className="absolute top-4 right-4 z-10">
-            <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-semibold rounded-full">
-              Wizard
+            <span className="px-3 py-1 text-white text-xs font-semibold rounded-full" style={{ backgroundColor: '#420AB2' }}>
+              {t('template.selection.wizard')}
             </span>
           </div>
 
           {/* Icon Area */}
           <div className="relative h-56 flex items-center justify-center">
             <div className="relative">
-              {/* Animated Background Circles */}
+              {/* Animated Background Circle */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-yellow-400 bg-opacity-20 rounded-full animate-pulse"></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 bg-yellow-400 bg-opacity-10 rounded-full animate-pulse delay-75"></div>
+                <div 
+                  className="w-32 h-32 rounded-full animate-pulse group-hover:scale-110 transition-all duration-300" 
+                  style={{ 
+                    backgroundColor: '#6B3DD9', 
+                    opacity: 0.5,
+                    boxShadow: '0 0 20px rgba(107, 61, 217, 0.6), 0 0 40px rgba(107, 61, 217, 0.4), 0 0 60px rgba(107, 61, 217, 0.2)',
+                    filter: 'drop-shadow(0 0 10px rgba(107, 61, 217, 0.8))'
+                  }}
+                ></div>
               </div>
               
               {/* Magic Wand Icon */}
               <svg 
-                className="relative w-20 h-20 text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300" 
+                className="relative w-20 h-20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 drop-shadow-[0_0_8px_rgba(107,61,217,0.8)]" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
+                style={{ color: 'white' }}
               >
                 <path 
                   strokeLinecap="round" 
@@ -1462,35 +1379,36 @@ export default function Dashboard() {
             
             {/* Hover Overlay */}
             <div 
-              className={`absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center ${
+              className={`absolute inset-0 bg-opacity-0 group-hover:bg-opacity-25 transition-all duration-300 flex items-center justify-center ${
                 isHovered ? 'opacity-100' : 'opacity-0'
               }`}
+              style={{ backgroundColor: '#420AB2' }}
             >
-              <button className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                Start Wizard
+              <button className="px-6 py-3 text-white font-semibold rounded-lg shadow-xl transform scale-90 group-hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50" style={{ backgroundColor: '#420AB2' }}>
+                {t('template.selection.wizard.button')}
               </button>
             </div>
           </div>
 
           {/* Content */}
           <div className="p-6 bg-gray-900 bg-opacity-50">
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-200 transition-colors">
-              Template Wizard
+            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+              {t('template.selection.wizard.title')}
             </h3>
             <p className="text-white text-sm leading-relaxed mb-4 opacity-90">
-              Beantwoord een paar vragen en laat ons de perfecte template voor je toernooi genereren op basis van jouw wensen.
+              {t('template.selection.wizard.description')}
             </p>
             
             {/* Features */}
             <div className="flex flex-wrap gap-2">
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                🎯 Persoonlijk
+                {t('template.selection.wizard.features.personal')}
               </span>
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                ⚡ Snel
+                {t('template.selection.wizard.features.fast')}
               </span>
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                🧙‍♂️ Slim
+                {t('template.selection.wizard.features.smart')}
               </span>
             </div>
           </div>
@@ -1504,35 +1422,41 @@ export default function Dashboard() {
 
       return (
         <div
-          className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden transition-all duration-300 hover:border-blue-500 hover:shadow-xl cursor-pointer"
+          className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl border-2 border-gray-700 overflow-hidden transition-all duration-300 hover:border-purple-500 hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-2 cursor-pointer"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={onSelect}
         >
           {/* Custom Badge */}
           <div className="absolute top-4 right-4 z-10">
-            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">
-              Custom
+            <span className="px-3 py-1 text-white text-xs font-semibold rounded-full" style={{ backgroundColor: '#9127E6' }}>
+              {t('template.selection.custom.title')}
             </span>
           </div>
 
           {/* Icon Area */}
           <div className="relative h-56 flex items-center justify-center">
             <div className="relative">
-              {/* Animated Background Circles */}
+              {/* Animated Background Circle */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-blue-500 bg-opacity-10 rounded-full animate-pulse"></div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 bg-purple-500 bg-opacity-10 rounded-full animate-pulse delay-75"></div>
+                <div 
+                  className="w-32 h-32 rounded-full animate-pulse group-hover:scale-110 transition-all duration-300" 
+                  style={{ 
+                    backgroundColor: '#B855F0', 
+                    opacity: 0.5,
+                    boxShadow: '0 0 20px rgba(184, 85, 240, 0.6), 0 0 40px rgba(184, 85, 240, 0.4), 0 0 60px rgba(184, 85, 240, 0.2)',
+                    filter: 'drop-shadow(0 0 10px rgba(184, 85, 240, 0.8))'
+                  }}
+                ></div>
               </div>
               
               {/* Plus Icon */}
               <svg 
-                className="relative w-20 h-20 text-blue-400 group-hover:text-blue-300 transition-colors duration-300" 
+                className="relative w-20 h-20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-90 drop-shadow-[0_0_8px_rgba(184,85,240,0.8)]" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
+                style={{ color: 'white' }}
               >
                 <path 
                   strokeLinecap="round" 
@@ -1545,35 +1469,36 @@ export default function Dashboard() {
             
             {/* Hover Overlay */}
             <div 
-              className={`absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center ${
+              className={`absolute inset-0 bg-opacity-0 group-hover:bg-opacity-25 transition-all duration-300 flex items-center justify-center ${
                 isHovered ? 'opacity-100' : 'opacity-0'
               }`}
+              style={{ backgroundColor: '#9127E6' }}
             >
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                Start met Lege Pagina
+              <button className="px-6 py-3 text-white font-semibold rounded-lg shadow-xl transform scale-90 group-hover:scale-105 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50" style={{ backgroundColor: '#9127E6' }}>
+                {t('template.selection.custom.button')}
               </button>
             </div>
           </div>
 
           {/* Content */}
           <div className="p-6 bg-gray-900 bg-opacity-50">
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
-              {CUSTOM_TEMPLATE.name}
+            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+              {t('template.selection.custom.title')}
             </h3>
             <p className="text-gray-300 text-sm leading-relaxed mb-4">
-              {CUSTOM_TEMPLATE.description}
+              {t('template.selection.custom.description')}
             </p>
             
             {/* Features */}
             <div className="flex flex-wrap gap-2">
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                🎨 Volledige vrijheid
+                {t('template.selection.custom.features.freedom')}
               </span>
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                🔧 Volledig aanpasbaar
+                {t('template.selection.custom.features.customizable')}
               </span>
               <span className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded-md border border-gray-700">
-                ⚡ Vanaf nul opbouwen
+                {t('template.selection.custom.features.build')}
               </span>
             </div>
           </div>
@@ -1585,22 +1510,30 @@ export default function Dashboard() {
       <>
         <NotificationContainer />
         <div className="min-h-screen relative radial-gradient">
+          {/* Language Selector - Top Right */}
+          <div className="fixed top-6 right-6 z-50">
+            <LanguageSelector />
+          </div>
+          {/* Back Button */}
+          <div className="fixed top-6 left-6 z-50">
+            <BackButton onClick={() => setCurrentView('dashboard')} />
+          </div>
           {/* Header */}
-          <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20">
+          <div className="bg-transparent border-b border-gray-600/50 shadow-lg relative z-20 pt-24">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="text-center">
               <h1 className="text-4xl font-bold text-white mb-3">
-                Kies hoe je je Toernooi Pagina wilt Maken
+                {t('template.selection.title')}
               </h1>
               <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-                Laat onze wizard de perfecte template voor je genereren op basis van je wensen, of start met een volledig lege pagina en bouw alles zelf op.
+                {t('template.selection.subtitle')}
               </p>
             </div>
           </div>
         </div>
 
         {/* Template Grid */}
-        <div className="max-w-[1600px] mx-auto px-6 py-12 relative z-20">
+        <div className="max-w-[1600px] mx-auto px-6 pt-8 pb-12 relative z-20">
           {/* Category Filter Info */}
           <div className="mb-8 text-center">
             <p className="text-gray-300">
@@ -2298,6 +2231,14 @@ export default function Dashboard() {
   if (currentView === 'wizard-result') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-purple-900">
+        {/* Language Selector - Top Right */}
+        <div className="fixed top-6 right-6 z-50">
+          <LanguageSelector />
+        </div>
+        {/* Back Button */}
+        <div className="fixed top-6 left-6 z-50">
+          <BackButton onClick={() => setCurrentView('dashboard')} />
+        </div>
         {/* Header */}
         <div className="bg-gray-800 shadow-lg border-b border-gray-700">
           <div className="max-w-7xl mx-auto px-6 py-4">
@@ -2349,6 +2290,14 @@ export default function Dashboard() {
     return (
       <>
       <div className="h-screen overflow-hidden relative radial-gradient">
+        {/* Language Selector - Top Right */}
+        <div className="fixed top-6 right-6 z-50">
+          <LanguageSelector />
+        </div>
+        {/* Back Button */}
+        <div className="fixed top-6 left-6 z-50">
+          <BackButton onClick={() => setCurrentView('dashboard')} />
+        </div>
         {/* Top Navigation */}
         <div className="bg-gray-800/40 backdrop-blur-md shadow-lg border-b border-white/20 px-6 py-4 relative z-20">
           <div className="max-w-7xl mx-auto flex justify-end">
@@ -3817,31 +3766,23 @@ export default function Dashboard() {
 
     return (
       <div className="min-h-screen p-8 relative radial-gradient">
+        {/* Language Selector - Top Right */}
+        <div className="fixed top-6 right-6 z-50">
+          <LanguageSelector />
+        </div>
+        {/* Back Button */}
+        <div className="fixed top-6 left-6 z-50">
+          <BackButton onClick={() => setCurrentView('dashboard')} />
+        </div>
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Header */}
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h1 className="text-5xl font-bold text-white mb-2">
-                Toernooi Beheren
-              </h1>
-              <p className="text-xl text-white">
-                Beheer je toernooien en bekijk hun status
-              </p>
-            </div>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className="glass-card text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
-              >
-                <span>Terug naar Dashboard</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="glass-card text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity"
-              >
-                <span>Uitloggen</span>
-              </button>
-            </div>
+          <div className="mb-12">
+            <h1 className="text-5xl font-bold text-white mb-2">
+              Toernooi Beheren
+            </h1>
+            <p className="text-xl text-white">
+              Beheer je toernooien en bekijk hun status
+            </p>
           </div>
 
           <div className="space-y-8">
@@ -3853,7 +3794,7 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white">Drafts ({draftTournaments.length})</h2>
+                <h2 className="text-2xl font-bold text-white">{t('manage.drafts')} ({draftTournaments.length})</h2>
               </div>
 
               {draftTournaments.length === 0 ? (
@@ -3863,8 +3804,8 @@ export default function Dashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Geen drafts</h3>
-                  <p className="text-white mb-4">Je hebt nog geen toernooi drafts opgeslagen.</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t('manage.no.drafts')}</h3>
+                  <p className="text-white mb-4">{t('manage.no.drafts.description')}</p>
                    <button
                      onClick={() => {
                        // Reset tournament config voor nieuwe toernooi
@@ -4058,14 +3999,14 @@ export default function Dashboard() {
                             className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#482CFF' }}
                           >
-                            Bewerken
+                            {t('manage.edit')}
                           </button>
                           <button 
                             onClick={() => handlePublishFromManage(tournament.id)}
                             className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#22C55E' }}
                           >
-                            Publiceren
+                            {t('manage.publish')}
                           </button>
                           <button 
                             onClick={() => handleDeleteTournament(tournament.id)}
@@ -4092,7 +4033,7 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white">Published ({publishedTournaments.length})</h2>
+                <h2 className="text-2xl font-bold text-white">{t('manage.published')} ({publishedTournaments.length})</h2>
               </div>
 
               {publishedTournaments.length === 0 ? (
@@ -4102,8 +4043,8 @@ export default function Dashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Geen gepubliceerde toernooien</h3>
-                  <p className="text-white">Publiceer je eerste toernooi om het hier te zien.</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t('manage.no.published')}</h3>
+                  <p className="text-white">{t('manage.no.published.description')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -4135,7 +4076,7 @@ export default function Dashboard() {
                             <div className="flex-1 min-w-0 overflow-visible">
                               <h3 className="text-white font-bold text-lg mb-1 truncate">{tournament.name}</h3>
                               <span className="inline-block text-white/90 text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-sm whitespace-nowrap" style={{ backgroundColor: '#482CFF40' }}>
-                                Published
+                                {t('manage.status.published')}
                               </span>
                             </div>
                           </div>
@@ -4243,14 +4184,14 @@ export default function Dashboard() {
                             className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#482CFF' }}
                           >
-                            Bewerken
+                            {t('manage.edit')}
                           </button>
                           <button 
                             onClick={() => handleUnpublish(tournament.id)}
                             className="flex-1 text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg"
                             style={{ backgroundColor: '#F59E0B' }}
                           >
-                            Unpublish
+                            {t('manage.unpublish')}
                           </button>
                           <button 
                             onClick={() => handleDeleteTournament(tournament.id)}
@@ -4278,33 +4219,39 @@ export default function Dashboard() {
   return (
     <>
     <div className="min-h-screen flex items-center justify-center p-8 relative radial-gradient">
+      {/* Language Selector - Top Right */}
+      <div className="fixed top-6 right-6 z-50">
+        <LanguageSelector />
+      </div>
       <div className="w-full max-w-5xl relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-white mb-4">
-            Tournament Dashboard
+            {t('dashboard.title')}
           </h1>
           <p className="text-xl text-white">
-            Welcome Admin! Choose an option.
+            {t('dashboard.welcome')}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-10">
           {/* Create Tournament */}
-          <div className="glass-card rounded-xl p-10">
+          <div className={`glass-card rounded-xl p-10 border-2 border-transparent transition-all duration-300 ${isCreateButtonHovered ? 'border-purple-500 shadow-2xl shadow-purple-500/20 -translate-y-2' : ''}`}>
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#420AB2' }}>
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 transition-all duration-300 ${isCreateButtonHovered ? 'scale-110 shadow-lg' : ''}`} style={{ backgroundColor: '#420AB2' }}>
+                <svg className={`w-10 h-10 text-white transition-all duration-300 ${isCreateButtonHovered ? 'rotate-90 scale-110' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-semibold text-white mb-5">
-                Create Tournament
+              <h2 className={`text-3xl font-semibold text-white mb-5 transition-colors duration-300 ${isCreateButtonHovered ? 'text-purple-300' : ''}`}>
+                {t('dashboard.create.tournament')}
               </h2>
               <p className="text-white mb-8 text-lg leading-relaxed">
-                Create a new tournament with all the necessary settings and participants.
+                {t('dashboard.create.description')}
               </p>
                <button 
+                 onMouseEnter={() => setIsCreateButtonHovered(true)}
+                 onMouseLeave={() => setIsCreateButtonHovered(false)}
                  onClick={() => {
                    // Reset tournament config voor nieuwe toernooi
                    setTournamentConfig({
@@ -4353,37 +4300,39 @@ export default function Dashboard() {
                    setEditingTournamentStatus(null);
                    setCurrentView('template-selection');
                  }}
-                 className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
-                 style={{ backgroundColor: '#420AB2' }}
-               >
-                 Create New Tournament
-               </button>
+                className="w-full text-white py-4 px-6 rounded-lg font-medium transition-all duration-300 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/30 hover:-translate-y-1 cursor-pointer"
+                style={{ backgroundColor: '#420AB2' }}
+              >
+                {t('dashboard.create.button')}
+              </button>
             </div>
           </div>
 
           {/* Manage Tournament */}
-          <div className="glass-card rounded-xl p-10">
+          <div className={`glass-card rounded-xl p-10 border-2 border-transparent transition-all duration-300 ${isManageButtonHovered ? 'border-purple-500 shadow-2xl shadow-purple-500/20 -translate-y-2' : ''}`}>
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8" style={{ backgroundColor: '#9127E6' }}>
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8 transition-all duration-300 ${isManageButtonHovered ? 'scale-110 shadow-lg' : ''}`} style={{ backgroundColor: '#9127E6' }}>
+                <svg className={`w-10 h-10 text-white transition-all duration-300 ${isManageButtonHovered ? 'scale-110' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                   <circle cx="6" cy="6" r="1.5" fill="currentColor" />
                   <circle cx="6" cy="12" r="1.5" fill="currentColor" />
                   <circle cx="6" cy="18" r="1.5" fill="currentColor" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-semibold text-white mb-5">
-                Manage Tournament
+              <h2 className={`text-3xl font-semibold text-white mb-5 transition-colors duration-300 ${isManageButtonHovered ? 'text-purple-300' : ''}`}>
+                {t('dashboard.manage.tournament')}
               </h2>
               <p className="text-white mb-8 text-lg leading-relaxed">
-                Manage existing tournaments, view results, and adjust settings.
+                {t('dashboard.manage.description')}
               </p>
               <button 
+                onMouseEnter={() => setIsManageButtonHovered(true)}
+                onMouseLeave={() => setIsManageButtonHovered(false)}
                 onClick={() => setCurrentView('manage-tournament')}
-                className="w-full text-white py-4 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity text-lg"
+                className="w-full text-white py-4 px-6 rounded-lg font-medium transition-all duration-300 text-lg hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/30 hover:-translate-y-1 cursor-pointer"
                 style={{ backgroundColor: '#9127E6' }}
               >
-                Manage Tournament
+                {t('dashboard.manage.button')}
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import type { ReactNode, MouseEvent as ReactMouseEvent, ChangeEvent, CSSProperties, JSX } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -1767,7 +1768,34 @@ interface BodyTextProps {
   style?: CSSProperties;
 }
 
+// Back button component
+function BackButton({ onClick }: { onClick: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <button
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      className="group flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-x-1 cursor-pointer"
+    >
+      <svg 
+        className={`w-5 h-5 text-white transition-all duration-300 ${isHovered ? 'transform -translate-x-1' : ''}`}
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      </svg>
+      <span className="text-white font-medium group-hover:text-purple-300 transition-colors duration-300">
+        Terug
+      </span>
+    </button>
+  );
+}
+
 export default function CustomTemplatePage() {
+  const router = useRouter();
   const [componentOrder, setComponentOrder] = useState<string[]>(() => getDefaultComponentOrder());
   const [componentState, setComponentState] = useState<Record<string, boolean>>(() => getDefaultComponentVisibility());
   const [activeComponent, setActiveComponent] = useState<string>('navigation');
@@ -6819,15 +6847,7 @@ export default function CustomTemplatePage() {
           </button>
         </div>
         <div className="flex-1 flex items-center justify-end gap-3">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 hover:border-white/40 transition-colors text-sm"
-          >
-            ← Terug naar dashboard
-          </Link>
-          <button className="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition">
-            Naar wizard
-          </button>
+          <BackButton onClick={() => router.push('/dashboard')} />
         </div>
       </header>
 

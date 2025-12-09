@@ -22,7 +22,7 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/dashboard">
+            <Link href="/login">
               <button className="text-white px-12 py-4 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:bg-[#420AB2]" style={{
                 backgroundColor: '#482CFF',
                 boxShadow: '0 0 30px rgba(72, 44, 255, 0.4)'
