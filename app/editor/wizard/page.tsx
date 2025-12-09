@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, Suspense, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { generateTournamentTemplate } from '../../utils/claude-template-generator'
 import ComponentEditor from '../../components/ComponentEditor'
 import LoadingOverlay from '../../components/LoadingOverlay'

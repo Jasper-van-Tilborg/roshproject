@@ -358,11 +358,13 @@ function DraggableUploadItem({
 // Droppable Image Field Component (for settings panel)
 function DroppableImageField({ 
   id, 
+  value,
   onChange, 
   label, 
   children 
 }: { 
   id: string; 
+  value?: string;
   onChange: (url: string) => void;
   label?: string;
   children: ReactNode;
@@ -389,15 +391,19 @@ function DroppableImageField({
 // Droppable Image Area Component (for preview)
 function DroppableImageArea({ 
   id, 
+  value,
   onChange, 
   className = '',
   style,
+  minHeight,
   children
 }: { 
   id: string; 
+  value?: string;
   onChange: (url: string) => void;
   className?: string;
   style?: React.CSSProperties;
+  minHeight?: string;
   children: ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -4492,10 +4498,10 @@ export default function CustomTemplatePage() {
                 </button>
                 {expandedStatsSections.stats && (
                   <div className="px-4 pb-4 space-y-3">
-                    {statsSettings.stats.map((stat) => (
+                    {statsSettings.stats.map((stat, index) => (
                       <div key={stat.id} className="rounded-xl border border-white/5 bg-[#11132A]/50 p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-[0.2em] text-white/50">Stat {idx + 1}</span>
+                          <span className="text-xs uppercase tracking-[0.2em] text-white/50">Stat {index + 1}</span>
                           {statsSettings.stats.length > 1 && (
                             <button
                               onClick={() => setStatsSettings((prev) => ({ ...prev, stats: prev.stats.filter((s) => s.id !== stat.id) }))}
