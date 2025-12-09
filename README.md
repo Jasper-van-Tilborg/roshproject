@@ -159,7 +159,7 @@ A drag-and-drop visual editor for building tournament websites without writing c
 - FAQ
 - Group Stage
 
-### 3. Tournament Pages (`/[slug]`)
+### 4. Tournament Pages (`/[slug]`)
 
 Public-facing pages for published tournaments.
 
