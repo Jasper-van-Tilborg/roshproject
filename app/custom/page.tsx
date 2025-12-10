@@ -25,8 +25,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { LivestreamEmbed } from '../components/livestream';
-import Tutorial, { type TutorialStep } from '../components/Tutorial';
-import tutorialConfig from '../../data/tutorial-config.json';
+import Tutorial from '../components/Tutorial';
+
+// Google Analytics gtag type
+interface WindowWithGtag extends Window {
+  gtag?: (command: string, targetId: string, config?: Record<string, unknown>) => void;
+}
 
 const createId = () => Math.random().toString(36).substring(2, 9);
 
@@ -264,6 +268,7 @@ function DraggableUploadItem({
         {...attributes}
         className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1B1F3E] to-[#0B0E1C] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-grab active:cursor-grabbing"
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={item.url} 
           alt={item.name}
@@ -360,7 +365,7 @@ function DraggableUploadItem({
 // Droppable Image Field Component (for settings panel)
 function DroppableImageField({ 
   id, 
-  value,
+  value: _value, // eslint-disable-line @typescript-eslint/no-unused-vars
   onChange, 
   label, 
   children 
@@ -393,11 +398,11 @@ function DroppableImageField({
 // Droppable Image Area Component (for preview)
 function DroppableImageArea({ 
   id, 
-  value,
+  value: _value, // eslint-disable-line @typescript-eslint/no-unused-vars
   onChange, 
   className = '',
   style,
-  minHeight,
+  minHeight: _minHeight, // eslint-disable-line @typescript-eslint/no-unused-vars
   children
 }: { 
   id: string; 
@@ -1850,7 +1855,7 @@ export default function CustomTemplatePage() {
   const [navFormat, setNavFormat] = useState<string>('default');
   const [activeTab, setActiveTab] = useState<EditorTab>('components');
   const [isTutorialActive, setIsTutorialActive] = useState(false);
-  const [tutorialStep, setTutorialStep] = useState(0);
+  const [, setTutorialStep] = useState(0);
   const [baseColors, setBaseColors] = useState<Record<BaseColorKey, string>>(() => ({ ...DEFAULT_BASE_COLORS }));
   const [colorPalette, setColorPalette] = useState<Record<ThemeColorKey, string>>(() => generateColorPalette(DEFAULT_BASE_COLORS));
   const colorPaletteRef = useRef(colorPalette);
@@ -2493,7 +2498,9 @@ export default function CustomTemplatePage() {
     setBaseColorsAndPalette(() => ({ ...DEFAULT_BASE_COLORS }));
   };
 
-  const resetAllSettings = () => {
+  // Reset all settings function (currently unused but kept for future use)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _resetAllSettings = () => {
     setComponentOrder(getDefaultComponentOrder());
     setComponentState(getDefaultComponentVisibility());
     setActiveComponent('navigation');
@@ -2522,11 +2529,14 @@ export default function CustomTemplatePage() {
     setIsTutorialActive(true);
     setTutorialStep(0);
     // Analytics event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'tutorial_started', {
-        event_category: 'tutorial',
-        event_label: 'custom_page_editor',
-      });
+    if (typeof window !== 'undefined') {
+      const win = window as WindowWithGtag;
+      if (win.gtag) {
+        win.gtag('event', 'tutorial_started', {
+          event_category: 'tutorial',
+          event_label: 'custom_page_editor',
+        });
+      }
     }
   };
 
@@ -2540,22 +2550,28 @@ export default function CustomTemplatePage() {
       localStorage.setItem('custom_page_tutorial_completed', 'true');
     }
     // Analytics event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'tutorial_completed', {
-        event_category: 'tutorial',
-        event_label: 'custom_page_editor',
-      });
+    if (typeof window !== 'undefined') {
+      const win = window as WindowWithGtag;
+      if (win.gtag) {
+        win.gtag('event', 'tutorial_completed', {
+          event_category: 'tutorial',
+          event_label: 'custom_page_editor',
+        });
+      }
     }
   };
 
   const handleTutorialStepChange = (stepIndex: number) => {
     setTutorialStep(stepIndex);
     // Analytics event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'step_viewed', {
-        event_category: 'tutorial',
-        event_label: `step_${stepIndex + 1}`,
-      });
+    if (typeof window !== 'undefined') {
+      const win = window as WindowWithGtag;
+      if (win.gtag) {
+        win.gtag('event', 'step_viewed', {
+          event_category: 'tutorial',
+          event_label: `step_${stepIndex + 1}`,
+        });
+      }
     }
   };
 
@@ -5017,6 +5033,7 @@ export default function CustomTemplatePage() {
                         <div className="flex items-center gap-3">
                           <div className="w-16 h-16 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {logo.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={logo.url}
                                 alt={logo.name || 'Logo preview'}
@@ -6311,6 +6328,7 @@ export default function CustomTemplatePage() {
                           </svg>
                           <div className="flex items-center gap-2">
                             {team.logoUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img src={team.logoUrl} alt={team.name} className="w-8 h-8 rounded-lg object-cover" />
                             ) : (
                               <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold" style={{ backgroundColor: teamsSettings.colors.initialsBackground, color: teamsSettings.colors.initialsText }}>
@@ -6449,6 +6467,7 @@ export default function CustomTemplatePage() {
                                         className="w-10 h-10 flex-shrink-0 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden cursor-pointer hover:border-white/30 transition"
                                       >
                                         {player.avatarUrl ? (
+                                          /* eslint-disable-next-line @next/next/no-img-element */
                                           <img src={player.avatarUrl} alt={player.name} className="w-full h-full object-cover" />
                                         ) : (
                                           <div className="w-5 h-5 text-white/30 flex items-center justify-center text-xs">👤</div>
@@ -7485,6 +7504,7 @@ export default function CustomTemplatePage() {
                       className={`flex items-center gap-2 sm:gap-4 ${navigationLogoWrapperClass}`}
                     >
                       {navigationSettings.logoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={navigationSettings.logoUrl}
                           alt="Logo"
@@ -7670,6 +7690,7 @@ export default function CustomTemplatePage() {
                         style={{ padding: '1rem 0' }}
                       >
                         {heroSettings.heroImageUrl && (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={heroSettings.heroImageUrl}
                             alt="Hero visual"
@@ -7840,6 +7861,7 @@ export default function CustomTemplatePage() {
                             style={{ minHeight }}
                           >
                             {aboutSettings.imageUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={aboutSettings.imageUrl}
                                 alt="About visual"
@@ -7887,6 +7909,7 @@ export default function CustomTemplatePage() {
                         >
                           <div className="relative overflow-hidden rounded-3xl border border-white/10 min-h-[320px]">
                             {aboutSettings.imageUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={aboutSettings.imageUrl}
                               alt="About visual"
@@ -8288,6 +8311,7 @@ export default function CustomTemplatePage() {
                         >
                           <div className="flex justify-center mb-4">
                             {team.logoUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img 
                                 src={team.logoUrl} 
                                 alt={team.name}
@@ -8328,6 +8352,7 @@ export default function CustomTemplatePage() {
                               <div key={player.id} className="flex items-center gap-2 justify-center">
                                 <div className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
                                   {player.avatarUrl ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img 
                                       src={player.avatarUrl} 
                                       alt={player.name}
@@ -8957,6 +8982,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             {logo.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={logo.url}
                                 alt={logo.name}
@@ -8998,6 +9024,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             {logo.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={logo.url}
                                 alt={logo.name}
@@ -9044,6 +9071,7 @@ export default function CustomTemplatePage() {
                                 }}
                               >
                                 {logo.url ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
                                   <img
                                     src={logo.url}
                                     alt={logo.name}
@@ -9083,6 +9111,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             {logo.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={logo.url}
                                 alt={logo.name}
@@ -9120,6 +9149,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             {logo.url ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
                                 src={logo.url}
                                 alt={logo.name}
@@ -9208,6 +9238,7 @@ export default function CustomTemplatePage() {
                           minHeight="40px"
                         >
                           {footerSettings.logoUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
                           ) : (
                             <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
@@ -9247,6 +9278,7 @@ export default function CustomTemplatePage() {
                               minHeight="40px"
                             >
                               {footerSettings.logoUrl ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
                                 <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
                               ) : (
                                 <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
@@ -9335,6 +9367,7 @@ export default function CustomTemplatePage() {
                                 minHeight="40px"
                               >
                                 {footerSettings.logoUrl ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
                                   <img src={footerSettings.logoUrl} alt="Footer logo" className="h-8 object-contain" />
                                 ) : (
                                   <div className="text-sm font-semibold" style={{ color: footerSettings.textColor }}>
@@ -9628,6 +9661,7 @@ export default function CustomTemplatePage() {
             return item ? (
               <div className="bg-[#11132A] border border-[#755DFF] rounded-2xl p-4 flex gap-4 items-center opacity-90 shadow-xl">
                 <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#1B1F3E] to-[#0B0E1C] border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
@@ -9755,11 +9789,14 @@ export default function CustomTemplatePage() {
         isActive={isTutorialActive}
         onClose={() => {
           closeTutorial();
-          if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('event', 'tutorial_skipped', {
-              event_category: 'tutorial',
-              event_label: 'custom_page_editor',
-            });
+          if (typeof window !== 'undefined') {
+            const win = window as WindowWithGtag;
+            if (win.gtag) {
+              win.gtag('event', 'tutorial_skipped', {
+                event_category: 'tutorial',
+                event_label: 'custom_page_editor',
+              });
+            }
           }
         }}
         onComplete={handleTutorialComplete}

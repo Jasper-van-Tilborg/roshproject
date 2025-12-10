@@ -160,6 +160,33 @@ export default function Tutorial({
     }
   }, [targetElement, isActive, calculatePosition]);
 
+  // Define handlers first
+  const handleComplete = useCallback(() => {
+    setIsVisible(false);
+    onComplete?.();
+    onClose();
+  }, [onComplete, onClose]);
+
+  const handleNext = useCallback(() => {
+    if (currentStep < config.steps.length - 1) {
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      setIsVisible(false);
+      onStepChange?.(nextStep);
+    } else {
+      handleComplete();
+    }
+  }, [currentStep, config.steps.length, onStepChange, handleComplete]);
+
+  const handlePrevious = useCallback(() => {
+    if (currentStep > 0) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      setIsVisible(false);
+      onStepChange?.(prevStep);
+    }
+  }, [currentStep, onStepChange]);
+
   // Handle keyboard navigation
   useEffect(() => {
     if (!isActive) return;
@@ -179,7 +206,7 @@ export default function Tutorial({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isActive, currentStep]);
+  }, [isActive, handleNext, handlePrevious, onClose]);
 
   // Handle swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -204,32 +231,6 @@ export default function Tutorial({
         handlePrevious();
       }
     }
-  };
-
-  const handleNext = () => {
-    if (currentStep < config.steps.length - 1) {
-      const nextStep = currentStep + 1;
-      setCurrentStep(nextStep);
-      setIsVisible(false);
-      onStepChange?.(nextStep);
-    } else {
-      handleComplete();
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      setIsVisible(false);
-      onStepChange?.(prevStep);
-    }
-  };
-
-  const handleComplete = () => {
-    setIsVisible(false);
-    onComplete?.();
-    onClose();
   };
 
   const handleSkip = () => {
@@ -260,11 +261,6 @@ export default function Tutorial({
       {/* Highlight */}
       {hasTarget && targetElement && step.highlight !== false && (() => {
         const rect = targetElement.getBoundingClientRect();
-        const computedStyle = window.getComputedStyle(targetElement);
-        
-        // Get border widths
-        const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
-        const borderRight = parseFloat(computedStyle.borderRightWidth) || 0;
         
         // For preview section, account for the exact visual edges
         // The section uses absolute positioning with left-[420px] and right-[368px]
