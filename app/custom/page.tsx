@@ -25,6 +25,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { LivestreamEmbed } from '../components/livestream';
+import Tutorial, { type TutorialStep } from '../components/Tutorial';
+import tutorialConfig from '../../data/tutorial-config.json';
 
 const createId = () => Math.random().toString(36).substring(2, 9);
 
@@ -461,6 +463,7 @@ function SortableComponentItem({ component, isActive, isVisible, onSelect, onTog
           {...listeners}
           className="cursor-grab active:cursor-grabbing text-white/40 hover:text-white/60 transition-colors"
           onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <circle cx="4" cy="4" r="1.5" />
@@ -484,7 +487,7 @@ function SortableComponentItem({ component, isActive, isVisible, onSelect, onTog
           e.stopPropagation();
           onToggle(e);
         }}
-        className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${
+        className={`relative inline-flex h-6 w-11 rounded-full transition-colors flex-shrink-0 ${
           isVisible ? 'bg-[#755DFF]' : 'bg-white/15'
         }`}
         role="switch"
@@ -1047,7 +1050,6 @@ type FontSettings = {
   sizes: {
     h1: number;
     h2: number;
-    h3: number;
     h4: number;
     body: number;
     small: number;
@@ -1068,7 +1070,7 @@ type UploadItem = {
   usedIn: string[];
 };
 
-type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4';
+type HeadingLevel = 'h1' | 'h2' | 'h4';
 type BodyVariant = 'body' | 'small';
 type AboutLayout = 'image-left' | 'image-right' | 'stacked' | 'spotlight' | 'feature-grid';
 type TextElementTag = keyof JSX.IntrinsicElements;
@@ -1107,7 +1109,7 @@ function ColorInputField({ label, value, onChange, helper }: ColorInputFieldProp
 const DEFAULT_FONT_SETTINGS: FontSettings = {
   headingFamily: 'Space Grotesk',
   bodyFamily: 'Inter',
-  sizes: { h1: 48, h2: 36, h3: 22, h4: 20, body: 16, small: 13 },
+  sizes: { h1: 48, h2: 36, h4: 20, body: 16, small: 13 },
   weights: { heading: 700, body: 400 },
   lineHeight: 140,
   letterSpacing: 2,
@@ -1120,7 +1122,6 @@ const DEFAULT_OVERLAY_OPACITY = 0.72;
 const HEADING_SIZE_MAP: Record<HeadingLevel, keyof FontSettings['sizes']> = {
   h1: 'h1',
   h2: 'h2',
-  h3: 'h3',
   h4: 'h4',
 };
 
@@ -1778,6 +1779,8 @@ export default function CustomTemplatePage() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [navFormat, setNavFormat] = useState<string>('default');
   const [activeTab, setActiveTab] = useState<EditorTab>('components');
+  const [isTutorialActive, setIsTutorialActive] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [baseColors, setBaseColors] = useState<Record<BaseColorKey, string>>(() => ({ ...DEFAULT_BASE_COLORS }));
   const [colorPalette, setColorPalette] = useState<Record<ThemeColorKey, string>>(() => generateColorPalette(DEFAULT_BASE_COLORS));
   const colorPaletteRef = useRef(colorPalette);
@@ -2442,6 +2445,98 @@ export default function CustomTemplatePage() {
     setSocialSettings(getDefaultSocialSettings());
     setFooterSettings(getDefaultFooterSettings());
     setCopiedColorKey(null);
+  };
+
+  // Tutorial functions
+  const startTutorial = () => {
+    setIsTutorialActive(true);
+    setTutorialStep(0);
+    // Analytics event
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'tutorial_started', {
+        event_category: 'tutorial',
+        event_label: 'custom_page_editor',
+      });
+    }
+  };
+
+  const closeTutorial = () => {
+    setIsTutorialActive(false);
+  };
+
+  const handleTutorialComplete = () => {
+    // Mark tutorial as completed
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('custom_page_tutorial_completed', 'true');
+    }
+    // Analytics event
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'tutorial_completed', {
+        event_category: 'tutorial',
+        event_label: 'custom_page_editor',
+      });
+    }
+  };
+
+  const handleTutorialStepChange = (stepIndex: number) => {
+    setTutorialStep(stepIndex);
+    // Analytics event
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'step_viewed', {
+        event_category: 'tutorial',
+        event_label: `step_${stepIndex + 1}`,
+      });
+    }
+  };
+
+  // Auto-start tutorial on page load
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Check if tutorial is explicitly disabled
+    const tutorialDisabled = localStorage.getItem('custom_page_tutorial_disabled');
+    
+    if (!tutorialDisabled) {
+      // Wait a bit for page to load and DOM to be ready
+      const timer = setTimeout(() => {
+        startTutorial();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const resetActiveTabSettings = () => {
+    switch (activeTab) {
+      case 'components':
+        setComponentOrder(getDefaultComponentOrder());
+        setComponentState(getDefaultComponentVisibility());
+        setActiveComponent('navigation');
+        setNavFormat('default');
+        setNavigationSettings(getDefaultNavigationSettings());
+        setHeroSettings(getDefaultHeroSettings());
+        setAboutSettings(getDefaultAboutSettings());
+        setProgramSettings(getDefaultProgramSettings());
+        setBracketSettings(getDefaultBracketSettings());
+        setGroupStageSettings(getDefaultGroupStageSettings());
+        setStatsSettings(getDefaultStatsSettings());
+        setFaqSettings(getDefaultFAQSettings());
+        setTwitchSettings(getDefaultTwitchSettings());
+        setSponsorSettings(getDefaultSponsorSettings());
+        setSocialSettings(getDefaultSocialSettings());
+        setFooterSettings(getDefaultFooterSettings());
+        break;
+      case 'colors':
+        setBaseColorsAndPalette(() => ({ ...DEFAULT_BASE_COLORS }));
+        setOverlayOpacity(DEFAULT_OVERLAY_OPACITY);
+        setCopiedColorKey(null);
+        break;
+      case 'fonts':
+        setFontSettings(getDefaultFontSettings());
+        break;
+      case 'uploads':
+        setUploads(getDefaultUploads());
+        break;
+    }
   };
 
   const handleImageUpload = (event: ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
@@ -6774,7 +6869,7 @@ export default function CustomTemplatePage() {
       onDragEnd={handleDragEnd}
     >
       <div className="min-h-screen bg-[#05060D] text-white flex flex-col">
-        <header className="fixed top-0 left-0 right-0 z-20 border-b border-white/10 bg-[#0E1020] px-8 py-5 flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 z-30 border-b-2 border-[#1a2a4a] bg-[#111730] px-8 py-5 flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">Live Editor</p>
           <h1 className="text-2xl font-semibold mt-1">Bouw een geheel eigen pagina</h1>
@@ -6805,14 +6900,27 @@ export default function CustomTemplatePage() {
           </button>
         </div>
         <div className="flex-1 flex items-center justify-end gap-3">
+          <button
+            onClick={startTutorial}
+            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-sm transition flex items-center gap-2"
+            title="Start tutorial"
+            aria-label="Help - Start tutorial"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Help
+          </button>
           <BackButton onClick={() => router.push('/dashboard')} />
         </div>
       </header>
 
       <main className="flex-1 overflow-hidden relative pt-[85px]">
         {/* Left panel */}
-        <aside className="w-[420px] bg-[#0E1020] border-r border-white/10 flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10 flex-shrink-0">
-          <div className="w-20 border-r border-white/10 flex flex-col items-center py-6 px-3 gap-4">
+        <aside className="w-[420px] bg-[#111730] border-r-2 border-[#1a2a4a] flex fixed left-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-20 flex-shrink-0">
+          <div className="w-20 border-r-2 border-[#1a2a4a] flex flex-col items-center py-6 px-3 gap-4">
             {[
               { id: 'components', label: 'Components', icon: 'components' as IconName },
               { id: 'colors', label: 'Colors', icon: 'colors' as IconName },
@@ -6824,10 +6932,10 @@ export default function CustomTemplatePage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as EditorTab)}
-                  className={`w-14 h-14 rounded-2xl border flex items-center justify-center transition-all ${
+                  className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all ${
                     isActive
                       ? 'border-[#755DFF] bg-[#1a1d36] text-white shadow-[0_10px_25px_rgba(117,93,255,0.35)]'
-                      : 'border-white/10 text-white/50 hover:border-white/30 hover:text-white'
+                      : 'border-[#1a2a4a] text-white/50 hover:border-[#1a2a4a] hover:text-white'
                   }`}
                   title={tab.label}
                   aria-label={tab.label}
@@ -6839,8 +6947,8 @@ export default function CustomTemplatePage() {
           </div>
 
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4">
-              <div>
+            <div className="px-6 py-5 border-b border-white/10 relative">
+              <div className="pr-32">
                 <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">Editor</p>
                 <h2 className="text-lg font-semibold capitalize">
                   {activeTab === 'components' && 'Select and change your components'}
@@ -6851,10 +6959,10 @@ export default function CustomTemplatePage() {
               </div>
               <button
                 type="button"
-                onClick={resetAllSettings}
-                className="group text-[11px] uppercase tracking-[0.35em] text-white flex items-center gap-2 bg-gradient-to-r from-[#755DFF] to-[#4AD4FF] px-4 py-2 rounded-full shadow-[0_10px_25px_rgba(117,93,255,0.45)] hover:shadow-[0_12px_30px_rgba(117,93,255,0.65)] transition whitespace-nowrap"
+                onClick={resetActiveTabSettings}
+                className="absolute right-6 top-1/2 -translate-y-1/2 group text-[11px] uppercase tracking-[0.35em] text-white flex items-center gap-2 bg-[#755DFF]/20 hover:bg-[#755DFF]/30 border border-[#755DFF]/40 hover:border-[#755DFF]/60 px-4 py-2 rounded-lg transition whitespace-nowrap"
               >
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold">
+                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#755DFF]/30 text-[10px] font-bold">
                   ↺
                 </span>
                 Reset
@@ -7267,10 +7375,10 @@ export default function CustomTemplatePage() {
         </aside>
 
         {/* Middle preview area */}
-        <section className="bg-[#03040B] absolute left-[420px] right-[368px] top-[85px] bottom-0 flex flex-col overflow-hidden">
+        <section className="bg-[#050712] absolute left-[420px] right-[368px] top-[100px] bottom-0 flex flex-col overflow-hidden z-10">
           <div className="flex-1 overflow-y-auto pr-10 -mr-6" data-preview-scroll-container>
             <div 
-              className="w-full min-h-full bg-gradient-to-br from-[#0B0E1F] to-[#020308] flex flex-col mx-auto"
+              className="w-full min-h-full bg-gradient-to-br from-[#080A18] to-[#050712] flex flex-col mx-auto"
               style={{ 
                 backgroundColor: colorPalette.pageBackground,
                 fontFamily: formatFontStack(fontSettings.bodyFamily),
@@ -7961,7 +8069,7 @@ export default function CustomTemplatePage() {
                                     </span>
                                     <div className="min-w-0 flex-1">
                                       <HeadingText 
-                                        level="h3" 
+                                        level="h2" 
                                         className="truncate transition-colors group-hover/team:opacity-100" 
                                         color={groupStageSettings.colors.teamNameColor}
                                         style={{ fontSize: `${groupStageSettings.fontSizes.teamName}px` }}
@@ -8606,7 +8714,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             <HeadingText 
-                              level="h3" 
+                              level="h2" 
                               className="mb-2"
                               color={faqSettings.colors.questionColor}
                               style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
@@ -8636,7 +8744,7 @@ export default function CustomTemplatePage() {
                             }}
                           >
                             <HeadingText 
-                              level="h3" 
+                              level="h2" 
                               className="mb-1"
                               color={faqSettings.colors.questionColor}
                               style={{ fontSize: `${faqSettings.fontSizes.question}px` }}
@@ -9368,7 +9476,7 @@ export default function CustomTemplatePage() {
         </section>
 
         {/* Right panel */}
-        <aside className="w-[400px] bg-[#0E1020] border-l border-white/10 flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-10 flex-shrink-0">
+        <aside className="w-[400px] bg-[#111730] border-l-2 border-[#1a2a4a] flex flex-col fixed right-0 top-[85px] h-[calc(100vh-85px)] overflow-hidden z-20 flex-shrink-0">
           <div className="px-6 py-5 border-b border-white/10">
             <p className="text-xs uppercase tracking-[0.25em] text-white/40 mb-1">{activeComponentLabel}</p>
             <h2 className="text-lg font-semibold">Configureer de {activeComponentLabel}</h2>
@@ -9382,7 +9490,7 @@ export default function CustomTemplatePage() {
       {/* Fullscreen Preview Modal */}
       {isFullscreen && (
         <div className="fixed inset-0 z-50 bg-[#05060D] flex flex-col">
-          <div className="flex items-center justify-between px-8 py-4 border-b border-white/10 bg-[#0E1020]">
+          <div className="flex items-center justify-between px-8 py-4 border-b-2 border-[#1a2a4a] bg-[#111730]">
             <div className="flex items-center gap-4">
               <h2 className="text-xl font-semibold">Live Preview - Fullscreen</h2>
               <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
@@ -9409,7 +9517,7 @@ export default function CustomTemplatePage() {
               Sluiten
             </button>
           </div>
-          <div className="flex-1 overflow-hidden bg-[#03040B] flex items-start justify-center">
+          <div className="flex-1 overflow-hidden bg-[#050712] flex items-start justify-center">
             <div className="w-full h-full overflow-y-auto flex items-start justify-center pr-10 -mr-6">
             <div 
               className="bg-gradient-to-br from-[#0B0E1F] to-[#020308] w-full transition-all"
@@ -9464,6 +9572,131 @@ export default function CustomTemplatePage() {
         ) : null}
       </DragOverlay>
       </div>
+
+      {/* Tutorial */}
+      <Tutorial
+        config={{
+          steps: [
+            {
+              id: 'welcome',
+              targetSelector: 'body',
+              position: 'center',
+              title: 'Welkom bij de Live Editor',
+              content: 'Welkom! Deze tour laat je in enkele stappen zien hoe je een Custom Page maakt en aanpast.',
+              highlight: false,
+            },
+            {
+              id: 'preview',
+              targetSelector: 'section.bg-\\[\\#050712\\].absolute.left-\\[420px\\]',
+              position: 'left',
+              title: 'Live Preview',
+              content: 'Centrale preview: zie wijzigingen direct. Alles wat je aanpast wordt hier automatisch bijgewerkt.',
+              highlight: true,
+            },
+            {
+              id: 'left-panel-tabs',
+              targetSelector: 'aside.w-\\[420px\\]',
+              position: 'right',
+              title: 'Linker Paneel',
+              content: 'Linker paneel bevat vier tabbladen: Componenten, Fonts, Colors en Uploads — de belangrijkste aanpassingen staan hier.',
+              highlight: true,
+            },
+            {
+              id: 'components-tab',
+              targetSelector: 'button[aria-label="Components"]',
+              position: 'right',
+              title: 'Componenten Tab',
+              content: 'Componenten: sleep of selecteer elementen om ze aan de pagina toe te voegen of te bewerken.',
+              highlight: true,
+              actionBefore: () => {
+                const btn = document.querySelector('button[aria-label="Components"]') as HTMLElement;
+                if (btn) {
+                  btn.click();
+                  setActiveTab('components');
+                }
+              },
+            },
+            {
+              id: 'right-panel',
+              targetSelector: 'aside.w-\\[400px\\]',
+              position: 'left',
+              title: 'Rechter Paneel',
+              content: 'Rechter paneel toont de detailinstellingen van het geselecteerde component. Klik op een component in de linker lijst om de instellingen ervan te zien en aan te passen (inhoud, layout, tekst).',
+              highlight: true,
+            },
+            {
+              id: 'colors-tab',
+              targetSelector: 'button[aria-label="Colors"]',
+              position: 'right',
+              title: 'Colors Tab',
+              content: 'Colors: pas de kleuren van je pagina aan. Kies basiskleuren en pas het thema aan naar jouw stijl.',
+              highlight: true,
+              actionBefore: () => {
+                const btn = document.querySelector('button[aria-label="Colors"]') as HTMLElement;
+                if (btn) {
+                  btn.click();
+                  setActiveTab('colors');
+                }
+              },
+            },
+            {
+              id: 'fonts-tab',
+              targetSelector: 'button[aria-label="Fonts"]',
+              position: 'right',
+              title: 'Fonts Tab',
+              content: 'Fonts: kies lettertypes en pas tekstgroottes aan. Stel heading en body fonts in voor een consistente typografie.',
+              highlight: true,
+              actionBefore: () => {
+                const btn = document.querySelector('button[aria-label="Fonts"]') as HTMLElement;
+                if (btn) {
+                  btn.click();
+                  setActiveTab('fonts');
+                }
+              },
+            },
+            {
+              id: 'uploads',
+              targetSelector: 'button[aria-label="Uploads"]',
+              position: 'right',
+              title: 'Uploads & Media',
+              content: 'Uploads: voeg afbeeldingen en bestanden toe. Gebruik hier je eigen campagne-assets.',
+              highlight: true,
+              actionBefore: () => {
+                const btn = document.querySelector('button[aria-label="Uploads"]') as HTMLElement;
+                if (btn) {
+                  btn.click();
+                  setActiveTab('uploads');
+                }
+              },
+            },
+            {
+              id: 'preview-options',
+              targetSelector: 'header div.flex-1.flex.items-center.justify-center',
+              position: 'bottom',
+              title: 'Preview & Device Selectie',
+              content: 'Bekijk je pagina in fullscreen voor een volledig overzicht, of selecteer desktop, tablet of mobile om te zien hoe je pagina eruit ziet op verschillende apparaten.',
+              highlight: true,
+            },
+          ],
+          skipText: 'Sla over',
+          nextText: 'Volgende',
+          previousText: 'Vorige',
+          closeText: 'Sluit',
+          progressText: 'Stap',
+        }}
+        isActive={isTutorialActive}
+        onClose={() => {
+          closeTutorial();
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'tutorial_skipped', {
+              event_category: 'tutorial',
+              event_label: 'custom_page_editor',
+            });
+          }
+        }}
+        onComplete={handleTutorialComplete}
+        onStepChange={handleTutorialStepChange}
+      />
     </DndContext>
   );
 }

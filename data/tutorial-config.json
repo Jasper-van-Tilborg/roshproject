@@ -1,0 +1,69 @@
+{
+  "steps": [
+    {
+      "id": "welcome",
+      "targetSelector": "body",
+      "position": "center",
+      "title": "Welkom bij de Live Editor",
+      "content": "Welkom! Deze tour laat je in enkele stappen zien hoe je een Custom Page maakt en aanpast.",
+      "highlight": false
+    },
+    {
+      "id": "preview",
+      "targetSelector": "[data-preview-scroll-container]",
+      "position": "left",
+      "title": "Live Preview",
+      "content": "Centrale preview: zie wijzigingen direct. Alles wat je aanpast wordt hier automatisch bijgewerkt.",
+      "highlight": true
+    },
+    {
+      "id": "left-panel-tabs",
+      "targetSelector": "aside.w-\\[420px\\]",
+      "position": "right",
+      "title": "Linker Paneel",
+      "content": "Linker paneel bevat vier tabbladen: Componenten, Fonts, Colors en Uploads — de belangrijkste aanpassingen staan hier.",
+      "highlight": true
+    },
+    {
+      "id": "components-tab",
+      "targetSelector": "button[aria-label='Components']",
+      "position": "right",
+      "title": "Componenten Tab",
+      "content": "Componenten: sleep of selecteer elementen om ze aan de pagina toe te voegen of te bewerken.",
+      "highlight": true,
+      "actionBefore": "() => { const btn = document.querySelector('button[aria-label=\"Components\"]') as HTMLElement; if (btn) btn.click(); }"
+    },
+    {
+      "id": "right-panel",
+      "targetSelector": "aside.w-\\[400px\\]",
+      "position": "left",
+      "title": "Rechter Paneel",
+      "content": "Rechter paneel toont de detailinstellingen van het geselecteerde component (inhoud, layout, tekst).",
+      "highlight": true
+    },
+    {
+      "id": "uploads",
+      "targetSelector": "button[aria-label='Uploads']",
+      "position": "right",
+      "title": "Uploads & Media",
+      "content": "Uploads: voeg afbeeldingen en bestanden toe. Gebruik hier je eigen campagne-assets.",
+      "highlight": true,
+      "actionBefore": "() => { const btn = document.querySelector('button[aria-label=\"Uploads\"]') as HTMLElement; if (btn) btn.click(); }"
+    },
+    {
+      "id": "save",
+      "targetSelector": "header",
+      "position": "bottom",
+      "title": "Opslaan & Publiceren",
+      "content": "Opslaan & publiceer: vergeet niet regelmatig op te slaan. Publiceer wanneer je klaar bent.",
+      "highlight": true
+    }
+  ],
+  "skipText": "Sla over",
+  "nextText": "Volgende",
+  "previousText": "Vorige",
+  "closeText": "Sluit",
+  "progressText": "Stap"
+}
+
+
