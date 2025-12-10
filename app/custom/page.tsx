@@ -1413,7 +1413,28 @@ const getDefaultFAQSettings = () => ({
   layout: 'accordion' as FAQLayout,
   title: 'FAQ',
   subtitle: 'Veelgestelde vragen',
-  items: [] as Array<{ id: string; question: string; answer: string }>,
+  items: [
+    {
+      id: createId(),
+      question: 'Hoe kan ik me inschrijven voor het toernooi?',
+      answer: 'Je kunt je inschrijven via het inschrijfformulier op deze pagina. Vul alle vereiste informatie in en zorg ervoor dat je team compleet is voordat je de inschrijving indient.',
+    },
+    {
+      id: createId(),
+      question: 'Wat zijn de prijzen voor de winnaars?',
+      answer: 'De totale prijzenpot bedraagt €25.000. De verdeling wordt bekendgemaakt na de groepsfase. De winnaar ontvangt de grootste prijs, gevolgd door de nummer 2 en 3.',
+    },
+    {
+      id: createId(),
+      question: 'Wanneer en waar vindt het toernooi plaats?',
+      answer: 'Het toernooi vindt plaats in de Rotterdam Ahoy. De exacte data en tijden worden binnenkort bekendgemaakt. Houd de website in de gaten voor updates.',
+    },
+    {
+      id: createId(),
+      question: 'Hoeveel teams kunnen deelnemen?',
+      answer: 'Er kunnen 16 teams deelnemen aan het toernooi. De inschrijvingen worden op volgorde van binnenkomst verwerkt. Zorg ervoor dat je je op tijd inschrijft!',
+    },
+  ] as Array<{ id: string; question: string; answer: string }>,
   fontSizes: {
     title: 36,
     subtitle: 16,
@@ -1655,7 +1676,56 @@ const resetRegistrationColors = () => {
 const getDefaultTeamsSettings = () => ({
   title: 'Geregistreerde Teams',
   subtitle: 'Deelnemers',
-  teams: [] as Array<{ id: string; initials: string; name: string; tag: string; logoUrl: string; players: Array<{ id: string; name: string; avatarUrl: string }> }>,
+  teams: [
+    {
+      id: createId(),
+      initials: 'AW',
+      name: 'Arctic Wolves',
+      tag: 'ARCT',
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Frost', avatarUrl: '' },
+        { id: createId(), name: 'Blizzard', avatarUrl: '' },
+        { id: createId(), name: 'Ice', avatarUrl: '' },
+      ],
+    },
+    {
+      id: createId(),
+      initials: 'FD',
+      name: 'Fire Dragons',
+      tag: 'FIRE',
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Flame', avatarUrl: '' },
+        { id: createId(), name: 'Ember', avatarUrl: '' },
+        { id: createId(), name: 'Spark', avatarUrl: '' },
+      ],
+    },
+    {
+      id: createId(),
+      initials: 'SW',
+      name: 'Shadow Wolves',
+      tag: 'SHAD',
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Shadow', avatarUrl: '' },
+        { id: createId(), name: 'Night', avatarUrl: '' },
+        { id: createId(), name: 'Dark', avatarUrl: '' },
+      ],
+    },
+    {
+      id: createId(),
+      initials: 'TS',
+      name: 'Thunder Strike',
+      tag: 'THND',
+      logoUrl: '',
+      players: [
+        { id: createId(), name: 'Thunder', avatarUrl: '' },
+        { id: createId(), name: 'Bolt', avatarUrl: '' },
+        { id: createId(), name: 'Storm', avatarUrl: '' },
+      ],
+    },
+  ] as Array<{ id: string; initials: string; name: string; tag: string; logoUrl: string; players: Array<{ id: string; name: string; avatarUrl: string }> }>,
   numberOfTeams: 4,
   playersPerTeam: 3,
   columns: 4,
@@ -3456,6 +3526,7 @@ export default function CustomTemplatePage() {
               () => setExpandedHeroSections((prev) => ({ ...prev, image: !prev.image })),
               <div className="space-y-3">
                 {selectedHeroTemplate.requiresImage ? (
+                  // Hero image for split layouts
                   <DroppableImageField
                     id="hero-image"
                     value={heroSettings.heroImageUrl}
@@ -7470,12 +7541,6 @@ export default function CustomTemplatePage() {
                   style={{ 
                     backgroundColor: colorPalette.sectionBackground, 
                     order: componentOrderMap['hero'] ?? 1,
-                    ...(heroSettings.backgroundImageUrl && !selectedHeroTemplate.requiresImage ? {
-                      backgroundImage: `url(${heroSettings.backgroundImageUrl})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat',
-                    } : {})
                   }}
                 >
                   {heroSettings.backgroundImageUrl && !selectedHeroTemplate.requiresImage && (
@@ -7487,6 +7552,9 @@ export default function CustomTemplatePage() {
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',
                         zIndex: 0,
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '100%',
                       }}
                     />
                   )}
