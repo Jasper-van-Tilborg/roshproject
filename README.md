@@ -398,12 +398,12 @@ The Custom Live Editor provides:
 
 ## Who Did What
 
-Custom Live Editor: Bor
-AI Live Editor: Jasper
-Components: Jasper, Thijn, Tim & Bor
-Login Page: Jasper
-Admin Page: Jasper
-Database: Jasper
-AI Wizard: Jasper
-Claude AI Integration: Jasper & Thijn
-(See Bracket Vercel by Thijn)
+- Custom Live Editor: Bor
+- AI Live Editor: Jasper
+- Components: Jasper, Thijn, Tim & Bor
+- Login Page: Jasper
+- Admin Page: Jasper
+- Database: Jasper
+- AI Wizard: Jasper
+- Claude AI Integration: Jasper & Thijn
+- (See Bracket Vercel by Thijn)
