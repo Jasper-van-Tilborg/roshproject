@@ -395,3 +395,15 @@ The Custom Live Editor provides:
 - [Supabase Documentation](https://supabase.com/docs)
 - [Anthropic Claude API](https://docs.anthropic.com/)
 - [Tailwind CSS](https://tailwindcss.com/docs)
+
+## Who Did What
+
+Custom Live Editor: Bor
+AI Live Editor: Jasper
+Components: Jasper, Thijn, Tim & Bor
+Login Page: Jasper
+Admin Page: Jasper
+Database: Jasper
+AI Wizard: Jasper
+Claude AI Integration: Jasper & Thijn
+(See Bracket Vercel by Thijn)
